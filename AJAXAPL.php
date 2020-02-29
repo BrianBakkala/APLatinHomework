@@ -241,9 +241,9 @@ if (isset($_REQUEST["filterdictionary"]))
 					
 				}
 				
-				$hint .= "<img  onclick = 'SaveEntry(this) '  style = 'display:none;' class = 'savebutton' src = 'LHcheck.png'>";
-				$hint .= "<img  onclick = 'EditEntry(this)'  class = 'editbutton' src = 'LHedit.png'>";
-				$hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'LHx.png'>";
+				$hint .= "<img  onclick = 'SaveEntry(this) '  style = 'display:none;' class = 'savebutton' src = 'Images/LHcheck.png'>";
+				$hint .= "<img  onclick = 'EditEntry(this)'  class = 'editbutton' src = 'Images/LHedit.png'>";
+				$hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
 				
 
 				$hint .= "<attestations>"; 

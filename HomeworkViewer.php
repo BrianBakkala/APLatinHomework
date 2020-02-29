@@ -209,7 +209,7 @@ if($_GET['hw'] != "1")
 
 	$PrevHW = SQLQ('SELECT MAX(`HW`) FROM `#APHW` WHERE `HW` < ' . $_GET['hw'] );
 	echo "<A href = 'HomeworkViewer.php?hw=".$PrevHW."'>";
-	echo "<IMG id = 'leftarrow' SRC = 'LHarrow.png'>";
+	echo "<IMG id = 'leftarrow' SRC = 'Images/LHarrow.png'>";
 	echo "</A>";
 	
 }
@@ -251,7 +251,7 @@ echo "</h1>";
 $NextHW = SQLQ('SELECT Min(`HW`) FROM `#APHW` WHERE `HW` > ' . $_GET['hw'] );
 
 echo "<A href = 'HomeworkViewer.php?hw=".$NextHW."'>";
-echo "<IMG id = 'rightarrow' SRC = 'LHarrow.png'>";
+echo "<IMG id = 'rightarrow' SRC = 'Images/LHarrow.png'>";
 echo "</A  >";
 
 echo "<BR>";
