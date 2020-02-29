@@ -5,6 +5,7 @@
 	html {
 		text-align: center;
 		font-family: "Palatino Linotype";
+		-webkit-tap-highlight-color:  rgba(255, 255, 255, 0); 
 	}
 
 	h1 {
@@ -78,35 +79,60 @@
 	}
 
 
-	word[reveal="true"] entry {
+	word[reveal="true"] entry,
+	word[preview="true"] entry
+	{
 		border-top: 1px solid lightgray;
 	}
 
+
 	word[reveal="true"] baseword,
-	word[reveal="true"] clitic {
+	word[reveal="true"] clitic
+	{
+		border-right: 2px solid black;
+	}
+
+	word[reveal="true"] baseword
+	{
+		border-left: 2px solid black;
+	}
+
+	
+	word[preview="true"] baseword,
+	word[preview="true"] clitic
+	{
 		border-right: 2px solid darkgray;
 	}
 
-	word[reveal="true"] baseword {
+	word[preview="true"] baseword
+	{
 		border-left: 2px solid darkgray;
 	}
 
 
 	word[reveal="true"] entry,
-	word[reveal="true"] definition {
+	word[preview="true"] entry,
+	word[reveal="true"] definition,
+	word[preview="true"] definition
+	{
 		font-size: 18pt;
 
 	}
 
 	word[reveal="true"] baseword,
-	word[reveal="true"] clitic {
+	word[preview="true"] baseword,
+	word[reveal="true"] clitic,
+	word[preview="true"] clitic
+	{
 		padding: 5px;
 	}
 
-	word[reveal="true"]:not([clitic=""]) clitic text::before {
+	word[reveal="true"]:not([clitic=""]) clitic text::before,
+	word[preview="true"]:not([clitic=""]) clitic text::before
+	{
 		content: "-";
 	}
-
+	
 	freq {
 		color: rgba(0, 0, 0, 0);
 		display: block;
@@ -366,7 +392,7 @@ echo "</line>";
 
 <script>
 
-
+// alert(navigator.msMaxTouchPoints)
 words = document.getElementsByTagName('word')
 
 for (i=0; i <words.length; i++ )
@@ -375,12 +401,35 @@ for (i=0; i <words.length; i++ )
 	{
 		this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
 	}
+	words[i].onmouseover = function()
+	{
+		this.setAttribute("preview", ("true"))
+	}
+	words[i].onmouseout = function()
+	{
+		this.setAttribute("preview", ("false"))
+	}
+
+	words[i].ontouchstart = function()
+	{
+		this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
+		
+		for (i=0; i <words.length; i++ )
+		{
+			words[i].onclick = function(){}
+			words[i].onmouseover = function(){}
+			words[i].onmouseout = function(){}
+
+			words[i].ontouchstart = function()
+			{
+				this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
+			}
+
+		}
+
+
+	}
 }
-
-
-
-
-
 
 function GetAPLatinHW()
 {
