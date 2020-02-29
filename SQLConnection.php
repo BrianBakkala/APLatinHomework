@@ -3,29 +3,7 @@
 
 // Create connection
 $SQLerrorMessage = "error";
-if ($_SERVER['HTTP_HOST'] == "nexusinfo.altervista.org")
-{
-	$servername = "localhost";
-	$username = "nexusinfo@localhost";
-	$password = "!";
-	$dbname = "my_nexusinfo";
-}
-else if ($_SERVER['HTTP_HOST'] == "3.214.153.235" || $_SERVER['HTTP_HOST'] == "lighthouseattendance.com")
-{
-	$servername = "ls-75287f5db4cdbe2a2e66ab05983d1d6f49f25e8c.cvk2nsrbydso.us-east-1.rds.amazonaws.com";
-	$username = "bbakkala";
-	$password = base64_decode("TmFudHVja2V0ITUx");
-	$dbname = "dblighthouse";
-}
-else if ($_SERVER['HTTP_HOST'] == 'lighthouse.csamsacs.org')
-{
-	$servername = "lighthouse.csamsacs.org";
-	$username = "bakkala";
-	$password = "Verysecure01!!";
-	$dbname = "LH_";
-
-} 
-else if ($_SERVER['HTTP_HOST'] == 'aplatin.altervista.org')
+if ($_SERVER['HTTP_HOST'] == 'aplatin.altervista.org')
 {
 	$servername = "localhost";
 	$username = "aplatin"; 
@@ -33,14 +11,6 @@ else if ($_SERVER['HTTP_HOST'] == 'aplatin.altervista.org')
 	$dbname = "my_aplatin";
 
 }
-else   
-{
-
-	$servername = "localhost:3306";
-	$username = "lighthouse";
-	$password = "bnmBNM123!@#";
-	$dbname = "LH_";
-} 
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 	// Check connection
