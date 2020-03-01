@@ -68,6 +68,7 @@
 	}
 
 	.editbutton,
+	.infobutton,
 	.deletebutton {
 		position: relative;
 		height: 24px;
@@ -75,7 +76,7 @@
 		opacity: 0;
 	}
 
-	word:hover .editbutton {
+	word:hover .editbutton, word:hover .infobutton  {
 		cursor: pointer;
 		padding-left: 18px;
 		opacity: 1;
@@ -189,36 +190,47 @@
 <script>
 function FilterDict(filterText)
 {
-	if(document.getElementById('dictionary').getElementsByClassName('spinnerbig').length == 0)
+	if (document.getElementById('dictionary').getElementsByClassName('spinnerbig').length == 0)
 	{
 		document.getElementById('dictionary').innerHTML = "<BR><BR><BR><DIV class = 'spinnerbig'><DIV>"
 	}
-	
-		if(typeof(xmlhttp) != "undefined")
-		{
-			xmlhttp.abort()
-		}
-		
-		xmlhttp = new XMLHttpRequest();
-		xmlhttp.onreadystatechange = function()
-		{
-			if (this.readyState == 4 && this.status == 200)
-			{
-				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
-				if(document.getElementById('filterdict').value == filterText && document.getElementById('searchResult').innerText != filterText)
-				{
-					document.getElementById('dictionary').innerHTML = Response;
-					document.getElementById('searchResult').innerText = filterText;
-				}
-			}
-		};
 
-		XMLURL = "AJAXAPL.php?filterdictionary=true&filtertext=" + filterText;
-		xmlhttp.open("GET", XMLURL, true);
-		xmlhttp.send();
-		// cnsole.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL);
-		// return window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL;
-	
+	if (typeof(xmlhttp) != "undefined")
+	{
+		xmlhttp.abort()
+	}
+
+	xmlhttp = new XMLHttpRequest();
+	xmlhttp.onreadystatechange = function()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
+			if (document.getElementById('filterdict').value == filterText && document.getElementById('searchResult').innerText != filterText)
+			{
+				document.getElementById('dictionary').innerHTML = Response;
+				document.getElementById('searchResult').innerText = filterText;
+			}
+		}
+	};
+
+	XMLURL = "AJAXAPL.php?filterdictionary=true&filtertext=" + filterText;
+	xmlhttp.open("GET", XMLURL, true);
+	xmlhttp.send();
+	// cnsole.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL);
+	// return window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL;
+
+}
+
+function GetWordInfo(clickedElement)
+{
+	WordElement = clickedElement
+	while (WordElement.tagName.toLowerCase() != 'word')
+	{
+		WordElement = WordElement.parentElement
+	}
+
+	window.open( 'WordViewer.php?wordid=' + WordElement.getAttribute('wordid'), '_blank');
 }
 
 function EditEntry(clickedElement)
@@ -249,9 +261,9 @@ function EditEntry(clickedElement)
 		EntryEle = document.createElement('input')
 		EntryEle.setAttribute('type', "text")
 		EntryEle.setAttribute('class', "editEntry")
-		EntryEle.setAttribute('size', EntryStatic.innerText.length+5)
+		EntryEle.setAttribute('size', EntryStatic.innerText.length + 5)
 		EntryEle.setAttribute('value', EntryStatic.innerText)
-		EntryEle.onfocusout = function (e)
+		EntryEle.onfocusout = function(e)
 		{
 			console.log(e.srcElement)
 		}
@@ -259,17 +271,17 @@ function EditEntry(clickedElement)
 		DefinitionEle = document.createElement('input')
 		DefinitionEle.setAttribute('type', "text")
 		DefinitionEle.setAttribute('class', "editDef")
-		DefinitionEle.setAttribute('size', DefStatic.innerText.length+5)
+		DefinitionEle.setAttribute('size', DefStatic.innerText.length + 5)
 		DefinitionEle.setAttribute('value', DefStatic.innerText)
 		DefinitionEle.focus()
-		DefinitionElonfocusout = function (e)
+		DefinitionElonfocusout = function(e)
 		{
 			console.log(e.srcElement)
 		}
-		
+
 		SpinnerEle = document.createElement('div')
 		SpinnerEle.setAttribute('class', "spinner")
-		SpinnerEle.style.display="none"
+		SpinnerEle.style.display = "none"
 
 		WordElement.insertBefore(SpinnerEle, WordElement.lastChild)
 		WordElement.insertBefore(DefinitionEle, WordElement.firstChild)
@@ -283,7 +295,7 @@ function SaveEntry(WordElement)
 	while (WordElement.tagName.toLowerCase() != 'word')
 	{
 		WordElement = WordElement.parentElement
-	} 
+	}
 
 	if (WordElement.getAttribute('editing') == "true")
 	{
@@ -297,7 +309,7 @@ function SaveEntry(WordElement)
 
 		OldEntry = WordElement.getElementsByTagName('entry')[0].innerText
 		OldDef = WordElement.getElementsByTagName('definition')[0].innerText
-		
+
 		WordElement.getElementsByClassName('editEntry')[0].parentElement.removeChild(WordElement.getElementsByClassName('editEntry')[0])
 		WordElement.getElementsByClassName('editDef')[0].parentElement.removeChild(WordElement.getElementsByClassName('editDef')[0])
 
@@ -306,11 +318,11 @@ function SaveEntry(WordElement)
 		WordElement.getElementsByClassName('editbutton')[0].style.display = ""
 		WordElement.getElementsByClassName('deletebutton')[0].style.display = ""
 		WordElement.getElementsByClassName('savebutton')[0].style.display = "none"
-		
-		if (NewEntry != OldEntry || NewDef != OldDef )
+
+		if (NewEntry != OldEntry || NewDef != OldDef)
 		{
-			
-			SpinnerEle = WordElement.getElementsByClassName('spinner')[0] 
+
+			SpinnerEle = WordElement.getElementsByClassName('spinner')[0]
 			SpinnerEle.style.display = ""
 			var xmlhttp = new XMLHttpRequest();
 			xmlhttp.onreadystatechange = function()
@@ -324,7 +336,7 @@ function SaveEntry(WordElement)
 					SpinnerEle.parentElement.removeChild(SpinnerEle)
 				}
 			};
-			
+
 			XMLURL = "AJAXAPL.php?updatedictionary=true&wordid=" + WordId + "&newdefinition=" + NewDef + "&newentry=" + NewEntry;
 			xmlhttp.open("GET", XMLURL, true);
 			xmlhttp.send();
@@ -340,13 +352,13 @@ function SaveEntry(WordElement)
 
 function DeleteEntry(clickedElement)
 {
-	
+
 	WordElement = clickedElement
 	while (WordElement.tagName.toLowerCase() != 'word')
 	{
 		WordElement = WordElement.parentElement
 	}
-	if ( confirm("Are you sure you would like to delete the entry \"" + WordElement.getElementsByTagName("entry")[0].innerText + "\"?") ) 
+	if (confirm("Are you sure you would like to delete the entry \"" + WordElement.getElementsByTagName("entry")[0].innerText + "\"?"))
 	{
 		WordId = WordElement.getAttribute('wordid')
 		var xmlhttp = new XMLHttpRequest();
@@ -357,19 +369,13 @@ function DeleteEntry(clickedElement)
 				WordElement.parentElement.removeChild(WordElement)
 			}
 		};
-		
-		XMLURL = "AJAXAPL.php?deletedictionaryentry=true&wordid=" + WordId ;
+
+		XMLURL = "AJAXAPL.php?deletedictionaryentry=true&wordid=" + WordId;
 		xmlhttp.open("GET", XMLURL, true);
 		xmlhttp.send();
-		console.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL);
+		console.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/" + XMLURL);
 		// return window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL;
 	}
-
-	
-
-
-
-
 
 }
 

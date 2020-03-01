@@ -243,16 +243,16 @@ if (isset($_REQUEST["filterdictionary"]))
 				
 				$hint .= "<img  onclick = 'SaveEntry(this) '  style = 'display:none;' class = 'savebutton' src = 'Images/LHcheck.png'>";
 				$hint .= "<img  onclick = 'EditEntry(this)'  class = 'editbutton' src = 'Images/LHedit.png'>";
+				$hint .= "<img  onclick = 'GetWordInfo(this) '  class = 'InfoButton' src = 'Images/LHinfo.png'>";
 				$hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
 				
 
 				$hint .= "<attestations>"; 
-				$hint .= "(<i>Aeneid</i>: ". (count($usesV)/( 1+ (int) $word['IsTwoWords'])) .") " . $VergilUseString; 
-				if(count($usesV) > 0)
-				{
-					$hint .= "; ";  
-				}
-				$hint .= "(<i>Dē Bellō Gallicō</i>: ". (count($usesC)/( 1+(int) $word['IsTwoWords'])) .") " . $CaesarUseString; 
+				$hint .= "<i>Aeneid</i>: ". (count($usesV)/( 1+ (int) $word['IsTwoWords'])) ."" ;
+				
+				$hint .= "; ";  
+		
+				$hint .= "<i>Dē Bellō Gallicō</i>: ". (count($usesC)/( 1+(int) $word['IsTwoWords'])) ."" ; 
 				$hint .= "</attestations>"; 
 
 

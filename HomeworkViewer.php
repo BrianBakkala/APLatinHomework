@@ -369,7 +369,7 @@ foreach ($HWLines as $word)
 		}
 
 			echo "<freq>"; 
-				echo "<a target = '_blank' href = 'Dictionary.php?word=". $TargetedDictionary[$word['definitionId']]['entry'] . "'>";
+				echo "<a target = '_blank' href = 'WordViewer.php?wordid=". $word['definitionId'] . "'>";
 				echo $TargetedDictionary[$word['definitionId']]['APfrequency'];
 				echo "</a>";
 			echo "</freq>";
