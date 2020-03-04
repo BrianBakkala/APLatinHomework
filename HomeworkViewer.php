@@ -67,8 +67,9 @@
 
 	entry,
 	definition {
-		-webkit-transition: .25s all ease-in-out;
+		-webkit-transition: .25s all ease-in-out; 
 		transition: .25s all ease-in-out;
+		/*transition-delay: .5s*/
 		font-size: 0;
 	}
 
@@ -89,12 +90,12 @@
 	word[reveal="true"] baseword,
 	word[reveal="true"] clitic
 	{
-		border-right: 2px solid black;
+		border-right: 2px solid darkgray;
 	}
 
 	word[reveal="true"] baseword
 	{
-		border-left: 2px solid black;
+		border-left: 2px solid darkgray;
 	}
 
 	
@@ -401,14 +402,14 @@ for (i=0; i <words.length; i++ )
 	{
 		this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
 	}
-	words[i].onmouseover = function()
-	{
-		this.setAttribute("preview", ("true"))
-	}
-	words[i].onmouseout = function()
-	{
-		this.setAttribute("preview", ("false"))
-	}
+	// words[i].onmouseover = function()
+	// {
+	// 	this.setAttribute("preview", ("true"))
+	// }
+	// words[i].onmouseout = function()
+	// {
+	// 	this.setAttribute("preview", ("false"))
+	// }
 
 	words[i].ontouchstart = function()
 	{
