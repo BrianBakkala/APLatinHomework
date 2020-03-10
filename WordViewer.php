@@ -3,15 +3,6 @@
 <STYLE>
 
 
-
-
-
-
-
-
-
-
-
 html {
 	margin:5px;
 	font-family: "Palatino Linotype";

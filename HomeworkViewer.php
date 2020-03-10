@@ -170,11 +170,29 @@
 		transform: scaleX(-1);
 	}
 
+	assignment, vocab
+	{
+		display:inline-block;
+	
+	}
+	vocab
+	{
+		font-size:0;
+		vertical-align: top;
+		text-align:left;
+		padding-left:10px;
+		-webkit-transition: .25s all ease-in-out; 
+		transition: .25s all ease-in-out;
+	}
+	vocab[show="true"]
+	{
+		font-size:14px;
+	}
 
-
-
-
-
+	vocabword
+	{
+		display:block;
+	}
 
 	
 </STYLE>
@@ -229,7 +247,7 @@ $HWDefinitionIds = array_map(function($x){return $x['definitionId'];},$HWLines);
 $HWDefinitionIds2 = array_map(function($x){return $x['secondaryDefId'];},$HWLines);
 $HWDefinitionIds = array_unique(array_merge($HWDefinitionIds, $HWDefinitionIds2));
 
-$TargetedDictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` , (SELECT COUNT(*) FROM `#AP'.$BookTitle.'Text` WHERE `definitionId` = `#APDictionary`.`id` OR `secondaryDefId` = `#APDictionary`.`id`) as `APfrequency` FROM `#APDictionary` WHERE `id` = '. implode(" OR `id` = ", $HWDefinitionIds) .' ', false, "id");
+$TargetedDictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` , (SELECT COUNT(*) FROM `#AP'.$BookTitle.'Text` WHERE `definitionId` = `#APDictionary`.`id` OR `secondaryDefId` = `#APDictionary`.`id`) as `APfrequency` FROM `#APDictionary` WHERE `id` <> 0 and `id` <> -1 and ( `id` = '. implode(" OR `id` = ", $HWDefinitionIds) .')   ORDER BY replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "Ā", "A") , "Ē", "E") , "Ī", "I") , "Ō", "O") , "Ū", "U") , "-", "")  COLLATE utf8_general_ci   ', false, "id");
 
 echo '<a target = "_blank" href = "https://github.com/BrianBakkala/APLatinHomework">';
 echo '<svg height="32" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="oddeven" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="black"></path></svg>';
@@ -286,9 +304,54 @@ echo "</A  >";
 
 echo "<BR>";
 
-echo "<span style = 'color:rgba(0,0,0,0);' id = 'dueDate'>[Due Date]";
-echo "</span>";
+echo "<duedate style = 'color:rgba(0,0,0,0);' id = 'dueDate'>[Due Date]";
+echo "</duedate>";
+echo " | ";
+echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"vocab\")[0].setAttribute(\"show\", document.getElementsByTagName(\"vocab\")[0].getAttribute(\"show\") == \"true\" ?  \"false\" : \"true\" )'>";
+echo "Show Vocabulary";
+echo "</a>";
+echo " | ";
+echo "<select onchange= 'SetDifficulty(this.value)'>";
 
+
+	echo "<option value='0' selected disabled hidden> ";
+	echo "Select a difficulty...";
+	echo "</option> ";
+
+	echo "<option value = '500'>";
+	echo "Scrub";
+	echo "</option>";
+
+	echo "<option value = '30'>";
+	echo "🍋 Squeezy";
+	echo "</option>";
+
+	echo "<option value = '20'>";
+	echo "Easy";
+	echo "</option>";
+
+	echo "<option value = '10'>";
+	echo "Medium";
+	echo "</option>";
+
+	echo "<option value = '5'>";
+	echo "Hard";
+	echo "</option>";
+
+	echo "<option value = '3'>";
+	echo "Pro";
+	echo "</option>";
+
+	echo "<option value = '1'>";
+	echo "God";
+	echo "</option>";
+
+	echo "<option value = '0'>";
+	echo "Fluent";
+	echo "</option>";
+
+
+echo "</select>";
 echo "<HR style = 'border-top: 1px solid #eee;'>";
 
 $ChapterCitationText = "";
@@ -298,7 +361,7 @@ if($HWAssignment['StartChapter'] != null)
 }
 
 
-
+echo "<assignment>";
 echo "<line citation = '".$HWAssignment['StartBook'].".".$ChapterCitationText.$HWAssignment['StartLine']."' num = '".$HWAssignment['StartLine']."'>";
 foreach ($HWLines as $word)
 {
@@ -371,13 +434,58 @@ foreach ($HWLines as $word)
 
 			echo "<freq>"; 
 				echo "<a target = '_blank' href = 'WordViewer.php?wordid=". $word['definitionId'] . "'>";
-				echo $TargetedDictionary[$word['definitionId']]['APfrequency'];
+
+				if($BookTitle != "DBG")
+				{
+					$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . '  ORDER BY `book`, `lineNumber`, `id` ');
+				}
+				else
+				{
+					$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+				}
+
+				echo (count($uses)/( 1+(int) $TargetedDictionary[$word['definitionId']]['IsTwoWords'] ));
 				echo "</a>";
 			echo "</freq>";
 
 	echo "</word>";
 }
 echo "</line>";
+echo "</assignment>";
+echo "<vocab>";
+
+//[id] => 1 [entry] => -que [definition] => and [IsTwoWords] => 0 [APfrequency] => 277 
+
+foreach($TargetedDictionary as $entry)
+{
+	echo "<vocabword id = '".$entry['id']."' >";
+		echo "<span style = 'font-weight:bold;'>";
+		echo $entry['entry'];
+		echo "</span>";
+		echo " ";
+		echo "<span style = 'font-style:italic;'>";
+		echo $entry['definition'];
+		echo "</span>";
+
+		if($BookTitle != "DBG")
+		{
+			$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
+		}
+		else
+		{
+			$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+		}
+		echo " ";
+
+		echo "<span>(";
+			echo (count($uses)/( 1+(int) $entry['IsTwoWords'] ));
+		echo ")</span>";
+
+
+	echo "</vocabword>";
+}
+
+echo "</vocab>";
 
 
 
@@ -393,6 +501,21 @@ echo "</line>";
 
 <script>
 
+function SetDifficulty(occurenceThreshold)
+{
+	words = document.getElementsByTagName('assignment')[0].getElementsByTagName('word')
+	for (w=0; w<words.length; w++)
+	{
+		if((+words[w].getAttribute('ap-frequency')) <= (+occurenceThreshold))
+		{
+			words[w].setAttribute('reveal', 'true')
+		}
+		else
+		{
+			words[w].setAttribute('reveal', 'false')
+		}
+	}
+}
 // alert(navigator.msMaxTouchPoints)
 words = document.getElementsByTagName('word')
 
