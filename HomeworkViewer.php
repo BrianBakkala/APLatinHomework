@@ -173,10 +173,9 @@
 	assignment, vocab
 	{
 		display:inline-block;
-	
 	}
 	vocab
-	{
+	{	
 		font-size:0;
 		vertical-align: top;
 		text-align:left;
@@ -184,9 +183,11 @@
 		-webkit-transition: .25s all ease-in-out; 
 		transition: .25s all ease-in-out;
 	}
-	vocab[show="true"]
+
+	wrapper[showvocab="true"] vocab
 	{
 		font-size:14px;
+		
 	}
 
 	vocabword
@@ -200,7 +201,7 @@
 
 <?php
 
- 
+
 if(!isset($_GET['hw']))
 {
 	$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; 
@@ -208,8 +209,8 @@ if(!isset($_GET['hw']))
 }
 
 require_once ( 'SQLConnection.php');
- 
-$HWAssignment = SQLQuarry('SELECT `HW`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author` FROM `#APHW` WHERE `HW` = ' . (int)$_GET['hw'])[0]  ;
+
+$HWAssignment = SQLQuarry('SELECT `HW`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`, `AddToBeginning`, `SubtractFromEnd`  FROM `#APHW` WHERE `HW` = ' . (int)$_GET['hw'])[0]  ;
 // var_dump($HWAssignment);
 
 $Conjunction = " AND ";
@@ -221,7 +222,6 @@ if($HWAssignment['StartChapter'] == null && $HWAssignment['EndChapter'] == null)
 
 if($HWAssignment['StartChapter'] != null && $HWAssignment['EndChapter'] != null)
 {
- 
 
 	if($HWAssignment['StartChapter'] == $HWAssignment['EndChapter'] )
 	{
@@ -241,7 +241,11 @@ if($HWAssignment['Author'] == "C")
 }
 
 // echo ('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
-$HWLines = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
+
+$HWStartId = ((int) SQLQ('SELECT MIN(`id`) FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $HWAssignment['AddToBeginning']) );
+$HWEndId = ((int) SQLQ('SELECT MAX(`id`) FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $HWAssignment['SubtractFromEnd']) );
+$HWLines = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['StartBook'].' AND `id` >= '. $HWStartId .' AND `id` <= '. $HWEndId .' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
+
 
 $HWDefinitionIds = array_map(function($x){return $x['definitionId'];},$HWLines);
 $HWDefinitionIds2 = array_map(function($x){return $x['secondaryDefId'];},$HWLines);
@@ -307,7 +311,7 @@ echo "<BR>";
 echo "<duedate style = 'color:rgba(0,0,0,0);' id = 'dueDate'>[Due Date]";
 echo "</duedate>";
 echo " | ";
-echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"vocab\")[0].setAttribute(\"show\", document.getElementsByTagName(\"vocab\")[0].getAttribute(\"show\") == \"true\" ?  \"false\" : \"true\" )'>";
+echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"showvocab\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"showvocab\") == \"true\" ?  \"false\" : \"true\" )'>";
 echo "Show Vocabulary";
 echo "</a>";
 echo " | ";
@@ -360,6 +364,7 @@ if($HWAssignment['StartChapter'] != null)
 	$ChapterCitationText = $HWAssignment['StartChapter'] . "."; 
 }
 
+echo "<wrapper>";
 
 echo "<assignment>";
 echo "<line citation = '".$HWAssignment['StartBook'].".".$ChapterCitationText.$HWAssignment['StartLine']."' num = '".$HWAssignment['StartLine']."'>";
@@ -487,7 +492,7 @@ foreach($TargetedDictionary as $entry)
 
 echo "</vocab>";
 
-
+echo "</wrapper>";
 
 
 

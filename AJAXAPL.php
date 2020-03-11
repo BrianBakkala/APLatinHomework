@@ -61,14 +61,19 @@ if (isset($_REQUEST["filterdictionary"]))
 		$b = implode("", $b);
 		
 		
+		if(strtolower($a) < strtolower($b))
+		{
+			return -1;
+		}
+		else if(strtolower($a) > strtolower($b))
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		};
 		
-		
-		
-		return (strtolower($a) <=> strtolower($b));
-	
-	
-	
-	
 	
 	});
 
