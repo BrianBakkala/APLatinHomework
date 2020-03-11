@@ -49,3 +49,24 @@ document.getElementById('output').value = OutputText
 
 </script>
 
+
+<?php
+
+require_once ( 'QuizletExport.php');
+require_once ( 'SQLConnection.php');
+
+// $Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`,  (SELECT COUNT(*) FROM `#APAeneidText` WHERE `definitionId` = `#APDictionary`.`id` OR `secondaryDefId` = `#APDictionary`.`id`) as `VergilFrequency`, (SELECT COUNT(*) FROM `#APDBGText` WHERE `definitionId` = `#APDictionary`.`id` OR `secondaryDefId` = `#APDictionary`.`id`) as `CaesarFrequency`  FROM `#APDictionary` WHERE   `id` <> 0 and `id` <> -1 HAVING (`VergilFrequency`+ `CaesarFrequency`) > 1  ORDER BY (`VergilFrequency`+ `CaesarFrequency`) DESC  ', false, "id");
+
+// $Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`,  (SELECT COUNT(*) FROM `#APAeneidText` WHERE `definitionId` = `#APDictionary`.`id` OR `secondaryDefId` = `#APDictionary`.`id`) as `VergilFrequency`, (SELECT COUNT(*) FROM `#APDBGText` WHERE `definitionId` = `#APDictionary`.`id` OR `secondaryDefId` = `#APDictionary`.`id`) as `CaesarFrequency`  FROM `#APDictionary` WHERE   `id` <> 0 and `id` <> -1 HAVING (`VergilFrequency`+ `CaesarFrequency`) > 5 and  (`VergilFrequency`+ `CaesarFrequency`) < 20  ORDER BY (`VergilFrequency`+ `CaesarFrequency`) DESC  ', false, "id");
+
+$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition` WHERE   `id` <> 0 and `id` <> -1 AND `id` IN ()  ORDER BY (`VergilFrequency`+ `CaesarFrequency`) DESC  ', false, "id");
+
+// var_dump($Dictionary);
+// echo count($Dictionary);
+
+echo QuizletExport($Dictionary);
+
+
+
+?>
+
