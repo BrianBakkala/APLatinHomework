@@ -320,6 +320,10 @@ echo "<A target = '_blank' href = 'https://quizlet.com/MrBakkala/folders/ap-lati
 echo "Quizlet";
 echo "</A>";
 echo " | ";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php'>";
+echo "Dictionary";
+echo "</A>";
+echo " | ";
 echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"showvocab\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"showvocab\") == \"true\" ?  \"false\" : \"true\" )'>";
 echo "Show Vocabulary";
 echo "</a>";
@@ -452,13 +456,14 @@ foreach ($HWLines as $word)
 				if($BookTitle != "DBG")
 				{
 					$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . '  ORDER BY `book`, `lineNumber`, `id` ');
+					$Tmesis  = SQLQuarry('SELECT `id` FROM `#APAeneidText` WHERE (`definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . ') and `Tmesis` = 1  ');
 				}
 				else
 				{
 					$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
 				}
-
-				echo (count($uses)/( 1+(int) $TargetedDictionary[$word['definitionId']]['IsTwoWords'] ));
+				// var_dump($Tmesis);
+				echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $TargetedDictionary[$word['definitionId']]['IsTwoWords'] ));
 				echo "</a>";
 			echo "</freq>";
 
@@ -484,15 +489,18 @@ foreach($TargetedDictionary as $entry)
 		if($BookTitle != "DBG")
 		{
 			$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
+			$Tmesis  = SQLQuarry('SELECT `id`   FROM `#APAeneidText` WHERE (`definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . ') AND `Tmesis` = 1 ');
 		}
 		else
 		{
 			$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+			$Tmesis = [];
 		}
 		echo " ";
 
 		echo "<span>(";
-			echo (count($uses)/( 1+(int) $entry['IsTwoWords'] ));
+		// var_dump($Tmesis);
+			echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $entry['IsTwoWords'] ));
 		echo ")</span>";
 
 

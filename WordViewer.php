@@ -104,6 +104,7 @@ echo "<BR><BR>";
 
 
 $usesV  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
+$TmesisV  = SQLQuarry('SELECT `id`  FROM `#APAeneidText` WHERE (`definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . ') AND `Tmesis` = 1    ');
 $usesC  = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
 
 $VergilUseString = "";
@@ -274,7 +275,7 @@ for($u = 0; $u < count($usesC); $u++)
 	
 }
 
-echo "<h1><i>Aeneid</i>: ". (count($usesV)/( 1+ (int) $word['IsTwoWords'])) ."</h1>"; 
+echo "<h1><i>Aeneid</i>: ".  ((count($usesV) - (count($TmesisV)/2)) /( 1+ (int) $word['IsTwoWords'])) ."</h1>"; 
 echo "<attestations>"; 
 echo $VergilUseString; 
 echo "</attestations>"; 

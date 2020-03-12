@@ -162,6 +162,7 @@ if (isset($_REQUEST["filterdictionary"]))
 				$hint .= "</definition>"; 
 				
 				$usesV  = SQLQuarry('SELECT `book`, `chapter`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `id` ');
+				$Tmesis  = SQLQuarry('SELECT   `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . ' AND `Tmesis` = 1  ORDER BY `id` ');
 				$usesC  = SQLQuarry('SELECT `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `id` ');
 
 				$VergilUseString = "";
@@ -253,7 +254,7 @@ if (isset($_REQUEST["filterdictionary"]))
 				
 
 				$hint .= "<attestations>"; 
-				$hint .= "<i>Aeneid</i>: ". (count($usesV)/( 1+ (int) $word['IsTwoWords'])) ."" ;
+				$hint .= "<i>Aeneid</i>: ". ((count($usesV) - (count($TmesisV)/2)) /( 1+ (int) $word['IsTwoWords'])) ."" ;
 				
 				$hint .= "; ";  
 		
