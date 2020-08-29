@@ -182,7 +182,9 @@
 
 <CENTER><BR><BR>
 <body  onload = 'FilterDict(document.getElementById("filterdict").value);'>
+<form autocomplete="off">
 <input placeholder = 'Search...' value = '<?php if (isset($_GET['word'])){echo $_GET['word'];}?>'   onkeyup = 'FilterDict(this.value);' type = "text" id = 'filterdict'><BR><BR>
+</form>
 <div style = 'display:none;' id = 'searchResult'></div>
 <dictionary id = 'dictionary'>
 </dictionary>

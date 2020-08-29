@@ -244,8 +244,8 @@ if($HWAssignment['Author'] == "C")
 // echo ('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
 
 $HWStartId = ((int) SQLQ('SELECT MIN(`id`) FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $HWAssignment['AddToBeginning']) );
-$HWEndId = ((int) SQLQ('SELECT MAX(`id`) FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $HWAssignment['SubtractFromEnd']) );
-$HWLines = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['StartBook'].' AND `id` >= '. $HWStartId .' AND `id` <= '. $HWEndId .' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
+$HWEndId = ((int) SQLQ('SELECT MAX(`id`) FROM `#AP'.$BookTitle .'Text` WHERE  `book` = '.$HWAssignment['EndBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $HWAssignment['SubtractFromEnd']) );
+$HWLines = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `#AP'.$BookTitle .'Text` WHERE ( `book` = '.$HWAssignment['StartBook'].' or  `book` = '.$HWAssignment['EndBook'].') AND `id` >= '. $HWStartId .' AND `id` <= '. $HWEndId .' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
 
 
 $HWDefinitionIds = array_map(function($x){return $x['definitionId'];},$HWLines);
@@ -305,11 +305,23 @@ echo "<h1>";
 
 echo "</h1>";
 
-$NextHW = SQLQ('SELECT Min(`HW`) FROM `#APHW` WHERE `HW` > ' . $_GET['hw'] );
 
-echo "<A href = 'HomeworkViewer.php?hw=".$NextHW."'>";
-echo "<IMG id = 'rightarrow' SRC = 'Images/LHarrow.png'>";
-echo "</A>";
+
+if($_GET['hw'] != SQLQ('SELECT MAX(`HW`) FROM `#APHW` '))
+{
+
+
+	$NextHW = SQLQ('SELECT Min(`HW`) FROM `#APHW` WHERE `HW` > ' . $_GET['hw'] );
+
+	echo "<A href = 'HomeworkViewer.php?hw=".$NextHW."'>";
+	echo "<IMG id = 'rightarrow' SRC = 'Images/LHarrow.png'>";
+	echo "</A>";
+	
+}
+
+
+
+
 
 echo "<BR>";
 
@@ -323,10 +335,7 @@ echo " | ";
 echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php'>";
 echo "Dictionary";
 echo "</A>";
-echo " | ";
-echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"showvocab\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"showvocab\") == \"true\" ?  \"false\" : \"true\" )'>";
-echo "Show Vocabulary";
-echo "</a>";
+
 echo " | ";
 echo "<select onchange= 'SetDifficulty(this.value)'>";
 
@@ -336,11 +345,11 @@ echo "<select onchange= 'SetDifficulty(this.value)'>";
 	echo "</option> ";
 
 	echo "<option value = '500'>";
-	echo "Scrub";
+	echo "Absolute Scrub";
 	echo "</option>";
 
 	echo "<option value = '30'>";
-	echo "🍋 Squeezy";
+	echo "ezpz 🍋 squeezy";
 	echo "</option>";
 
 	echo "<option value = '20'>";
@@ -356,19 +365,24 @@ echo "<select onchange= 'SetDifficulty(this.value)'>";
 	echo "</option>";
 
 	echo "<option value = '3'>";
-	echo "Pro";
+	echo "I am a professional Latin translator";
 	echo "</option>";
 
 	echo "<option value = '1'>";
-	echo "God";
+	echo "I am the Roman God of Latin";
 	echo "</option>";
 
 	echo "<option value = '0'>";
-	echo "Fluent";
+	echo "I literally think in Latin";
 	echo "</option>";
 
-
 echo "</select>";
+
+echo " | ";
+echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"showvocab\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"showvocab\") == \"true\" ?  \"false\" : \"true\" )'>";
+echo "Vocab Sidebar";
+echo "</a>";
+
 echo "<HR style = 'border-top: 1px solid #eee;'>";
 
 $ChapterCitationText = "";
@@ -380,7 +394,17 @@ if($HWAssignment['StartChapter'] != null)
 echo "<wrapper>";
 
 echo "<assignment>";
-echo "<line citation = '".$HWAssignment['StartBook'].".".$ChapterCitationText.$HWAssignment['StartLine']."' num = '".$HWAssignment['StartLine']."'>";
+
+
+if($HWAssignment['AddToBeginning'] > 0)
+{
+	$temp_start_line = $HWAssignment['StartLine'] -1 ;
+}
+else
+{
+	$temp_start_line = $HWAssignment['StartLine'];
+}
+echo "<line citation = '".$HWAssignment['StartBook'].".".$ChapterCitationText.$temp_start_line."' num = '".$temp_start_line."'>";
 foreach ($HWLines as $word)
 {
 	if($CurrentLine && $word['lineNumber'] != $CurrentLine)
@@ -579,7 +603,7 @@ for (i=0; i <words.length; i++ )
 
 function GetAPLatinHW()
 {
-	SpreadsheetDocID = "1jviY2SsTXvHw-ubDAlHMv0o55-u8XIthHYpu5rbGmcQ"
+	SpreadsheetDocID = "1CKcfxPCIV2Kz7b7QAbhK6JJ5kroxVdZoreGDXvngjS8"
  
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function()
