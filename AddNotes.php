@@ -530,43 +530,7 @@ foreach ($HWLines as $word)
 }
 echo "<span style = 'cursor:pointer;' onclick = 'TypeLine(this)'>(+)</span></line>";
 echo "</assignment>";
-echo "<vocab>";
 
-	//[id] => 1 [entry] => -que [definition] => and [IsTwoWords] => 0 [APfrequency] => 277 
-
-	foreach($TargetedDictionary as $entry)
-	{
-		echo "<vocabword id = '".$entry['id']."' >";
-			echo "<span style = 'font-weight:bold;'>";
-			echo $entry['entry'];
-			echo "</span>";
-			echo " ";
-			echo "<span style = 'font-style:italic;'>";
-			echo $entry['definition'];
-			echo "</span>";
-
-			if($BookTitle != "DBG")
-			{
-				$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
-				$Tmesis  = SQLQuarry('SELECT `id`   FROM `#APAeneidText` WHERE (`definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . ') AND `Tmesis` = 1 ');
-			}
-			else
-			{
-				$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
-				$Tmesis = [];
-			}
-			echo " ";
-
-			echo "<span>(";
-			// var_dump($Tmesis);
-				echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $entry['IsTwoWords'] ));
-			echo ")</span>";
-
-
-		echo "</vocabword>";
-	}
-
-echo "</vocab>";
 
 
 function ParseNoteText($inputText)
@@ -576,7 +540,7 @@ function ParseNoteText($inputText)
 
 	$literaryDevices = SQLQuarry('SELECT `Device` FROM `#APLiteraryDevices`', true);
 	$literaryDevices = array_map('strtolower', $literaryDevices);
-	
+
 	$outputText = preg_replace("/\*(".implode('|', $literaryDevices ).")\*/","<a href = 'LiteraryDevices.php?device=\\1'><span style = 'font-weight:bold; font-variant: small-caps;'>\\1</span></a>",$inputText);
 
 	return $outputText;
@@ -693,6 +657,44 @@ echo "<notes>";
 
 
 echo "</notes>";
+
+echo "<vocab>";
+
+	//[id] => 1 [entry] => -que [definition] => and [IsTwoWords] => 0 [APfrequency] => 277 
+
+	foreach($TargetedDictionary as $entry)
+	{
+		echo "<vocabword id = '".$entry['id']."' >";
+			echo "<span style = 'font-weight:bold;'>";
+			echo $entry['entry'];
+			echo "</span>";
+			echo " ";
+			echo "<span style = 'font-style:italic;'>";
+			echo $entry['definition'];
+			echo "</span>";
+
+			if($BookTitle != "DBG")
+			{
+				$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
+				$Tmesis  = SQLQuarry('SELECT `id`   FROM `#APAeneidText` WHERE (`definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . ') AND `Tmesis` = 1 ');
+			}
+			else
+			{
+				$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+				$Tmesis = [];
+			}
+			echo " ";
+
+			echo "<span>(";
+			// var_dump($Tmesis);
+				echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $entry['IsTwoWords'] ));
+			echo ")</span>";
+
+
+		echo "</vocabword>";
+	}
+
+echo "</vocab>";
 
 echo "</wrapper>";
 

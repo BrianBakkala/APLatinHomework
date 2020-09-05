@@ -1,10 +1,10 @@
 <TITLE>AP Latin Homework Viewer</TITLE>
 
 
+<?php 	$CSSsrc = "GlobalStyles.css"; echo '<li'.'nk rel="stylesheet" type="text/css" href="'.$CSSsrc.'?'. rand(1, 100000)  ."00".date("U")."00".'">';  ?>
 <STYLE>
 	html {
 		text-align: center;
-		font-family: "Palatino Linotype";
 		-webkit-tap-highlight-color:  rgba(255, 255, 255, 0); 
 	}
 
@@ -515,47 +515,171 @@ foreach ($HWLines as $word)
 }
 echo "</line>";
 echo "</assignment>";
-echo "<vocab>";
 
-//[id] => 1 [entry] => -que [definition] => and [IsTwoWords] => 0 [APfrequency] => 277 
 
-foreach($TargetedDictionary as $entry)
+
+function ParseNoteText($inputText)
 {
-	echo "<vocabword id = '".$entry['id']."' >";
-		echo "<span style = 'font-weight:bold;'>";
-		echo $entry['entry'];
-		echo "</span>";
-		echo " ";
-		echo "<span style = 'font-style:italic;'>";
-		echo $entry['definition'];
-		echo "</span>";
+	$outputText = "";
 
-		if($BookTitle != "DBG")
+
+	$literaryDevices = SQLQuarry('SELECT `Device` FROM `#APLiteraryDevices`', true);
+	$literaryDevices = array_map('strtolower', $literaryDevices);
+
+	$outputText = preg_replace("/\*(".implode('|', $literaryDevices ).")\*/","<a href = 'LiteraryDevices.php?device=\\1'><span style = 'font-weight:bold; font-variant: small-caps;'>\\1</span></a>",$inputText);
+
+	return $outputText;
+}
+
+echo "<notes>";
+	// echo $HWStartId ;
+	// echo $HWEndId ;
+
+	$WordNotes = SQLQuarry(' SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`,   `#APNotesText`.`Text`, `Author`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `#AP'.$BookTitle .'Text`) as `sub` ON (`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
+	
+	if($HWAssignment['Author'] == "C")
+	{
+		$ConcatText = "CONCAT(`sub`.`book`, '.',`sub`.`chapter`, '.', `sub`.`lineNumber`)";
+	}
+	else
+	{
+		$ConcatText = "CONCAT(`sub`.`book`, '.', `sub`.`lineNumber`)";
+	}
+	
+
+	$LineNotes = SQLQuarry('SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `#APNotesText`.`Text`, `Author`, `book`, `chapter`, `lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `#AP'.$BookTitle .'Text`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') GROUP BY `AssociatedLineCitation`');
+
+
+
+	$CondensedNotes = array();
+
+	// print_r($WordNotes);
+	// print_r($LineNotes);
+
+
+	foreach($WordNotes as $note)
+	{
+		if(!isset($CondensedNotes[$note["NoteId"]]))
 		{
-			$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
-			$Tmesis  = SQLQuarry('SELECT `id`   FROM `#APAeneidText` WHERE (`definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . ') AND `Tmesis` = 1 ');
+			$CondensedNotes[$note["NoteId"]] = array(["AssociatedWordId"] => $note["AssociatedWordId"]);
+			$CondensedNotes[$note["NoteId"]]["WNLN"] = "WN";
+			$CondensedNotes[$note["NoteId"]]["Author"] = $note["Author"];
+			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
+			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
+			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["AssociatedWordId"];
+			$CondensedNotes[$note["NoteId"]]["phrase"] = $note["word"]; 
+			$CondensedNotes[$note["NoteId"]]["lines"] = array($note["lineNumber"]); 
+			$CondensedNotes[$note["NoteId"]]["comparableCitation"] = $note["AssociatedWordId"]; 
 		}
 		else
 		{
-			$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
-			$Tmesis = [];
+			if(($CondensedNotes[$note["NoteId"]]["LastWordId"]+1) == $note["AssociatedWordId"])
+			{
+				$CondensedNotes[$note["NoteId"]]["phrase"] .= " ". $note["word"]; 
+			}
+			else
+			{
+				$CondensedNotes[$note["NoteId"]]["phrase"] .= " ... ". $note["word"]; 
+			}
+
+
+			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["AssociatedWordId"];
+
+			array_push($CondensedNotes[$note["NoteId"]]["lines"], $note["lineNumber"]); 
+			$CondensedNotes[$note["NoteId"]]["lines"] = array_unique ($CondensedNotes[$note["NoteId"]]["lines"]); 
+			sort($CondensedNotes[$note["NoteId"]]["lines"]);
 		}
-		echo " ";
+	}
 
-		echo "<span>(";
-		// var_dump($Tmesis);
-			echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $entry['IsTwoWords'] ));
-		echo ")</span>";
+	foreach($LineNotes as $note)
+	{
+		if(!isset($CondensedNotes[$note["NoteId"]]))
+		{
+			$CondensedNotes[$note["NoteId"]] = array(["AssociatedWordId"] => $note["AssociatedWordId"]);
+			$CondensedNotes[$note["NoteId"]]["WNLN"] = "LN";
+			$CondensedNotes[$note["NoteId"]]["Author"] = $note["Author"];
+			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
+			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
+			$CondensedNotes[$note["NoteId"]]["lines"] = array(substr($note["AssociatedLineCitation"], 2)); 
+			$CondensedNotes[$note["NoteId"]]["comparableCitation"] = $note["AssociatedWordId"]; 
+
+		}
+		else
+		{
+			array_push($CondensedNotes[$note["NoteId"]]["lines"], substr($note["AssociatedLineCitation"], 2));
+			// $CondensedNotes[$note["NoteId"]]["lines"] = array_unique ($CondensedNotes[$note["NoteId"]]["lines"]); 
+			sort($CondensedNotes[$note["NoteId"]]["lines"]);
+		}
+	}
+
+	// print_r($CondensedNotes);
+
+	usort($CondensedNotes, function ($a, $b) {
+
+		$a = $a["comparableCitation"];
+		$b = $b["comparableCitation"];
+		
+		if($a != $b)
+		{
+			return $a < $b ? -1 : 1;
+		}
+
+		return 0;
+			
+	});
+
+	foreach($CondensedNotes as $Cnote)
+	{
+		echo "<note >";
+		$linestext = count($Cnote["lines"]) > 1 ? min($Cnote["lines"]) . "–" .  max($Cnote["lines"]) :   $Cnote["lines"][0];
+		echo "<span style = 'font-family:Trajan'>". $linestext ." </span>";
+		echo "<B>". preg_replace("/[;,:]/","", $Cnote['phrase']) ." </B>";
+		echo ParseNoteText($Cnote['Text']);
+		echo "</note> ";
+		// echo implode("|", $Cnote['comparableCitation']);
+		echo "<BR>";
+	}
 
 
-	echo "</vocabword>";
-}
+echo "</notes>";
+
+echo "<vocab>";
+
+	//[id] => 1 [entry] => -que [definition] => and [IsTwoWords] => 0 [APfrequency] => 277 
+
+	foreach($TargetedDictionary as $entry)
+	{
+		echo "<vocabword id = '".$entry['id']."' >";
+			echo "<span style = 'font-weight:bold;'>";
+			echo $entry['entry'];
+			echo "</span>";
+			echo " ";
+			echo "<span style = 'font-style:italic;'>";
+			echo $entry['definition'];
+			echo "</span>";
+
+			if($BookTitle != "DBG")
+			{
+				$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
+				$Tmesis  = SQLQuarry('SELECT `id`   FROM `#APAeneidText` WHERE (`definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . ') AND `Tmesis` = 1 ');
+			}
+			else
+			{
+				$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+				$Tmesis = [];
+			}
+			echo " ";
+
+			echo "<span>(";
+			// var_dump($Tmesis);
+				echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $entry['IsTwoWords'] ));
+			echo ")</span>";
+
+
+		echo "</vocabword>";
+	}
 
 echo "</vocab>";
-
-echo "<notes>";
-	echo "Hello Notes";
-echo "</notes>";
 
 echo "</wrapper>";
 
