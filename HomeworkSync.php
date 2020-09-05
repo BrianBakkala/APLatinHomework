@@ -1,11 +1,7 @@
 <TITLE>AP Latin Homework Viewer</TITLE>
  
 <?php
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
+ 
 require_once ( 'SQLConnection.php');
 
 function SanitizeString($str)
@@ -170,14 +166,13 @@ for ($m = 1; $m <=count($GSA); $m++ )
 	}
 
 	array_push($TerminalLines, array($EndBook, $EndChapter, $EndLine ));
- 
- 
-
-	SQLRun("INSERT INTO `#APHW` (`HW`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`) 
+  
+	SQLRun("INSERT INTO `#APHW` (`HW`, `Unit`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`) 
 	
 	VALUES (
 		
 		".$ActiveRow["HW Number"].", 
+		".intval( explode(" ", $ActiveRow["Unit"])[1]).", 
 
 		".$StartBook.", 
 		".$StartChapter.", 

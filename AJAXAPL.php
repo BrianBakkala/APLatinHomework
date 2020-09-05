@@ -299,6 +299,54 @@ if (isset($_REQUEST["updatedictionary"]))
 	$hint = '{"definition":"'.$_REQUEST["newdefinition"].'", "entry":"'.$_REQUEST["newentry"].'"}';
 }
 
+//////////////////////////////////////
+
+
+if (isset($_REQUEST["addnote"]))
+{ 
+
+	$NoteId = SQLRun('INSERT INTO `#APNotesText` (`Text`) VALUES ("'.$_REQUEST["notetext"].'");'); 
+	
+	
+	if( $_REQUEST["wordids"] != "")
+	{
+		$WIDs = explode(",", $_REQUEST["wordids"]);
+		foreach($WIDs as $wid)
+		{
+			if($wid != "")
+			{
+				SQLRun("INSERT INTO `#APNotesLocations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["author"]."');"); 
+			}
+		}
+	}
+	else
+	{
+		$LIDs = explode(",", $_REQUEST["linecitations"]);
+		foreach($LIDs as $lid)
+		{
+
+			if($lid != "")
+			{
+				if($_REQUEST["author"] == "C")
+				{
+					$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APAeneidText` WHERE CONCAT(`book`, ".", `lineNumber`) = '. $lid.'');
+				}
+				else
+				{
+					$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APDBGText` WHERE CONCAT(`book`, ".", `chapter`, ".", `lineNumber`) = '. $lid.'');
+				}
+
+				SQLRun ("INSERT INTO `#APNotesLocations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ".$FirstID." ,'". $lid."', '".$_REQUEST["author"]."');"); 
+			}
+		}
+
+	}
+
+	$hint = "Notes Added";
+}
+
+//////////////////////////////////////
+
 $hint = trim($hint);
 
 echo $hint == "" ? "No results" : $hint;  

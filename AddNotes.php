@@ -1,14 +1,13 @@
 <TITLE>AP Latin Homework Viewer</TITLE>
 
-
+<?php 	$CSSsrc = "GlobalStyles.css"; echo '<li'.'nk rel="stylesheet" type="text/css" href="'.$CSSsrc.'?'. rand(1, 100000)  ."00".date("U")."00".'">';  ?>
 <STYLE>
 	html {
 		text-align: center;
-		font-family: "Palatino Linotype";
 		-webkit-tap-highlight-color:  rgba(255, 255, 255, 0); 
 	}
 
-	h1 {
+	h1 { 
 		font-size: 24pt;
 		display:inline-block;
 		margin-block-end: 0em;
@@ -271,7 +270,7 @@ if($_GET['hw'] != "1")
 {
 
 	$PrevHW = SQLQ('SELECT MAX(`HW`) FROM `#APHW` WHERE `HW` < ' . $_GET['hw'] );
-	echo "<A href = 'HomeworkViewer.php?hw=".$PrevHW."'>";
+	echo "<A href = 'AddNotes.php?hw=".$PrevHW."'>";
 	echo "<IMG id = 'leftarrow' SRC = 'Images/LHarrow.png'>";
 	echo "</A>";
 	
@@ -319,7 +318,7 @@ if($_GET['hw'] != SQLQ('SELECT MAX(`HW`) FROM `#APHW` '))
 
 	$NextHW = SQLQ('SELECT Min(`HW`) FROM `#APHW` WHERE `HW` > ' . $_GET['hw'] );
 
-	echo "<A href = 'HomeworkViewer.php?hw=".$NextHW."'>";
+	echo "<A href = 'AddNotes.php?hw=".$NextHW."'>";
 	echo "<IMG id = 'rightarrow' SRC = 'Images/LHarrow.png'>";
 	echo "</A>";
 	
@@ -405,13 +404,28 @@ echo "</a>";
 
 echo "<HR style = 'border-top: 1px solid #eee;'>";
 
+
+echo "<form id = 'submitNotesForm'>";
+echo "WORDS<input id = 'submitNoteWords' type = 'text' size = '40'>";
+echo "LINES<input id = 'submitNoteLines' type = 'text' size = '40'>";
+echo "<BR>";
+echo "<BR>";
+echo "<textarea id = 'submitNoteNote' cols = 40 rows = 2></textarea>";
+echo "<input id = 'submitNoteSubmit' onclick = 'AddNote()' type = 'button' value = 'Submit'>";
+echo "<BR>";
+echo "<BR>";
+echo "<span id = 'previewNoteWords'></span>";
+echo "</form>";
+
+echo "<HR style = 'border-top: 1px solid #eee;'>";
+
 $ChapterCitationText = "";
 if($HWAssignment['StartChapter'] != null)
 {
 	$ChapterCitationText = $HWAssignment['StartChapter'] . "."; 
 }
 
-echo "<wrapper>";
+echo "<wrapper shownotes = 'true'>";
 
 echo "<assignment>";
 
@@ -435,7 +449,7 @@ foreach ($HWLines as $word)
 			$ChapterCitationText = $word['chapter']."."; 
 		}
 
-		echo "</line><line   citation = '".$word['book'].".".$ChapterCitationText.$word['lineNumber']."'    num = '".$word['lineNumber']."'>";
+		echo " <span style = 'cursor:pointer;' onclick = 'TypeLine(this)'>(+)</span></line><line   citation = '".$word['book'].".".$ChapterCitationText.$word['lineNumber']."'    num = '".$word['lineNumber']."'>";
 	}
 	$CurrentLine = $word['lineNumber'];
 
@@ -457,7 +471,7 @@ foreach ($HWLines as $word)
 	}
 
 
-	echo "<word  baseword = '".$Noclitics."' clitic = '".$Clitic."' AP-frequency = '".$TargetedDictionary[$word['definitionId']]['APfrequency']."' reveal = 'false'  >";
+	echo "<word idnum = '".$word['id']."' fullword = '".$word['word']."' baseword = '".$Noclitics."' clitic = '".$Clitic."' AP-frequency = '".$TargetedDictionary[$word['definitionId']]['APfrequency']."' reveal = 'false'  >";
 		
 		echo "<baseword>";
 			
@@ -474,7 +488,7 @@ foreach ($HWLines as $word)
 			echo "</definition>";
 
 		echo "</baseword>";
-
+ 
 		if($word["secondaryDefId"] != -1)
 		{
 			echo "<clitic>";
@@ -495,66 +509,189 @@ foreach ($HWLines as $word)
 		}
 
 			echo "<freq>"; 
-				echo "<a target = '_blank' href = 'WordViewer.php?wordid=". $word['definitionId'] . "'>";
+			echo "<a onclick = 'document.getElementById(\"submitNoteWords\").value += \", ".$word['id']."\"'>";
 
-				if($BookTitle != "DBG")
-				{
-					$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . '  ORDER BY `book`, `lineNumber`, `id` ');
-					$Tmesis  = SQLQuarry('SELECT `id` FROM `#APAeneidText` WHERE (`definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . ') and `Tmesis` = 1  ');
-				}
-				else
-				{
-					$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
-				}
-				// var_dump($Tmesis);
-				echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $TargetedDictionary[$word['definitionId']]['IsTwoWords'] ));
-				echo "</a>";
-			echo "</freq>";
-
+			if($BookTitle != "DBG")
+			{
+				$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . '  ORDER BY `book`, `lineNumber`, `id` ');
+				$Tmesis  = SQLQuarry('SELECT `id` FROM `#APAeneidText` WHERE (`definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . ') and `Tmesis` = 1  ');
+			}
+			else
+			{
+				$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' .$word['definitionId'] . '   OR  `secondaryDefId` = ' .$word['definitionId'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+			}
+			// var_dump($Tmesis);
+			
+			echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $TargetedDictionary[$word['definitionId']]['IsTwoWords'] ));
+			echo "</a>";
+		echo "</freq>";
+		
 	echo "</word>";
 }
-echo "</line>";
+echo "<span style = 'cursor:pointer;' onclick = 'TypeLine(this)'>(+)</span></line>";
 echo "</assignment>";
 echo "<vocab>";
 
-//[id] => 1 [entry] => -que [definition] => and [IsTwoWords] => 0 [APfrequency] => 277 
+	//[id] => 1 [entry] => -que [definition] => and [IsTwoWords] => 0 [APfrequency] => 277 
 
-foreach($TargetedDictionary as $entry)
-{
-	echo "<vocabword id = '".$entry['id']."' >";
-		echo "<span style = 'font-weight:bold;'>";
-		echo $entry['entry'];
-		echo "</span>";
-		echo " ";
-		echo "<span style = 'font-style:italic;'>";
-		echo $entry['definition'];
-		echo "</span>";
+	foreach($TargetedDictionary as $entry)
+	{
+		echo "<vocabword id = '".$entry['id']."' >";
+			echo "<span style = 'font-weight:bold;'>";
+			echo $entry['entry'];
+			echo "</span>";
+			echo " ";
+			echo "<span style = 'font-style:italic;'>";
+			echo $entry['definition'];
+			echo "</span>";
 
-		if($BookTitle != "DBG")
-		{
-			$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
-			$Tmesis  = SQLQuarry('SELECT `id`   FROM `#APAeneidText` WHERE (`definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . ') AND `Tmesis` = 1 ');
-		}
-		else
-		{
-			$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
-			$Tmesis = [];
-		}
-		echo " ";
+			if($BookTitle != "DBG")
+			{
+				$uses  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
+				$Tmesis  = SQLQuarry('SELECT `id`   FROM `#APAeneidText` WHERE (`definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . ') AND `Tmesis` = 1 ');
+			}
+			else
+			{
+				$uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' . $entry['id'] . '   OR  `secondaryDefId` = ' . $entry['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+				$Tmesis = [];
+			}
+			echo " ";
 
-		echo "<span>(";
-		// var_dump($Tmesis);
-			echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $entry['IsTwoWords'] ));
-		echo ")</span>";
+			echo "<span>(";
+			// var_dump($Tmesis);
+				echo ((count($uses) - (count($Tmesis)/2)) /( 1+(int) $entry['IsTwoWords'] ));
+			echo ")</span>";
 
 
-	echo "</vocabword>";
-}
+		echo "</vocabword>";
+	}
 
 echo "</vocab>";
 
+
+function ParseNoteText($inputText)
+{
+	$outputText = "";
+
+
+	$literaryDevices = SQLQuarry('SELECT `Device` FROM `#APLiteraryDevices`', true);
+	$literaryDevices = array_map('strtolower', $literaryDevices);
+	
+	$outputText = preg_replace("/\*(".implode('|', $literaryDevices ).")\*/","<a href = 'LiteraryDevices.php?device=\\1'><span style = 'font-weight:bold; font-variant: small-caps;'>\\1</span></a>",$inputText);
+
+	return $outputText;
+}
+
 echo "<notes>";
-	echo "Hello Notes";
+	// echo $HWStartId ;
+	// echo $HWEndId ;
+
+	$WordNotes = SQLQuarry(' SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`,   `#APNotesText`.`Text`, `Author`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `#AP'.$BookTitle .'Text`) as `sub` ON (`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
+	
+	if($HWAssignment['Author'] == "C")
+	{
+		$ConcatText = "CONCAT(`sub`.`book`, '.',`sub`.`chapter`, '.', `sub`.`lineNumber`)";
+	}
+	else
+	{
+		$ConcatText = "CONCAT(`sub`.`book`, '.', `sub`.`lineNumber`)";
+	}
+	
+
+	$LineNotes = SQLQuarry('SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `#APNotesText`.`Text`, `Author`, `book`, `chapter`, `lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `#AP'.$BookTitle .'Text`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') GROUP BY `AssociatedLineCitation`');
+
+
+
+	$CondensedNotes = array();
+
+	// print_r($WordNotes);
+	// print_r($LineNotes);
+
+
+	foreach($WordNotes as $note)
+	{
+		if(!isset($CondensedNotes[$note["NoteId"]]))
+		{
+			$CondensedNotes[$note["NoteId"]] = array(["AssociatedWordId"] => $note["AssociatedWordId"]);
+			$CondensedNotes[$note["NoteId"]]["WNLN"] = "WN";
+			$CondensedNotes[$note["NoteId"]]["Author"] = $note["Author"];
+			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
+			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
+			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["AssociatedWordId"];
+			$CondensedNotes[$note["NoteId"]]["phrase"] = $note["word"]; 
+			$CondensedNotes[$note["NoteId"]]["lines"] = array($note["lineNumber"]); 
+			$CondensedNotes[$note["NoteId"]]["comparableCitation"] = $note["AssociatedWordId"]; 
+		}
+		else
+		{
+			if(($CondensedNotes[$note["NoteId"]]["LastWordId"]+1) == $note["AssociatedWordId"])
+			{
+				$CondensedNotes[$note["NoteId"]]["phrase"] .= " ". $note["word"]; 
+			}
+			else
+			{
+				$CondensedNotes[$note["NoteId"]]["phrase"] .= " ... ". $note["word"]; 
+			}
+
+
+			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["AssociatedWordId"];
+
+			array_push($CondensedNotes[$note["NoteId"]]["lines"], $note["lineNumber"]); 
+			$CondensedNotes[$note["NoteId"]]["lines"] = array_unique ($CondensedNotes[$note["NoteId"]]["lines"]); 
+			sort($CondensedNotes[$note["NoteId"]]["lines"]);
+		}
+	}
+
+	foreach($LineNotes as $note)
+	{
+		if(!isset($CondensedNotes[$note["NoteId"]]))
+		{
+			$CondensedNotes[$note["NoteId"]] = array(["AssociatedWordId"] => $note["AssociatedWordId"]);
+			$CondensedNotes[$note["NoteId"]]["WNLN"] = "LN";
+			$CondensedNotes[$note["NoteId"]]["Author"] = $note["Author"];
+			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
+			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
+			$CondensedNotes[$note["NoteId"]]["lines"] = array(substr($note["AssociatedLineCitation"], 2)); 
+			$CondensedNotes[$note["NoteId"]]["comparableCitation"] = $note["AssociatedWordId"]; 
+
+		}
+		else
+		{
+			array_push($CondensedNotes[$note["NoteId"]]["lines"], substr($note["AssociatedLineCitation"], 2));
+			// $CondensedNotes[$note["NoteId"]]["lines"] = array_unique ($CondensedNotes[$note["NoteId"]]["lines"]); 
+			sort($CondensedNotes[$note["NoteId"]]["lines"]);
+		}
+	}
+
+	// print_r($CondensedNotes);
+
+	usort($CondensedNotes, function ($a, $b) {
+
+		$a = $a["comparableCitation"];
+		$b = $b["comparableCitation"];
+		
+		if($a != $b)
+		{
+			return $a < $b ? -1 : 1;
+		}
+
+		return 0;
+			
+	});
+
+	foreach($CondensedNotes as $Cnote)
+	{
+		echo "<note >";
+		$linestext = count($Cnote["lines"]) > 1 ? min($Cnote["lines"]) . "–" .  max($Cnote["lines"]) :   $Cnote["lines"][0];
+		echo "<span style = 'font-family:Trajan'>". $linestext ." </span>";
+		echo "<B>". preg_replace("/[;,:]/","", $Cnote['phrase']) ." </B>";
+		echo ParseNoteText($Cnote['Text']);
+		echo "</note> ";
+		// echo implode("|", $Cnote['comparableCitation']);
+		echo "<BR>";
+	}
+
+
 echo "</notes>";
 
 echo "</wrapper>";
@@ -593,7 +730,9 @@ for (i=0; i <words.length; i++ )
 {
 	words[i].onclick = function()
 	{
-		this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
+		document.getElementById("submitNoteWords").value += ","+this.getAttribute('idnum')
+		document.getElementById("previewNoteWords").innerText += " "+this.getAttribute('fullword')
+		document.getElementById("submitNoteNote").focus();
 	}
 	// words[i].onmouseover = function()
 	// {
@@ -660,6 +799,42 @@ function GetAPLatinHW()
 		xmlhttp.send();
  
 
+}
+
+
+
+function AddNote()
+{
+		NoteWords = document.getElementById('submitNoteWords').value
+		NoteLines = document.getElementById('submitNoteLines').value
+		NoteText = document.getElementById('submitNoteNote').value
+
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.onreadystatechange = function()
+		{
+			if (this.readyState == 4 && this.status == 200)
+			{
+				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
+
+				NoteWords = document.getElementById('submitNoteWords').value = "";
+				NoteLines = document.getElementById('submitNoteLines').value = "";
+				NoteText = document.getElementById('submitNoteNote').value = "";
+			}
+		};
+
+		XMLURL = "AJAXAPL.php?addnote=true&author=<?php echo $HWAssignment['Author'];?>&notetext="+NoteText+"&wordids=" + NoteWords+"&linecitations=" + NoteLines;
+		xmlhttp.open("GET", XMLURL, true);
+		xmlhttp.send();
+		console.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/" + XMLURL);
+		// return window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL;
+	
+
+}
+
+
+function TypeLine(ele)
+{
+	document.getElementById("submitNoteLines").value += "," + ele.parentElement.getAttribute('citation')
 }
 
 

@@ -1,6 +1,6 @@
 <TITLE>Dictionary</TITLE>
 
-
+<p style = 'text-align:left;'><A href = 'UnitsViewer.php'>← Units</A></p>
 <style> 
 	html {
 		text-align: center;
@@ -181,7 +181,7 @@
 </style>
 
 <CENTER><BR><BR>
-<body  onload = 'FilterDict(document.getElementById("filterdict").value);'>
+<body  >
 <form autocomplete="off">
 <input placeholder = 'Search...' value = '<?php if (isset($_GET['word'])){echo $_GET['word'];}?>'   onkeyup = 'FilterDict(this.value);' type = "text" id = 'filterdict'><BR><BR>
 </form>
@@ -194,7 +194,7 @@ function FilterDict(filterText)
 {
 	if (document.getElementById('dictionary').getElementsByClassName('spinnerbig').length == 0)
 	{
-		document.getElementById('dictionary').innerHTML = "<BR><BR><BR><DIV class = 'spinnerbig'><DIV>"
+		document.getElementById('dictionary').innerHTML = "<BR><BR><BR><DIV  class = 'spinnerbig'><DIV>"
 	}
 
 	if (typeof(xmlhttp) != "undefined")
