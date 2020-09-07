@@ -14,7 +14,7 @@ $NextLine = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `#APDBGText` 
 <a href = 'Dictionary.php'>Dictionary</a><BR>
 <a href = 'Definer.php?author=C&book=<?php echo $NextLine['book'];?>&chapter=<?php echo $NextLine['chapter'];?>&line=<?php echo $NextLine['lineNumber'];?>'>Definer</a><BR>
 <a href = 'HomeworkViewer.php?hw=1'>Homework Viewer</a><BR>
-<a href = 'AddNotes.php?hw=1'>Homework Viewer</a><BR>
+<a href = 'AddNotes.php?hw=1'>Add Notes</a><BR>
 <a href = 'HomeworkSync.php'>Homework Sync</a><BR>
 <a href = 'https://s462.altervista.org/phpmyadmin/?sid=79a8662e7b1f393725c7d9f61189d517#PMAURL-0:index.php?db=&table=&server=1&target=&token=f19f4338630c1be4ab9c697003e64e06'>PHP My Admin</a><BR>
 

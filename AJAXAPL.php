@@ -305,39 +305,36 @@ if (isset($_REQUEST["updatedictionary"]))
 if (isset($_REQUEST["addnote"]))
 { 
 
-	$NoteId = SQLRun('INSERT INTO `#APNotesText` (`Text`) VALUES ("'.$_REQUEST["notetext"].'");'); 
+	$NoteId = SQLRun('INSERT INTO `#APNotesText` (`Text`) VALUES ("'.addslashes ($_REQUEST["notetext"]).'");'); 
 	
 	
 	if( $_REQUEST["wordids"] != "")
 	{
 		$WIDs = explode(",", $_REQUEST["wordids"]);
+		$WIDs = array_unique(array_filter($WIDs));
 		foreach($WIDs as $wid)
 		{
-			if($wid != "")
-			{
-				SQLRun("INSERT INTO `#APNotesLocations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["author"]."');"); 
-			}
+			SQLRun("INSERT INTO `#APNotesLocations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["author"]."');"); 
 		}
 	}
 	else
 	{
 		$LIDs = explode(",", $_REQUEST["linecitations"]);
+		$LIDs = array_unique(array_filter($LIDs));
 		foreach($LIDs as $lid)
-		{
-
-			if($lid != "")
+		{ 
+			
+			if($_REQUEST["author"] == "V")
 			{
-				if($_REQUEST["author"] == "C")
-				{
-					$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APAeneidText` WHERE CONCAT(`book`, ".", `lineNumber`) = '. $lid.'');
-				}
-				else
-				{
-					$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APDBGText` WHERE CONCAT(`book`, ".", `chapter`, ".", `lineNumber`) = '. $lid.'');
-				}
-
-				SQLRun ("INSERT INTO `#APNotesLocations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ".$FirstID." ,'". $lid."', '".$_REQUEST["author"]."');"); 
+				$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APAeneidText` WHERE CONCAT(`book`, ".", `lineNumber`) = "'. $lid.'"');
 			}
+			else
+			{
+				$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APDBGText` WHERE CONCAT(`book`, ".", `chapter`, ".", `lineNumber`) = "'. $lid.'"');
+			}
+
+			SQLRun("INSERT INTO `#APNotesLocations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ".$FirstID." ,'". $lid."', '".$_REQUEST["author"]."');"); 
+			
 		}
 
 	}

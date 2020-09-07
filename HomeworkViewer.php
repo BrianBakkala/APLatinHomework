@@ -201,6 +201,47 @@
 		display:block;
 	}
 
+
+	.literarydevice
+	{
+		font-variant:small-caps;
+	}
+
+	.tooltiptext
+	{
+		font-variant:none;
+	}
+
+	.literarydevice 
+	{
+	position: relative;
+	display: inline-block;
+	border-bottom: 1px dotted black;
+	}
+
+	.literarydevice .tooltiptext
+	{
+	visibility: hidden;
+	width: 200px;
+	background-color: black;
+	color: #fff;
+	text-align: center;
+	border-radius: 6px;
+	padding: 10px 5px;
+	
+	/* Position the literarydevice */
+	position: absolute;
+	z-index: 1;
+	top: 100%;
+	left: 50%;
+	margin-left: -60px;
+	}
+
+	.literarydevice:hover .tooltiptext
+	{
+	visibility: visible;
+	}
+
 	
 </STYLE>
 
@@ -520,13 +561,21 @@ echo "</assignment>";
 
 function ParseNoteText($inputText)
 {
-	$outputText = "";
+	$outputText = $inputText;
 
-
-	$literaryDevices = SQLQuarry('SELECT `Device` FROM `#APLiteraryDevices`', true);
-	$literaryDevices = array_map('strtolower', $literaryDevices);
-
-	$outputText = preg_replace("/\*(".implode('|', $literaryDevices ).")\*/","<a href = 'LiteraryDevices.php?device=\\1'><span style = 'font-weight:bold; font-variant: small-caps;'>\\1</span></a>",$inputText);
+	$literaryDevices = SQLQuarry('SELECT `Device`, `Description` FROM `#APLiteraryDevices`', false, "Device");
+	$literaryDevices = array_map(function($x){		return $x['Description'];	},  ($literaryDevices)) ;
+	$literaryDevices = array_flip(array_map('strtolower',  array_flip($literaryDevices) ));
+	
+	$outputText = preg_replace_callback("/\*\*\*(".implode('|', array_keys($literaryDevices) ).")\*\*\*/", function ($matches) use($literaryDevices) {
+		
+		// print_r($literaryDevices);
+		return "<span class = 'literarydevice' device='" .$matches[1]."'>".$matches[1]."<span class='tooltiptext'>".$literaryDevices[$matches[1]]."</span></span>";
+		
+		
+		;}, $outputText);
+	$outputText = preg_replace("/\*\*(.*?)\*\*/","<b>\\1</b>",$outputText);
+	$outputText = preg_replace("/\*(.*?)\*/","<i>\\1</i>",$outputText);
 
 	return $outputText;
 }
@@ -535,7 +584,7 @@ echo "<notes>";
 	// echo $HWStartId ;
 	// echo $HWEndId ;
 
-	$WordNotes = SQLQuarry(' SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`,   `#APNotesText`.`Text`, `Author`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `#AP'.$BookTitle .'Text`) as `sub` ON (`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
+	$WordNotes = SQLQuarry(' SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`,   `#APNotesText`.`Text`, `Author`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `#AP'.$BookTitle .'Text`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') AND `Author` = "'.$HWAssignment['Author'].'" AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
 	
 	if($HWAssignment['Author'] == "C")
 	{
@@ -547,7 +596,7 @@ echo "<notes>";
 	}
 	
 
-	$LineNotes = SQLQuarry('SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `#APNotesText`.`Text`, `Author`, `book`, `chapter`, `lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `#AP'.$BookTitle .'Text`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') GROUP BY `AssociatedLineCitation`');
+	$LineNotes = SQLQuarry('SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `#APNotesText`.`Text`, `Author`, `book`, `chapter`, `lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `#AP'.$BookTitle .'Text`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') AND `Author` = "'.$HWAssignment['Author'].'" GROUP BY `AssociatedLineCitation`');
 
 
 
@@ -579,7 +628,7 @@ echo "<notes>";
 			}
 			else
 			{
-				$CondensedNotes[$note["NoteId"]]["phrase"] .= " ... ". $note["word"]; 
+				$CondensedNotes[$note["NoteId"]]["phrase"] .= " … ". $note["word"]; 
 			}
 
 
@@ -632,8 +681,10 @@ echo "<notes>";
 	{
 		echo "<note >";
 		$linestext = count($Cnote["lines"]) > 1 ? min($Cnote["lines"]) . "–" .  max($Cnote["lines"]) :   $Cnote["lines"][0];
-		echo "<span style = 'font-family:Trajan'>". $linestext ." </span>";
-		echo "<B>". preg_replace("/[;,:]/","", $Cnote['phrase']) ." </B>";
+		echo "<span style = 'font-family:Trajan'>". $linestext .". </span>";
+		echo "<B>". preg_replace("/[;,\.:]/","", $Cnote['phrase']) ;
+		echo $Cnote['phrase'] == "" ? "" : ":";
+		echo " </B>";
 		echo ParseNoteText($Cnote['Text']);
 		echo "</note> ";
 		// echo implode("|", $Cnote['comparableCitation']);

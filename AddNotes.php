@@ -200,6 +200,47 @@
 		display:block;
 	}
 
+
+	.literarydevice
+	{
+		font-variant:small-caps;
+	}
+
+	.tooltiptext
+	{
+		font-variant:none;
+	}
+
+	.literarydevice 
+	{
+	position: relative;
+	display: inline-block;
+	border-bottom: 1px dotted black;
+	}
+
+	.literarydevice .tooltiptext
+	{
+	visibility: hidden;
+	width: 200px;
+	background-color: black;
+	color: #fff;
+	text-align: center;
+	border-radius: 6px;
+	padding: 10px 5px;
+	
+	/* Position the literarydevice */
+	position: absolute;
+	z-index: 1;
+	top: 100%;
+	left: 50%;
+	margin-left: -60px;
+	}
+
+	.literarydevice:hover .tooltiptext
+	{
+	visibility: visible;
+	}
+
 	
 </STYLE>
 
@@ -327,86 +368,12 @@ if($_GET['hw'] != SQLQ('SELECT MAX(`HW`) FROM `#APHW` '))
 
 
 
-
 echo "<BR>";
-
-echo "<duedate style = 'color:rgba(0,0,0,0);' id = 'dueDate'>[Due Date]";
-echo "</duedate>";
-echo " | ";
-
-echo "<A   href = 'https://aplatin.altervista.org/UnitsViewer.php'>";
-echo "Units";
-echo "</A>";
-echo " | ";
-
-echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php'>";
-echo "Dictionary";
-echo "</A>";
-echo " | ";
-
-echo "<A target = '_blank' href = 'https://quizlet.com/MrBakkala/folders/ap-latin-vocab/sets'>";
-echo "Quizlet";
-echo "</A>";
-echo " | ";
-
-echo "<select onchange= 'SetDifficulty(this.value)'>";
-
-
-	echo "<option value='0' selected disabled hidden> ";
-	echo "Difficulty";
-	echo "</option> ";
-
-	echo "<option value = '500'>";
-	echo "Absolute Scrub";
-	echo "</option>";
-
-	echo "<option value = '30'>";
-	echo "ezpz 🍋 squeezy";
-	echo "</option>";
-
-	echo "<option value = '20'>";
-	echo "Easy";
-	echo "</option>";
-
-	echo "<option value = '10'>";
-	echo "Medium";
-	echo "</option>";
-
-	echo "<option value = '5'>";
-	echo "Hard";
-	echo "</option>";
-
-	echo "<option value = '3'>";
-	echo "I am a professional Latin translator";
-	echo "</option>";
-
-	echo "<option value = '1'>";
-	echo "I am the Roman God of Latin";
-	echo "</option>";
-
-	echo "<option value = '0'>";
-	echo "I literally think in Latin";
-	echo "</option>";
-
-echo "</select>";
-
-echo " | ";
-echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"shownotes\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"shownotes\") == \"true\" ?  \"false\" : \"true\" )'>";
-echo "Notes Sidebar";
-echo "</a>";
-
-
-
-echo " | ";
-echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"showvocab\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"showvocab\") == \"true\" ?  \"false\" : \"true\" )'>";
-echo "Vocab Sidebar";
-echo "</a>";
-
-echo "<HR style = 'border-top: 1px solid #eee;'>";
-
+echo "<BR>";
 
 echo "<form id = 'submitNotesForm'>";
 echo "WORDS<input id = 'submitNoteWords' type = 'text' size = '40'>";
+echo "<BR>";
 echo "LINES<input id = 'submitNoteLines' type = 'text' size = '40'>";
 echo "<BR>";
 echo "<BR>";
@@ -535,13 +502,21 @@ echo "</assignment>";
 
 function ParseNoteText($inputText)
 {
-	$outputText = "";
+	$outputText = $inputText;
 
-
-	$literaryDevices = SQLQuarry('SELECT `Device` FROM `#APLiteraryDevices`', true);
-	$literaryDevices = array_map('strtolower', $literaryDevices);
-
-	$outputText = preg_replace("/\*(".implode('|', $literaryDevices ).")\*/","<a href = 'LiteraryDevices.php?device=\\1'><span style = 'font-weight:bold; font-variant: small-caps;'>\\1</span></a>",$inputText);
+	$literaryDevices = SQLQuarry('SELECT `Device`, `Description` FROM `#APLiteraryDevices`', false, "Device");
+	$literaryDevices = array_map(function($x){		return $x['Description'];	},  ($literaryDevices)) ;
+	$literaryDevices = array_flip(array_map('strtolower',  array_flip($literaryDevices) ));
+	
+	$outputText = preg_replace_callback("/\*\*\*(".implode('|', array_keys($literaryDevices) ).")\*\*\*/", function ($matches) use($literaryDevices) {
+		
+		// print_r($literaryDevices);
+		return "<span class = 'literarydevice' device='" .$matches[1]."'>".$matches[1]."<span class='tooltiptext'>".$literaryDevices[$matches[1]]."</span></span>";
+		
+		
+		;}, $outputText);
+	$outputText = preg_replace("/\*\*(.*?)\*\*/","<b>\\1</b>",$outputText);
+	$outputText = preg_replace("/\*(.*?)\*/","<i>\\1</i>",$outputText);
 
 	return $outputText;
 }
@@ -550,7 +525,7 @@ echo "<notes>";
 	// echo $HWStartId ;
 	// echo $HWEndId ;
 
-	$WordNotes = SQLQuarry(' SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`,   `#APNotesText`.`Text`, `Author`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `#AP'.$BookTitle .'Text`) as `sub` ON (`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
+	$WordNotes = SQLQuarry(' SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`,   `#APNotesText`.`Text`, `Author`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `#AP'.$BookTitle .'Text`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') AND `Author` = "'.$HWAssignment['Author'].'" AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
 	
 	if($HWAssignment['Author'] == "C")
 	{
@@ -562,7 +537,7 @@ echo "<notes>";
 	}
 	
 
-	$LineNotes = SQLQuarry('SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `#APNotesText`.`Text`, `Author`, `book`, `chapter`, `lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `#AP'.$BookTitle .'Text`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') GROUP BY `AssociatedLineCitation`');
+	$LineNotes = SQLQuarry('SELECT `#APNotesLocations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `#APNotesText`.`Text`, `Author`, `book`, `chapter`, `lineNumber` FROM `#APNotesLocations` INNER JOIN `#APNotesText` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `#AP'.$BookTitle .'Text`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$HWStartId.' AND `sub`.`id` <= '.$HWEndId.') AND `Author` = "'.$HWAssignment['Author'].'" GROUP BY `AssociatedLineCitation`');
 
 
 
@@ -577,8 +552,8 @@ echo "<notes>";
 		if(!isset($CondensedNotes[$note["NoteId"]]))
 		{
 			$CondensedNotes[$note["NoteId"]] = array(["AssociatedWordId"] => $note["AssociatedWordId"]);
-			$CondensedNotes[$note["NoteId"]]["WNLN"] = "WN";
 			$CondensedNotes[$note["NoteId"]]["Author"] = $note["Author"];
+			$CondensedNotes[$note["NoteId"]]["WL"] = "Word";
 			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
 			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
 			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["AssociatedWordId"];
@@ -594,7 +569,7 @@ echo "<notes>";
 			}
 			else
 			{
-				$CondensedNotes[$note["NoteId"]]["phrase"] .= " ... ". $note["word"]; 
+				$CondensedNotes[$note["NoteId"]]["phrase"] .= " … ". $note["word"]; 
 			}
 
 
@@ -611,7 +586,7 @@ echo "<notes>";
 		if(!isset($CondensedNotes[$note["NoteId"]]))
 		{
 			$CondensedNotes[$note["NoteId"]] = array(["AssociatedWordId"] => $note["AssociatedWordId"]);
-			$CondensedNotes[$note["NoteId"]]["WNLN"] = "LN";
+			$CondensedNotes[$note["NoteId"]]["WL"] = "Line";
 			$CondensedNotes[$note["NoteId"]]["Author"] = $note["Author"];
 			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
 			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
@@ -631,12 +606,17 @@ echo "<notes>";
 
 	usort($CondensedNotes, function ($a, $b) {
 
-		$a = $a["comparableCitation"];
-		$b = $b["comparableCitation"];
+		$A = $a["comparableCitation"];
+		$B = $b["comparableCitation"];
 		
-		if($a != $b)
+		if($A != $B)
 		{
-			return $a < $b ? -1 : 1;
+			return $A < $B ? -1 : 1;
+		}
+
+		if($a["WL"] != $b["WL"])
+		{
+			return $a["WL"] != "Word" ? -1 : 1;
 		}
 
 		return 0;
@@ -647,8 +627,10 @@ echo "<notes>";
 	{
 		echo "<note >";
 		$linestext = count($Cnote["lines"]) > 1 ? min($Cnote["lines"]) . "–" .  max($Cnote["lines"]) :   $Cnote["lines"][0];
-		echo "<span style = 'font-family:Trajan'>". $linestext ." </span>";
-		echo "<B>". preg_replace("/[;,:]/","", $Cnote['phrase']) ." </B>";
+		echo "<span style = 'font-family:Trajan'>". $linestext .". </span>";
+		echo "<B>". preg_replace("/[;,\.:]/","", $Cnote['phrase']) ;
+		echo $Cnote['phrase'] == "" ? "" : ":";
+		echo " </B>";
 		echo ParseNoteText($Cnote['Text']);
 		echo "</note> ";
 		// echo implode("|", $Cnote['comparableCitation']);
@@ -706,25 +688,10 @@ echo "</wrapper>";
 
 ?>
 
-<body onload = "GetAPLatinHW();">
+<body >
 
 <script>
 
-function SetDifficulty(occurenceThreshold)
-{
-	words = document.getElementsByTagName('assignment')[0].getElementsByTagName('word')
-	for (w=0; w<words.length; w++)
-	{
-		if((+words[w].getAttribute('ap-frequency')) <= (+occurenceThreshold))
-		{
-			words[w].setAttribute('reveal', 'true')
-		}
-		else
-		{
-			words[w].setAttribute('reveal', 'false')
-		}
-	}
-}
 // alert(navigator.msMaxTouchPoints)
 words = document.getElementsByTagName('word')
 
@@ -765,45 +732,7 @@ for (i=0; i <words.length; i++ )
 
 	}
 }
-
-function GetAPLatinHW()
-{
-	SpreadsheetDocID = "1CKcfxPCIV2Kz7b7QAbhK6JJ5kroxVdZoreGDXvngjS8"
  
-		var xmlhttp = new XMLHttpRequest();
-		xmlhttp.onreadystatechange = function()
-		{
-			if (this.readyState == 4 && this.status == 200)
-			{
-				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
-				SheetData = (JSON.parse(Response).feed.entry)
-				
-				sd = 0;
-				HWFound = false;
-				
-				while ( sd < SheetData.length && !HWFound  )
-				{
-					
-					if((SheetData[sd].title["$t"]).startsWith("A") && SheetData[sd].content["$t"].endsWith("<?php echo $_GET['hw']; ?>"))
-					{
-						DueDate = (SheetData[sd+1].content["$t"])
-						HWFound = true;
-
-						document.getElementById('dueDate').innerText = "" + DueDate + "" 
-						document.getElementById('dueDate').style.color = 'black'
-					}
-					sd++
-				}
-			}
-		};
-		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/1/public/values?alt=json", true);
-		
-		xmlhttp.send();
- 
-
-}
-
-
 
 function AddNote()
 {
@@ -816,11 +745,7 @@ function AddNote()
 		{
 			if (this.readyState == 4 && this.status == 200)
 			{
-				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
-
-				NoteWords = document.getElementById('submitNoteWords').value = "";
-				NoteLines = document.getElementById('submitNoteLines').value = "";
-				NoteText = document.getElementById('submitNoteNote').value = "";
+				location.reload();
 			}
 		};
 
