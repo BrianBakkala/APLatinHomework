@@ -1,10 +1,13 @@
 <TITLE>Dictionary</TITLE>
 
+<?php 	require_once ( 'FontStyles.php');  ?>
+<?php 	require_once ( 'GenerateNotesandVocab.php');  ?>
+
 <p style = 'text-align:left;'><A href = 'UnitsViewer.php'>← Units</A></p>
 <style> 
 	html {
-		text-align: center;
-		font-family: "Palatino Linotype";
+		text-align: center; 
+		background-color:lightgray;
 	}
 
 	#filterdict {
@@ -22,9 +25,21 @@
 		display: block;
 		text-align: left;
 		font-size: x-large;
-		border-bottom: 1px solid lightgray;
+		border-left: 3px solid white;
+		border-right: 3px solid white;
 		padding-bottom: 2px;
 		cursor: default;
+		width:50%;
+	}
+
+	word:nth-child(odd)
+	{
+		background-color: white;
+	}
+
+	word:last-child
+	{
+		border-bottom: 3px solid white;
 	}
 
 	attestations {
@@ -216,7 +231,7 @@ function FilterDict(filterText)
 		}
 	};
 
-	XMLURL = "AJAXAPL.php?filterdictionary=true&filtertext=" + filterText;
+	XMLURL = "AJAXAPL.php?filterdictionary=true&level=<?php echo $Level;?>&filtertext=" + filterText;
 	xmlhttp.open("GET", XMLURL, true);
 	xmlhttp.send();
 	// cnsole.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL);
@@ -339,7 +354,7 @@ function SaveEntry(WordElement)
 				}
 			};
 
-			XMLURL = "AJAXAPL.php?updatedictionary=true&wordid=" + WordId + "&newdefinition=" + NewDef + "&newentry=" + NewEntry;
+			XMLURL = "AJAXAPL.php?updatedictionary=true&level=<?php echo $Level;?>&wordid=" + WordId + "&newdefinition=" + NewDef + "&newentry=" + NewEntry;
 			xmlhttp.open("GET", XMLURL, true);
 			xmlhttp.send();
 			console.log(NewDef)

@@ -60,7 +60,7 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 	}
 	echo "</unit>";
 
-	echo "<hr style = 'width:80%; border-top: 1px solid #333;''>";
+	echo "<hr style = 'width:50%; border-top: 1px solid #333;''>";
 }
 
 

@@ -1,6 +1,7 @@
 <?php
 
 require_once ( 'SQLConnection.php'); 
+require_once ( 'GenerateNotesandVocab.php'); 
 
 $hint = "";
 
@@ -21,12 +22,12 @@ if (isset($_REQUEST["updatedefinition"]))
 {
 	//SQLRun('UPDATE `~DeanReferrals` SET `DeanNotes`="'. $_REQUEST["deansnotes"] .'" WHERE `ReferralID` = "'. $_REQUEST["referralid"] .'"');
 	//   echo ('UPDATE `#AP'.$_REQUEST["authortext"].'Text` SET `definitionId` = '. $_REQUEST["def1"] .' , `secondaryDefId` = '. $_REQUEST["def2"] .'  WHERE `id` = '. $_REQUEST["wordid"] .';');
-	SQLRun('UPDATE `#AP'.$_REQUEST["authortext"].'Text` SET `definitionId` = '. $_REQUEST["def1"] .' , `secondaryDefId` = '. $_REQUEST["def2"] .'  WHERE `id` = '. $_REQUEST["wordid"] .';');
-	$hint = SQLQ('SELECT `definition` FROM `#APDictionary` WHERE  `id` = '. $_REQUEST["def1"] .'  ');
+	SQLRun('UPDATE `'.$BookDB[$BookTitle].'` SET `definitionId` = '. $_REQUEST["def1"] .' , `secondaryDefId` = '. $_REQUEST["def2"] .'  WHERE `id` = '. $_REQUEST["wordid"] .';');
+	$hint = SQLQ('SELECT `definition` FROM  `'.$LevelDictDB[$_REQUEST['level']] .'` WHERE  `id` = '. $_REQUEST["def1"] .'  ');
 	if( $_REQUEST["def2"]  != -1)
 	{
 		$hint .= " | ";
-		$hint .= SQLQ('SELECT `definition` FROM `#APDictionary` WHERE  `id` = '. $_REQUEST["def2"] .'  ');
+		$hint .= SQLQ('SELECT `definition` FROM `'.$DictDB[$BookTitle].'` WHERE  `id` = '. $_REQUEST["def2"] .'  ');
 	}
 } 
 
@@ -44,9 +45,9 @@ if (isset($_REQUEST["filterdictionary"]))
 				global $Conversion;
 				return (isset($Conversion[$x])) ?  $Conversion[$x] : $x;
 			}, $nomacronsfilterarray)); 
+			
+		$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$LevelDictDB[$_REQUEST['level']] .'` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") LIKE "%'.$nomacronsfiltertext.'%" OR `definition` LIKE "%'.$nomacronsfiltertext.'%")'); 
 
-
-		$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `#APDictionary` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") LIKE "%'.$nomacronsfiltertext.'%" OR `definition` LIKE "%'.$nomacronsfiltertext.'%")'); 
 		usort($Dictionary, function ($a, $b) {
 			global $Conversion;
 
@@ -263,18 +264,10 @@ if (isset($_REQUEST["filterdictionary"]))
 					$hint .= "<img  onclick = 'GetWordInfo(this) '  class = 'InfoButton' src = 'Images/LHinfo.png'>";
 					$hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
 					
-
-					$hint .= "<attestations>"; 
-					$hint .= "<i>Aeneid</i>: ". ((count($usesV) - (count($TmesisV)/2)) /( 1+ (int) $word['IsTwoWords'])) ."" ;
 					
-					$hint .= "; ";  
-			
-					$hint .= "<i>Dē Bellō Gallicō</i>: ". (count($usesC)/( 1+(int) $word['IsTwoWords'])) ."" ; 
-					$hint .= "</attestations>"; 
-
 
 					$hint .= "</word>";
-				}
+				
 			}
 
 		}
@@ -288,14 +281,18 @@ if (isset($_REQUEST["filterdictionary"]))
 
 if (isset($_REQUEST["deletedictionaryentry"]))
 {
-	SQLRun( 'DELETE FROM `#APDictionary` WHERE `id` = ' . $_REQUEST["wordid"]);
+	SQLRun( 'DELETE FROM `'.$DictDB[$BookTitle].'` WHERE `id` = ' . $_REQUEST["wordid"]);
 }
 
 
 if (isset($_REQUEST["updatedictionary"]))
 { 
-	SQLRun('UPDATE `#APDictionary` SET `entry` = "'.$_REQUEST["newentry"].'", `definition` = "'.$_REQUEST["newdefinition"].'"   WHERE `id` = '.$_REQUEST["wordid"].';');
-	// $hint = ('UPDATE `#APDictionary` SET `entry` = "'.$_REQUEST["newentry"].'", `definition` = "'.$_REQUEST["newdefinition"].'"   WHERE `id` = '.$_REQUEST["wordid"].';');
+
+
+
+	SQLRun('UPDATE `'.$LevelDictDB[$_REQUEST["level"]].'` SET `entry` = "'.$_REQUEST["newentry"].'", `definition` = "'.$_REQUEST["newdefinition"].'"   WHERE `id` = '.$_REQUEST["wordid"].';');
+ 
+	// $hint = ('UPDATE `'.$LevelDictDB[$_REQUEST["level"]].'` SET `entry` = "'.$_REQUEST["newentry"].'", `definition` = "'.$_REQUEST["newdefinition"].'"   WHERE `id` = '.$_REQUEST["wordid"].';');
 	$hint = '{"definition":"'.$_REQUEST["newdefinition"].'", "entry":"'.$_REQUEST["newentry"].'"}';
 }
 
@@ -305,7 +302,7 @@ if (isset($_REQUEST["updatedictionary"]))
 if (isset($_REQUEST["addnote"]))
 { 
 
-	$NoteId = SQLRun('INSERT INTO `#APNotesText` (`Text`) VALUES ("'.addslashes ($_REQUEST["notetext"]).'");'); 
+	$NoteId = SQLRun('INSERT INTO `'.$_REQUEST["notesdb"].'Text` (`Text`) VALUES ("'.addslashes ($_REQUEST["notetext"]).'");'); 
 	
 	
 	if( $_REQUEST["wordids"] != "")
@@ -314,7 +311,8 @@ if (isset($_REQUEST["addnote"]))
 		$WIDs = array_unique(array_filter($WIDs));
 		foreach($WIDs as $wid)
 		{
-			SQLRun("INSERT INTO `#APNotesLocations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["author"]."');"); 
+			SQLRun("INSERT INTO `".$_REQUEST["notesdb"]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["booktitle"]."');"); 
+			echo ("INSERT INTO `".$_REQUEST["notesdb"]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["booktitle"]."');"); 
 		}
 	}
 	else
@@ -333,7 +331,8 @@ if (isset($_REQUEST["addnote"]))
 				$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APDBGText` WHERE CONCAT(`book`, ".", `chapter`, ".", `lineNumber`) = "'. $lid.'"');
 			}
 
-			SQLRun("INSERT INTO `#APNotesLocations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ".$FirstID." ,'". $lid."', '".$_REQUEST["author"]."');"); 
+			SQLRun("INSERT INTO `".$_REQUEST["notesdb"]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ".$FirstID." ,'". $lid."', '".$_REQUEST["booktitle"]."');"); 
+			echo ("INSERT INTO `".$_REQUEST["notesdb"]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ".$FirstID." ,'". $lid."', '".$_REQUEST["booktitle"]."');"); 
 			
 		}
 

@@ -1,0 +1,308 @@
+
+	html {
+		-webkit-tap-highlight-color:  rgba(255, 255, 255, 0); 
+		margin:-8px;
+		background-color:lightgray;
+		overflow-x:hidden;
+	}
+
+	h1 {
+		font-size: 24pt;
+		display:inline-block;
+		margin-block-end: 0em;
+	}
+
+	line {
+
+		display: block;
+		padding-bottom: 1.5em;
+	}
+
+	line::before {
+		content: attr(citation);
+		top:17.6pt;
+		position:relative;
+		font-size: 12pt;
+		vertical-align: middle;
+		text-align: center;
+		padding: 8px;
+		color:gray;
+		font-family:Cinzel;
+		
+	}
+
+	word {
+		cursor: pointer;
+		display: inline-block;
+		padding: 6.5px;
+		vertical-align: top;
+	}
+
+	word:hover {
+		border-radius: 8px;
+		background-color: cornsilk;
+	}
+
+	text {
+		font-size: 22pt;
+		display: inline-block;
+		text-align: center;
+		padding-bottom: 6px;
+	}
+
+
+	entry {
+		font-weight: bold;
+		display: block;
+		text-align: center;
+	}
+
+	definition {
+		padding-left: 3px;
+		font-style: italic;
+		text-align: center;
+		display: block;
+	}
+
+	entry,
+	definition {
+		-webkit-transition: .25s all ease-in-out; 
+		transition: .25s all ease-in-out;
+		/*transition-delay: .5s*/
+		font-size: 0;
+	}
+
+
+	baseword,
+	clitic {
+		display: inline-block;
+	}
+
+
+	word[reveal="true"] entry,
+	word[preview="true"] entry
+	{
+		border-top: 1px solid lightgray;
+	}
+
+
+	word[reveal="true"] baseword,
+	word[reveal="true"] clitic
+	{
+		border-right: 2px solid darkgray;
+	}
+
+	word[reveal="true"] baseword
+	{
+		border-left: 2px solid darkgray;
+	}
+
+	
+	word[preview="true"] baseword,
+	word[preview="true"] clitic
+	{
+		border-right: 2px solid darkgray;
+	}
+
+	word[preview="true"] baseword
+	{
+		border-left: 2px solid darkgray;
+	}
+
+
+	word[reveal="true"] entry,
+	word[preview="true"] entry,
+	word[reveal="true"] definition,
+	word[preview="true"] definition
+	{
+		font-size: 18pt;
+
+	}
+
+	word[reveal="true"] baseword,
+	word[preview="true"] baseword,
+	word[reveal="true"] clitic,
+	word[preview="true"] clitic
+	{
+		padding: 5px;
+	}
+
+	word[reveal="true"]:not([clitic=""]) clitic text::before,
+	word[preview="true"]:not([clitic=""]) clitic text::before
+	{
+		content: "-";
+	}
+	
+	freq {
+		color: rgba(0, 0, 0, 0);
+		display: block;
+	}
+
+	freq a {
+		color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+	}
+
+	freq a:hover {
+		background-color: darkgray;
+ 
+	}
+
+
+	word:hover freq {
+
+		color: rgba(0, 0, 0, 1);
+	}
+
+	#rightarrow,
+	#leftarrow
+	{
+		height: 2.5em;
+		display:inline-block;
+
+		padding-left:1em;
+		padding-right:1em;
+		margin-top: 1.25em;
+		filter:invert(100);
+	}
+
+	#leftarrow {
+		transform: scaleX(-1);
+	}
+
+	assignment, notes
+	{
+		display:inline-block;
+		-webkit-transition: all 0.5s ease;
+		-moz-transition: all 0.5s ease;
+		-o-transition: all 0.5s ease;
+		transition: all 0.5s ease;
+	}
+
+	notes
+	{	
+		line-height: 1.6;
+		z-index: 1000;
+		position: fixed;
+		right: 250px;
+		width: 0;
+		height: 101%;
+		margin-right: -250px;
+		overflow-y: scroll;
+		text-align:left;
+	}
+
+	wrapper
+	{
+		--notes-width: 28%;
+	}
+
+	wrapper[shownotes="true"] notes
+	{		
+		width: var(--notes-width);
+	}
+
+	assignment
+	{
+		text-align:center;
+		width: 100%;
+	}
+
+	wrapper[shownotes="true"] assignment
+	{
+		left:0;
+		width: calc(99.5% - var(--notes-width));
+	}
+
+	vocabword
+	{
+		display:block;
+	}
+
+
+	.literarydevice
+	{
+		font-variant:small-caps;
+	}
+
+	.tooltiptext
+	{
+		font-variant:none;
+	}
+
+	.literarydevice 
+	{
+		position: relative;
+		display: inline-block;
+		cursor: help;
+		text-decoration-style: dotted;
+		text-decoration-line: underline;
+		text-decoration-color: gray;
+	}
+
+	.literarydevice .tooltiptext
+	{
+		visibility: hidden;
+		width: 200px;
+		background-color: black;
+		color: #fff;
+		text-align: center;
+		border-radius: 6px;
+		padding: 10px 5px;
+		
+		/* Position the literarydevice */
+		position: absolute;
+		z-index: 1;
+		top: 100%;
+		left: 50%;
+		margin-left: -60px;
+	}
+
+	.literarydevice:hover .tooltiptext
+	{
+		visibility: visible;
+	}
+
+
+
+
+	header, header table, header duedate
+	{  margin-left: auto;
+		margin-right: auto;
+		color:white;
+		text-align:center;
+		background-color:#666;
+		position: relative; 
+	}
+	
+	.menu-bar-option
+	{
+		font-weight:bold;
+		text-transform: uppercase;
+	}
+	
+	header
+	{
+		position: -webkit-sticky;
+		position: sticky;
+		top:-116px;
+		z-index:1;
+	}
+
+	select,	.menu-bar-option, .submenu-item
+	{
+		font-family: "Mulish", serif; 
+		margin-left: 15px;
+		margin-right: 15px;
+	}
+
+
+	.menu-bar-option a, .submenu-item a
+	{
+		color:white;
+		text-decoration:none;
+		
+	}
+
+	

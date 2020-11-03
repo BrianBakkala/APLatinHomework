@@ -3,8 +3,9 @@
 <textarea onchange = "Parse()"  onkeyup = "Parse()" rows = 10 cols = 80 id = 'textarea'></textarea>
 <BR>
 Text<select id = 'author'  onchange = "Parse()"  >
-<option selected>Aeneid</option>
-<option >DBG</option>
+<option >^Latin4InCatilinamText</option>
+<option selected>#APAeneidText</option>
+<option >#APDBGText</option>
 </select>
 <BR>
 Book<input min = 0 max = 20 onchange = "Parse()"  id = 'book' type = 'number' value = 0>
@@ -66,7 +67,7 @@ for (l=0; l< Lines.length; l++)
 			Words[w] = Words[w].replace(/\d/g, '') 
 
 
-			OutputText += "INSERT INTO `#AP"+Author+"Text` (`word`,  `book`,  `chapter`, `lineNumber`) VALUES ( '"+Words[w]+"', '"+BookNumber+"', '"+ChapterNumber+"', '"+(+LineStart+l)+"' );"
+			OutputText += "INSERT INTO `"+Author+"` (`word`,  `book`,  `chapter`, `lineNumber`, `definitionId`, `secondaryDefId`  ) VALUES ( '"+Words[w]+"', '"+BookNumber+"', '"+ChapterNumber+"', '"+(+LineStart+l)+"', 0, -1 );"
 			OutputText += "\n"
 		}
 

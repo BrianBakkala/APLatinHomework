@@ -167,7 +167,16 @@ for ($m = 1; $m <=count($GSA); $m++ )
 
 	array_push($TerminalLines, array($EndBook, $EndChapter, $EndLine ));
   
-	SQLRun("INSERT INTO `#APHW` (`HW`, `Unit`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`) 
+
+if($ActiveRow["Author"] == "V")
+{
+	$tempBT = "Aeneid";
+}
+else
+{
+	$tempBT = "DBG";
+}
+	SQLRun("INSERT INTO `#APHW` (`HW`, `Unit`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`, `BookTitle`) 
 	
 	VALUES (
 		
@@ -182,9 +191,29 @@ for ($m = 1; $m <=count($GSA); $m++ )
 		".$EndChapter.", 
 		".$EndLine.", 
 
-		'".$ActiveRow["Author"]."'
+		'".$ActiveRow["Author"]."',
+		'".$$tempBT."'
 	);");
   
+
+	echo "INSERT INTO `#APHW` (`HW`, `Unit`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`, `BookTitle`) 
+	
+	VALUES (
+		
+		".$ActiveRow["HW Number"].", 
+		".intval( explode(" ", $ActiveRow["Unit"])[1]).", 
+
+		".$StartBook.", 
+		".$StartChapter.", 
+		".$StartLine.", 
+
+		".$EndBook.", 
+		".$EndChapter.", 
+		".$EndLine.", 
+
+		'".$ActiveRow["Author"]."',
+		'".$tempBT."'
+	);";
 }
 
 foreach ($TerminalLines as $linecode)
