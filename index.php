@@ -5,18 +5,18 @@ require_once('SQLConnection.php');
 // echo $_GET['line'];
 // echo $_GET['author'];
 
-$NextLine = SQLQuarry('SELECT  min(id)  FROM `#APDBGText` WHERE `definitionId` = 0', true)[0];
-$NextLine = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `#APDBGText` WHERE `id` = '. $NextLine)[0];
+$NextLine = SQLQuarry('SELECT  min(id)  FROM `^Latin4InCatilinamText` WHERE `definitionId` = 0', true)[0];
+$NextLine = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `^Latin4InCatilinamText` WHERE `id` = '. $NextLine)[0];
  
 ?>
 <!-- <a href = 'TextParser.php'>Text Parser</a><BR> -->
 <!-- <a href = 'DictionaryParser.php'>Dictionary Parser</a><BR> -->
 <a href = 'Dictionary.php'>Dictionary</a><BR>
-<a href = 'Definer.php?author=C&book=<?php echo $NextLine['book'];?>&chapter=<?php echo $NextLine['chapter'];?>&line=<?php echo $NextLine['lineNumber'];?>'>Definer</a><BR>
+<a href = 'Definer.php?title=InCatilinam&level=4&book=<?php echo $NextLine['book'];?>&chapter=<?php echo $NextLine['chapter'];?>&line=<?php echo $NextLine['lineNumber'];?>'>Definer</a><BR>
 <a href = 'HomeworkViewer.php?hw=1'>Homework Viewer</a><BR>
 <a href = 'AddNotes.php?hw=1'>Add Notes</a><BR>
 <a href = 'HomeworkSync.php'>Homework Sync</a><BR>
-<a href = 'https://s462.altervista.org/phpmyadmin/?sid=79a8662e7b1f393725c7d9f61189d517#PMAURL-0:index.php?db=&table=&server=1&target=&token=f19f4338630c1be4ab9c697003e64e06'>PHP My Admin</a><BR>
+<a href = 'https://s513.altervista.org/phpmyadmin/?sid=c9590099a532d3c364f6e3e8b3f25f77#PMAURL-0:index.php?db=&table=&server=1&target=&lang=en&collation_connection=utf8mb4_general_ci&token=e18d06d00ccd6305ec345a226dce05db'>PHP My Admin</a><BR>
 
 
 

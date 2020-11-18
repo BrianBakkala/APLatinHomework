@@ -1,8 +1,67 @@
+<?php
+
+	$CSSColors = 
+	
+	[
+		"Aeneid" =>
+		[
+			'BackgroundColor' => "FFF1AC",
+			'HeaderColor' => "FFE667",
+			'WordHighlightColor' => "FFE24F",
+			'HeaderTextColor' => "black"
+		],
+	
+	"DBG" =>
+		[
+			'BackgroundColor' => "D3E5FF",
+			'HeaderColor' => "abcdff",
+			'WordHighlightColor' => "94beff",
+			'HeaderTextColor' => "black"
+		],
+	
+	"InCatilinam" =>
+		[
+			'BackgroundColor' => "c5ffbf",
+			'HeaderColor' => "8cff80",
+			'WordHighlightColor' => "1aff00",
+			'HeaderTextColor' => "black"
+		],
+	
+	"Catullus" =>
+		[
+			'BackgroundColor' => "c5ffbf",
+			'HeaderColor' => "8cff80",
+			'WordHighlightColor' => "1aff00",
+			'HeaderTextColor' => "black"
+		]
+	]
+
+	
+
+
+
+	
+?>
+
+	
+	<style>
+
+	*[aponly]
+	{
+		<?php
+		
+			if($Level != "AP")
+			{
+				echo "display:none;";
+			}
+		
+		?>
+	}
 
 	html {
 		-webkit-tap-highlight-color:  rgba(255, 255, 255, 0); 
 		margin:-8px;
-		background-color:lightgray;
+		background-color:<?php echo $CSSColors[$BookTitle]['BackgroundColor']; ?>;
 		overflow-x:hidden;
 	}
 
@@ -40,7 +99,7 @@
 
 	word:hover {
 		border-radius: 8px;
-		background-color: cornsilk;
+		background-color: <?php echo $CSSColors[$BookTitle]['WordHighlightColor'];?>;
 	}
 
 	text {
@@ -132,6 +191,18 @@
 	{
 		content: "-";
 	}
+
+	note
+	{
+		opacity:1;
+		-webkit-transition: .7s all ease-in-out; 
+		transition: .7s all ease-in-out;
+	}
+
+	note[highlighted="false"]
+	{
+		opacity:0.1;
+	}
 	
 	freq {
 		color: rgba(0, 0, 0, 0);
@@ -141,11 +212,14 @@
 	freq a {
 		color: inherit;
     cursor: pointer;
-    text-decoration: none;
+	text-decoration: none;
+	border-radius:25%;
+	padding-right:4px;
+	padding-left:4px;
 	}
 
 	freq a:hover {
-		background-color: darkgray;
+		background-color: <?php echo $CSSColors[$BookTitle]['BackgroundColor']; ?>;
  
 	}
 
@@ -164,7 +238,13 @@
 		padding-left:1em;
 		padding-right:1em;
 		margin-top: 1.25em;
-		filter:invert(100);
+		<?php
+			if($CSSHeaderTextColor == "white")
+			{
+				echo "filter:invert(100);";
+			}
+		?>
+		
 	}
 
 	#leftarrow {
@@ -187,7 +267,7 @@
 		position: fixed;
 		right: 250px;
 		width: 0;
-		height: 101%;
+		height: 100%;
 		margin-right: -250px;
 		overflow-y: scroll;
 		text-align:left;
@@ -270,9 +350,9 @@
 	header, header table, header duedate
 	{  margin-left: auto;
 		margin-right: auto;
-		color:white;
+		color:<?php echo $CSSColors[$BookTitle]['HeaderTextColor']; ?>;
 		text-align:center;
-		background-color:#666;
+		background-color:<?php echo $CSSColors[$BookTitle]['HeaderColor']; ?>;
 		position: relative; 
 	}
 	
@@ -300,9 +380,9 @@
 
 	.menu-bar-option a, .submenu-item a
 	{
-		color:white;
+		color:<?php echo $CSSColors[$BookTitle]['HeaderTextColor']; ?>;
 		text-decoration:none;
 		
 	}
 
-	
+</style>

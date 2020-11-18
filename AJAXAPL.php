@@ -20,6 +20,7 @@ $Conversion = [
 
 if (isset($_REQUEST["updatedefinition"]))
 {
+
 	//SQLRun('UPDATE `~DeanReferrals` SET `DeanNotes`="'. $_REQUEST["deansnotes"] .'" WHERE `ReferralID` = "'. $_REQUEST["referralid"] .'"');
 	//   echo ('UPDATE `#AP'.$_REQUEST["authortext"].'Text` SET `definitionId` = '. $_REQUEST["def1"] .' , `secondaryDefId` = '. $_REQUEST["def2"] .'  WHERE `id` = '. $_REQUEST["wordid"] .';');
 	SQLRun('UPDATE `'.$BookDB[$BookTitle].'` SET `definitionId` = '. $_REQUEST["def1"] .' , `secondaryDefId` = '. $_REQUEST["def2"] .'  WHERE `id` = '. $_REQUEST["wordid"] .';');
@@ -46,7 +47,7 @@ if (isset($_REQUEST["filterdictionary"]))
 				return (isset($Conversion[$x])) ?  $Conversion[$x] : $x;
 			}, $nomacronsfilterarray)); 
 			
-		$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$LevelDictDB[$_REQUEST['level']] .'` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") LIKE "%'.$nomacronsfiltertext.'%" OR `definition` LIKE "%'.$nomacronsfiltertext.'%")'); 
+		$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$LevelDictDB[$_REQUEST['level']] .'` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%" OR `definition` COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%") '); 
 
 		usort($Dictionary, function ($a, $b) {
 			global $Conversion;
@@ -152,14 +153,6 @@ if (isset($_REQUEST["filterdictionary"]))
 			
 					$hightlightablestring = mb_ereg_replace("(".$filterRegex.")", "<highlight>\\1</highlight>", $hightlightablestring, "i"); 
 				}
-
-				$UsedInVergil = (SQLQ('SELECT `id` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['id'])== "") ? "false" : "true";
-				$UsedInVergil2 = (SQLQ('SELECT `id` FROM `#APAeneidText` WHERE `secondaryDefId` = ' .$word['id'])== "") ? "false" : "true";
-				$UsedInCaesar = (SQLQ('SELECT `id` FROM `#APDBGText` WHERE `definitionId` = ' .$word['id'])== "") ? "false" : "true";
-				$UsedInCaesar2 = (SQLQ('SELECT `id` FROM `#APDBGText` WHERE `secondaryDefId` = ' .$word['id'])== "") ? "false" : "true";
-
-				// if($UsedInVergil == "true" || $UsedInVergil2  == "true" || $UsedInCaesar  == "true" || $UsedInCaesar2  == "true")
-				{
 				
 					$hint .= "<word  wordid = ". $word['id'] ."  ";
 					$hint .= " onclick = 'this.setAttribute(\"reveal\", (this.getAttribute(\"reveal\") == \"true\" ? \"false\" : \"true\"))' ";
@@ -175,96 +168,23 @@ if (isset($_REQUEST["filterdictionary"]))
 					
 					$hint .= "</definition>"; 
 					
-					$usesV  = SQLQuarry('SELECT `book`, `chapter`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `id` ');
-					$Tmesis  = SQLQuarry('SELECT   `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . ' AND `Tmesis` = 1  ORDER BY `id` ');
-					$usesC  = SQLQuarry('SELECT `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `id` ');
-
-					$VergilUseString = "";
-					
-					for($u = 0; $u < count($usesV); $u++)
-					{
-						if($u != 0)
-						{
-						$VergilUseString .= ", ";
-						}
-
-
-
-						$VergilUseString .= "<attestation>";
-						$VergilUseString .= "<attcitation>";
-						$VergilUseString .= $usesV[$u]['book'];
-						if( $usesV[$u]['chapter'] != NULL)
-						{
-							$VergilUseString .= "." . $usesV[$u]['chapter'];
-						}
-						$VergilUseString .= "." .$usesV[$u]['lineNumber'];
-						$VergilUseString .= "</attcitation>";
-
-						
-						$VergilUseString .= "<attline>";
-
-						$AttLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APAeneidText`  WHERE `lineNumber` = '.$usesV[$u]['lineNumber'].' and `book` = '.$usesV[$u]['book'].' GROUP BY `lineNumber`' );
-
-						$SearchableWord = $usesV[$u]['word'];
-						$SearchableWord = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]","",$SearchableWord);
-
-
-						$RegexStatement = "(^|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])(".$SearchableWord.")($|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])";
-						$AttLine = mb_ereg_replace($RegexStatement, "\\1<span style='background-color:lightblue;'>\\2</span>\\3", $AttLine, "i"); 
-		
-						
-						$VergilUseString .= $AttLine;
-						$VergilUseString .= "</attline>";
-
-						$VergilUseString .= "</attestation>";
-						
-					}
-
-					$CaesarUseString = "";
-					
-					for($u = 0; $u < count($usesC); $u++)
-					{
-						if($u != 0)
-						{
-							$CaesarUseString .= ", ";
-						}
-
-						$CaesarUseString .= "<attestation>";
-						$CaesarUseString .= "<attcitation>";
-						$CaesarUseString .= $usesC[$u]['book'];
-						if( $usesC[$u]['chapter'] != NULL)
-						{
-							$CaesarUseString .= "." . $usesC[$u]['chapter'];
-						}
-						$CaesarUseString .= "." .$usesC[$u]['lineNumber'];
-						$CaesarUseString .= "</attcitation>";
-
-						
-						$CaesarUseString .= "<attline>";
-
-						$AttLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APDBGText`  WHERE `lineNumber` = '.$usesC[$u]['lineNumber'].' and `chapter` = '.$usesC[$u]['chapter'].' and `book` = '.$usesC[$u]['book'].' GROUP BY `lineNumber`' );
-
-						$SearchableWord = $usesC[$u]['word'];
-						$SearchableWord = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]","",$SearchableWord);
-
-
-						$RegexStatement = "(^|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])(".$SearchableWord.")($|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])";
-						$AttLine = mb_ereg_replace($RegexStatement, "\\1<span style='background-color:lightblue;'>\\2</span>\\3", $AttLine, "i"); 
-		
-						
-						$CaesarUseString .= $AttLine;
-						$CaesarUseString .= "</attline>";
-
-						$CaesarUseString .= "</attestation>";
-						
-					}
-					
 					$hint .= "<img  onclick = 'SaveEntry(this) '  style = 'display:none;' class = 'savebutton' src = 'Images/LHcheck.png'>";
 					$hint .= "<img  onclick = 'EditEntry(this)'  class = 'editbutton' src = 'Images/LHedit.png'>";
 					$hint .= "<img  onclick = 'GetWordInfo(this) '  class = 'InfoButton' src = 'Images/LHinfo.png'>";
 					$hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
-					
-					
+
+					if($Level == "AP")
+					{					
+						$hint .= "<attestations>"; 
+
+						$hint .= "<i>Aeneid</i>: ". GetFrequencyByTitle($word['id'], "Aeneid") ."" ;
+						$hint .= "; ";    
+						$hint .= "<i>Dē Bellō Gallicō</i>: ". GetFrequencyByTitle($word['id'], "DBG") ."" ; 
+
+						$hint .= "</attestations>"; 
+
+					}
+
 
 					$hint .= "</word>";
 				
@@ -301,8 +221,9 @@ if (isset($_REQUEST["updatedictionary"]))
 
 if (isset($_REQUEST["addnote"]))
 { 
+	
 
-	$NoteId = SQLRun('INSERT INTO `'.$_REQUEST["notesdb"].'Text` (`Text`) VALUES ("'.addslashes ($_REQUEST["notetext"]).'");'); 
+	$NoteId = SQLRun('INSERT INTO `'.$LevelNotesDB[$_REQUEST["level"]].'Text` (`Text`) VALUES ("'.addslashes ($_REQUEST["notetext"]).'");'); 
 	
 	
 	if( $_REQUEST["wordids"] != "")
@@ -311,8 +232,7 @@ if (isset($_REQUEST["addnote"]))
 		$WIDs = array_unique(array_filter($WIDs));
 		foreach($WIDs as $wid)
 		{
-			SQLRun("INSERT INTO `".$_REQUEST["notesdb"]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["booktitle"]."');"); 
-			echo ("INSERT INTO `".$_REQUEST["notesdb"]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["booktitle"]."');"); 
+			SQLRun("INSERT INTO `".$LevelNotesDB[$_REQUEST["level"]]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["booktitle"]."');"); 
 		}
 	}
 	else
@@ -331,8 +251,7 @@ if (isset($_REQUEST["addnote"]))
 				$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APDBGText` WHERE CONCAT(`book`, ".", `chapter`, ".", `lineNumber`) = "'. $lid.'"');
 			}
 
-			SQLRun("INSERT INTO `".$_REQUEST["notesdb"]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ".$FirstID." ,'". $lid."', '".$_REQUEST["booktitle"]."');"); 
-			echo ("INSERT INTO `".$_REQUEST["notesdb"]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `Author`) VALUES (".$NoteId.", ".$FirstID." ,'". $lid."', '".$_REQUEST["booktitle"]."');"); 
+			SQLRun ("INSERT INTO `".$LevelNotesDB[$_REQUEST["level"]]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.",  ".$FirstID.", '". $lid."', '".$_REQUEST["booktitle"]."');"); 
 			
 		}
 

@@ -1,5 +1,10 @@
  
-<TITLE>Dictionary</TITLE>
+<TITLE>AP Latin Units</TITLE>
+<?php 
+
+	require_once ( 'HomeworkViewerStyles.php');
+
+?>
 
 <style> 
 	html {
@@ -11,12 +16,12 @@
 
 	 homework[author="C"]
 	 {
-		  background-color:lightblue; 
+		  background-color:<?php echo $CSSColors["DBG"]['BackgroundColor'];?>; 
 	 }
 
 	 homework[author="V"]
 	 {
-		  background-color:lightyellow; 
+		  background-color:<?php echo $CSSColors["Aeneid"]['BackgroundColor'];?>; 
 	 }
 a:link { color: #000000; text-decoration: none}
 a:visited { color: #000000; text-decoration: none}

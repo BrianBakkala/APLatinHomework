@@ -18,7 +18,8 @@ else
 
 $LevelDB = [
 	"AP"=> "#APHW",
-	"4" => "^Latin4HW"
+	"4" => "^Latin4HW",
+	"3" => "~Latin3HW"
 ];
 
 if(isset($_GET['hw']))
@@ -67,32 +68,62 @@ else
 }
 
 
-$BookDB = [
+$BookDB = 
+[
 	"Aeneid" => "#APAeneidText",
 	"DBG" => "#APDBGText",
-	"InCatilinam" => "^Latin4InCatilinamText"
+	"InCatilinam" => "^Latin4InCatilinamText",
+	"Catullus" => "~Latin3CatullusText"
 
 ]; 
 
 
-$DictDB = [
+$DictDB = 
+[
 	"Aeneid" => "#APDictionary",
 	"DBG" => "#APDictionary",
-	"InCatilinam" => "^Latin4Dictionary"
-
+	"InCatilinam" => "^Latin4Dictionary",
+	"Catullus" => "~Latin3Dictionary"
 ]; 
 
 
-$NotesDB = [
+$NotesDB = 
+[
 	"Aeneid" => "#APNotes",
 	"DBG" => "#APNotes",
-	"InCatilinam" => "^Latin4Notes"
-
+	"InCatilinam" => "^Latin4Notes",
+	"Catullus" => "~Latin3Notes"
 ]; 
 
-$LevelDictDB =[
+$LevelDictDB =
+[
+	"3" => "~Latin3Dictionary",
 	"4" => "^Latin4Dictionary",
 	"AP" => "#APDictionary"
+];
+
+$LevelNotesDB =
+[
+	"3" => "~Latin3Notes",
+	"4" => "^Latin4Notes",
+	"AP" => "#APNotes"
+];
+
+
+$LatinBookTitle =
+[
+	"Aeneid" => "Aenēis",
+	"DBG" => "Commentāriī Dē Bellō Gallicō",
+	"InCatilinam" => "Ōrātiō in Catilinam Prīmā in Senātū Habita",
+	"Catullus" => "Carmina Catullī" 
+];
+
+$EnglishBookTitle =
+[
+	"Aeneid" => "Aeneid",
+	"DBG" => "De Bello Gallico",
+	"InCatilinam" => "In Catilinam",
+	"Catullus" => "Catullus" 
 ];
 
 
@@ -111,21 +142,42 @@ if(isset($_GET['hw']))
 
 
 	$TargetedDictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords`  FROM `'.$DictDB[$BookTitle].'` WHERE `id` <> 0 and `id` <> -1 and ( `id` = '. implode(" OR `id` = ", $HWDefinitionIds) .')   ORDER BY replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "Ā", "A") , "Ē", "E") , "Ī", "I") , "Ō", "O") , "Ū", "U") , "-", ""), "—, ", "")  COLLATE utf8_general_ci   ', false, "id"); 
+
+
 }
 
+function GetFrequencyByLevel($definitionIdNumber, $level = "AP")
+{
+	global $DictDB; 
+	global $LevelDictDB; 
 
-function GetAPFrequency($definitionIdNumber)
-{ 
-	$TwoWordCheck = SQLQ('SELECT `IsTwoWords` FROM `#APDictionary` WHERE `id` = ' . $definitionIdNumber);
-	$Aeneiduses = SQLQ('SELECT COUNT(`id`) FROM `#APAeneidText` WHERE `definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber );
-	$Tmesis = SQLQ('SELECT COUNT(`id`) FROM `#APAeneidText` WHERE (`definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber . ') and `Tmesis` = 1 ');
-	$DBGuses = SQLQ('SELECT COUNT(`id`) FROM `#APDBGText` WHERE `definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber );
-	
-	$AeneidusesCount = (($Aeneiduses - ($Tmesis/2)) /( 1+(int) $TwoWordCheck ));
-	
-	$TotalFreq = (((int) $AeneidusesCount) + ((int) $DBGuses));
+	$usecount = 0;
 
-	return $TotalFreq;
+	foreach($DictDB as $t => $d)
+	{
+		if($d == $LevelDictDB[$level])
+		{
+			$usecount += GetFrequencyByTitle($definitionIdNumber, $t);
+		}
+	} 
+	return $usecount;
+}
+
+function GetFrequencyByTitle($definitionIdNumber, $title)
+{
+	global $DictDB; 
+	global $BookDB; 
+
+	$TwoWordCheck = SQLQ('SELECT `IsTwoWords` FROM `'.$DictDB[$title].'` WHERE `id` = ' . $definitionIdNumber);
+	$uses = SQLQ('SELECT COUNT(`id`) FROM `'.$BookDB[$title].'` WHERE `definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber );
+	
+	if($title == "Aeneid")
+	{
+		$Tmesis = SQLQ('SELECT COUNT(`id`) FROM `'.$BookDB[$title].'` WHERE (`definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber . ') and `Tmesis` = 1 ');
+		$uses = (($uses - ($Tmesis/2)) /( 1+(int) $TwoWordCheck ));
+	}
+	
+	return ((int) $uses);
 }
 
 function ParseNoteText($inputText, $showdevices)
@@ -173,7 +225,7 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	}
 	
 
-	$LineNotes = SQLQuarry('SELECT `'.$NotesDB[$title].'Locations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `'.$NotesDB[$title].'Text`.`Text`, `BookTitle`, `book`, `chapter`, `lineNumber` FROM `'.$NotesDB[$title].'Locations` INNER JOIN `'.$NotesDB[$title].'Text` ON (`'.$NotesDB[$title].'Text`.`NoteId` = `'.$NotesDB[$title].'Locations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `'.$BookDB[$title].'`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND `BookTitle` = "'.$title.'" GROUP BY `AssociatedLineCitation` ORDER BY `lineNumber`');
+	$LineNotes = SQLQuarry('SELECT `'.$NotesDB[$title].'Locations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `'.$NotesDB[$title].'Text`.`Text`, `BookTitle`, `book`, `chapter`, `lineNumber` FROM `'.$NotesDB[$title].'Locations` INNER JOIN `'.$NotesDB[$title].'Text` ON (`'.$NotesDB[$title].'Text`.`NoteId` = `'.$NotesDB[$title].'Locations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `'.$BookDB[$title].'`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND `BookTitle` = "'.$title.'" ORDER BY `AssociatedLineCitation`, `lineNumber`');
 	
 	$CondensedNotes = array();
 
@@ -183,16 +235,26 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 
 	foreach($WordNotes as $note)
 	{
+		$templinecitation = "";
+		if($note["chapter"] == "" || $note["chapter"] == NULL || !isset($note["chapter"]))
+		{
+			$templinecitation = ($note["lineNumber"]) ;
+		}
+		else
+		{
+			$templinecitation = ($note["chapter"].".".$note["lineNumber"]) ;
+		}
+
 		if(!isset($CondensedNotes[$note["NoteId"]]))
 		{
-			$CondensedNotes[$note["NoteId"]] = array("AssociatedWordId" => $note["AssociatedWordId"]);
+			$CondensedNotes[$note["NoteId"]] = array("AssociatedWordId" => array($note["AssociatedWordId"]));
 			$CondensedNotes[$note["NoteId"]]["BookTitle"] = $note["BookTitle"];
 			$CondensedNotes[$note["NoteId"]]["WL"] = "Word";
 			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
 			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
 			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["AssociatedWordId"];
 			$CondensedNotes[$note["NoteId"]]["phrase"] = $note["word"]; 
-			$CondensedNotes[$note["NoteId"]]["lines"] = array($note["lineNumber"]); 
+			$CondensedNotes[$note["NoteId"]]["lines"] = array($templinecitation); 
 			$CondensedNotes[$note["NoteId"]]["comparableCitation"] = $note["AssociatedWordId"]; 
 		}
 		else
@@ -208,8 +270,9 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 
 
 			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["AssociatedWordId"];
+			array_push($CondensedNotes[$note["NoteId"]]["AssociatedWordId"], $note["AssociatedWordId"]);
 
-			array_push($CondensedNotes[$note["NoteId"]]["lines"], $note["lineNumber"]); 
+			array_push($CondensedNotes[$note["NoteId"]]["lines"], $templinecitation); 
 			$CondensedNotes[$note["NoteId"]]["lines"] = array_unique ($CondensedNotes[$note["NoteId"]]["lines"]); 
 			sort($CondensedNotes[$note["NoteId"]]["lines"]);
 		}
@@ -217,21 +280,31 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 
 	foreach($LineNotes as $note)
 	{
+		$templinecitation = "";
+		if($note["chapter"] == "" || $note["chapter"] == NULL || !isset($note["chapter"]))
+		{
+			$templinecitation = ($note["lineNumber"]) ;
+		}
+		else
+		{
+			$templinecitation = ($note["chapter"].".".$note["lineNumber"]) ;
+		}
+
 		if(!isset($CondensedNotes[$note["NoteId"]]))
 		{
-			$CondensedNotes[$note["NoteId"]] = array("AssociatedWordId" => $note["AssociatedWordId"]);
+			$CondensedNotes[$note["NoteId"]] = array("AssociatedWordId" => $templinecitation);
 			$CondensedNotes[$note["NoteId"]]["WL"] = "Line";
 			$CondensedNotes[$note["NoteId"]]["BookTitle"] = $note["BookTitle"];
 			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
 			$CondensedNotes[$note["NoteId"]]["phrase"] = "";
 			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
-			$CondensedNotes[$note["NoteId"]]["lines"] = array(substr($note["AssociatedLineCitation"], 2)); 
+			$CondensedNotes[$note["NoteId"]]["lines"] = array($templinecitation); 
 			$CondensedNotes[$note["NoteId"]]["comparableCitation"] = $note["AssociatedWordId"]; 
 
 		}
 		else
 		{
-			array_push($CondensedNotes[$note["NoteId"]]["lines"], substr($note["AssociatedLineCitation"], 2));
+			array_push($CondensedNotes[$note["NoteId"]]["lines"], $templinecitation);
 			// $CondensedNotes[$note["NoteId"]]["lines"] = array_unique ($CondensedNotes[$note["NoteId"]]["lines"]); 
 			sort($CondensedNotes[$note["NoteId"]]["lines"]);
 		}
@@ -264,16 +337,16 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	$lastLinesText = null;
 	foreach($CondensedNotes as $Cnote)
 	{
-		$outputText .= "<note >";
+		$outputText .= "<note cc = '".$Cnote["comparableCitation"]."' associatedwords = '".( gettype($Cnote["AssociatedWordId"]) == "array" ? implode(",", $Cnote["AssociatedWordId"]): 0)."' >";
 		$linestext = count($Cnote["lines"]) > 1 ? min($Cnote["lines"]) . "–" .  max($Cnote["lines"]) :   $Cnote["lines"][0];
-		
+
 		if($lastLinesText != $linestext)
 		{
-			$outputText .= "<span style = 'font-family:Cinzel'>". $linestext .". </span>";
+			$outputText .= "<span style = 'font-family:Cinzel'>". $linestext ." </span>";
 		}
 		else
 		{
-			$outputText .= "<span style = 'color:rgba(0,0,0,0); font-family:Cinzel'>". $linestext .". </span>";
+			$outputText .= "<span style = 'color:rgba(0,0,0,0); font-family:Cinzel'>". $linestext ." </span>";
 		}
 		$lastLinesText = $linestext;
 		
@@ -295,7 +368,7 @@ function DisplayVocabText($dictionary, $condensed = false)
 	$outputtext = "";
 	foreach($dictionary as $entry)
 	{
-		$freq = GetAPFrequency($entry['id']);
+		$freq = GetFrequencyByLevel($entry['id']);
 	
 		if($condensed == true && $freq <= 5)
 		{
@@ -351,6 +424,7 @@ function DisplayVocabText($dictionary, $condensed = false)
 //DisplayLines(true, $HWAssignment, $HWLines, $TargetedDictionary, $BookTitle)
 function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacing = 2)
 { 
+	global $Level;
 
 	$outputtext= "";
 		
@@ -417,6 +491,7 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 
 		if($word["secondaryDefId"] != -1)
 		{
+			
 			preg_match('/('. implode("|", array_map(function($val) { return ltrim($val, '-')."$";} , $CliticList)). ')/', $Noclitics, $clitics);
 			$Clitic = $clitics[0];
 
@@ -430,7 +505,7 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 
 		if($showvocab == true)
 		{
-			$outputtext .= "<word  baseword = '".$Noclitics."' clitic = '".$Clitic."' defintionid = '".$word['definitionId']."' wordid = '".$word['id']."' AP-frequency = '". GetAPFrequency($word['definitionId'])."' reveal = 'false'  >";
+			$outputtext .= "<word  baseword = '".$Noclitics."' clitic = '".$Clitic."' defintionid = '".$word['definitionId']."' wordid = '".$word['id']."' frequency = '". GetFrequencyByLevel($word['definitionId'], $Level)."' reveal = 'false'  >";
 			
 			$outputtext .= "<baseword>";
 				
@@ -472,13 +547,11 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 				$outputtext .= "<freq>"; 
 				
 					global $Level;
-
-					if($Level == "AP")
-					{
-						$outputtext .= "<a target = '_blank' href = 'WordViewer.php?wordid=". $word['definitionId'] . "'>";
-						$outputtext .= GetAPFrequency($word['definitionId']);
-						$outputtext .= "</a>";
-					}
+					global $BookTitle;
+					
+					$outputtext .= "<a target = '_blank' href = 'WordViewer.php?level=".$Level."&wordid=". $word['definitionId'] . "'>";
+					$outputtext .= GetFrequencyByTitle($word['definitionId'], $BookTitle);
+					$outputtext .= "</a>";
 					
 				$outputtext .= "</freq>";
 		}

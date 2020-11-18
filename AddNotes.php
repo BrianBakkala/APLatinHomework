@@ -1,9 +1,5 @@
 <TITLE>Add Notes</TITLE>
-
-<?php 	require_once ( 'FontStyles.php');  ?>
-<?php 	$CSSsrc = "HomeworkViewerStyles.css"; echo '<li'.'nk rel="stylesheet" type="text/css" href="'.$CSSsrc.'?'. rand(1, 100000)  ."00".date("U")."00".'">';  ?>
-
-
+ 
 <?php
 
 
@@ -13,10 +9,10 @@ if(!isset($_GET['hw']))
 	header('Location: $actual_link'.'?hw=1');
 }
 
-require_once ( 'SQLConnection.php');
 require_once ( 'GenerateNotesandVocab.php');
- 
-
+require_once ( 'FontStyles.php');
+require_once ( 'HomeworkViewerStyles.php');
+require_once ( 'SQLConnection.php');
 
 echo "<wrapper shownotes = 'true'>";
 
@@ -155,7 +151,7 @@ foreach ($HWLines as $word)
 	}
 
 
-	echo "<word idnum = '".$word['id']."' fullword = '".$word['word']."' baseword = '".$Noclitics."' clitic = '".$Clitic."' AP-frequency = '".$TargetedDictionary[$word['definitionId']]['APfrequency']."' reveal = 'false'  >";
+	echo "<word idnum = '".$word['id']."' fullword = '".$word['word']."' baseword = '".$Noclitics."' clitic = '".$Clitic."' frequency = '".$TargetedDictionary[$word['definitionId']]['APfrequency']."' reveal = 'false'  >";
 		
 		echo "<baseword>";
 			
@@ -278,7 +274,7 @@ function AddNote()
 			}
 		};
 
-		XMLURL = "AJAXAPL.php?addnote=true&notesdb=<?php echo $NotesDB[$BookTitle];?>&booktitle=<?php echo $BookTitle;?>&notetext="+NoteText+"&wordids=" + NoteWords+"&linecitations=" + NoteLines;
+		XMLURL = "AJAXAPL.php?addnote=true&level=<?php echo $Level;?>&booktitle=<?php echo $BookTitle;?>&notetext="+NoteText+"&wordids=" + NoteWords+"&linecitations=" + NoteLines;
 		xmlhttp.open("GET", XMLURL, true);
 		xmlhttp.send();
 		console.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/" + XMLURL);

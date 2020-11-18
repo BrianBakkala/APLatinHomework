@@ -1,27 +1,16 @@
 <?
 
 require_once ( 'SQLConnection.php');
+require_once ( 'GenerateNotesandVocab.php');
 
-function GetAPFrequency($definitionIdNumber)
-{
-	$TwoWordCheck = SQLQ('SELECT `IsTwoWords` FROM `#APDictionary` WHERE `id` = ' . $definitionIdNumber);
-	$Aeneiduses = SQLQ('SELECT COUNT(`id`) FROM `#APAeneidText` WHERE `definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber );
-	$Tmesis = SQLQ('SELECT COUNT(`id`) FROM `#APAeneidText` WHERE (`definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber . ') and `Tmesis` = 1 ');
-	$DBGuses = SQLQ('SELECT COUNT(`id`) FROM `#APDBGText` WHERE `definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber );
-	
-	$AeneidusesCount = (($Aeneiduses - ($Tmesis/2)) /( 1+(int) $TwoWordCheck ));
-	
-	$TotalFreq = (((int) $AeneidusesCount) + ((int) $DBGuses));
 
-	return $TotalFreq;
-}
 
 
 $dictionary = SQLQuarry('SELECT `id`, `entry`, `definition` FROM `#APDictionary` WHERE `id` <> -1 ', false, "id");
 
 foreach ($dictionary as &$entry)
 {
-	$entry["freq"] = GetAPFrequency($entry["id"]);
+	$entry["freq"] = GetFrequencyByLevel($entry["id"]);
 }
 
 usort($dictionary, function ($a, $b) {

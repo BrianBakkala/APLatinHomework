@@ -31,7 +31,7 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 // set document information
 $pdf->SetCreator(PDF_CREATOR);
 $pdf->SetAuthor('Brian Bakkala');
-$pdf->SetTitle('AP Latin Homework #'.$_GET['hw']);
+$pdf->SetTitle('Latin Homework #'.$_GET['hw']);
 
 $pdf->SetHeaderData('', '', "AP Latin Homework #".$_GET['hw'],"");
 

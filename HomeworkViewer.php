@@ -1,10 +1,4 @@
-<TITLE>AP Latin Homework Viewer</TITLE>
-
-
-<?php 	require_once ( 'FontStyles.php');  ?>
-<?php 	$CSSsrc = "HomeworkViewerStyles.css"; echo '<li'.'nk rel="stylesheet" type="text/css" href="'.$CSSsrc.'?'. rand(1, 100000)  ."00".date("U")."00".'">';  ?>
-
-
+<TITLE>Latin Homework Viewer</TITLE>
 
 <?php
 
@@ -19,8 +13,10 @@ if(!isset($_GET['hw']))
 	header('Location: $actual_link'.'?hw=1');
 }
 
-require_once ( 'SQLConnection.php');
 require_once ( 'GenerateNotesandVocab.php');
+require_once ( 'FontStyles.php');
+require_once ( 'HomeworkViewerStyles.php');
+require_once ( 'SQLConnection.php');
 
 echo "<wrapper shownotes='true'>";
 echo "<assignment>";
@@ -37,7 +33,7 @@ echo "</A>";
 echo "</span>";
 
 
-echo "<span class = 'menu-bar-option'>";
+echo "<span aponly class = 'menu-bar-option'>";
 echo "<A   href = 'https://aplatin.altervista.org/UnitsViewer.php'>";
 echo "Units";
 echo "</A>";
@@ -45,13 +41,13 @@ echo "</span>";
 
 
 echo "<span class = 'menu-bar-option'>";
-echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php'>";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php?level=".$Level."'>";
 echo "Dictionary";
 echo "</A>";
 echo "</span>";
 
 
-echo "<span class = 'menu-bar-option'>";
+echo "<span aponly  class = 'menu-bar-option'>";
 echo "<A target = '_blank' href = 'https://quizlet.com/MrBakkala/folders/ap-latin-vocab/sets'>";
 echo "Quizlet";
 echo "</A>"; 
@@ -66,11 +62,11 @@ echo "<table>";
 echo "<tr>";
 echo "<td>";
 
-if($_GET['hw'] != "1")
+if( (SQLQ('SELECT (`HW`) FROM `'.$LevelDB[$Level].'` WHERE `HW` = ' . ((int) $_GET['hw']-1))) != "" )
 {
 
-	$PrevHW = SQLQ('SELECT MAX(`HW`) FROM `#APHW` WHERE `HW` < ' . $_GET['hw'] );
-	echo "<A href = 'HomeworkViewer.php?hw=".$PrevHW."'>";
+	$PrevHW = SQLQ('SELECT MAX(`HW`) FROM `'.$LevelDB[$Level].'` WHERE `HW` < ' . $_GET['hw'] );
+	echo "<A href = 'HomeworkViewer.php?level=".$Level."&hw=".$PrevHW."'>";
 	echo "<IMG id = 'leftarrow' SRC = 'Images/LHarrow.png'>";
 	echo "</A>";
 	
@@ -79,12 +75,6 @@ if($_GET['hw'] != "1")
 echo "</td>";
 echo "<td>";
 
-$LatinBookTitle =
-[
-	"Aeneid" => "Aenēis",
-	"DBG" => "Dē Bellō Gallicō",
-	"InCatilinam" => "Ōrātiō in Catilinam" 
-];
 
 echo "<h1>";
 
@@ -117,11 +107,11 @@ echo "</td>";
 echo "<td>";
 
 
-if($_GET['hw'] != SQLQ('SELECT MAX(`HW`) FROM `#APHW` '))
+if( (SQLQ('SELECT (`HW`) FROM `'.$LevelDB[$Level].'` WHERE `HW` = ' . ((int) $_GET['hw']+1))) != "" )
 {
-	$NextHW = SQLQ('SELECT Min(`HW`) FROM `#APHW` WHERE `HW` > ' . $_GET['hw'] );
+	$NextHW = SQLQ('SELECT Min(`HW`) FROM `'.$LevelDB[$Level].'` WHERE `HW` > ' . $_GET['hw'] );
 
-	echo "<A href = 'HomeworkViewer.php?hw=".$NextHW."'>";
+	echo "<A href = 'HomeworkViewer.php?level=".$Level."&hw=".$NextHW."'>";
 	echo "<IMG id = 'rightarrow' SRC = 'Images/LHarrow.png'>";
 	echo "</A>";	
 }
@@ -140,13 +130,14 @@ echo "<span class = 'submenu-item'  style = 'font-weight:bold;'>";
 echo "HW ".$HWAssignment['HW'];
 echo "</span>";
 
-echo "<span class = 'submenu-item'>"; 
-echo "<duedate style = 'color:rgba(0,0,0,0);' id = 'dueDate'>[Due Date]";
+
+echo "<span  aponly  class = 'submenu-item'>"; 
+echo "<duedate style = 'color:rgba(0,0,0,0); ' id = 'dueDate'>December 31";
 echo "</duedate>";
 echo "</span>";
 
 echo "<span class = 'submenu-item'>";
-echo "<A target = '_blank' href = 'https://aplatin.altervista.org/GeneratePDF.php?hw=".  $_GET['hw'] . "'>";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/GeneratePDF.php?level=".$Level."&hw=".  $_GET['hw'] . "'>";
 echo "PDF";
 echo "</A>";
 echo "</span>";
@@ -219,6 +210,7 @@ echo "<BR>";
 echo "</assignment>";
 
 echo "<notes>";
+echo "<BR>";
 	echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, $BookTitle);
 	echo "<BR><BR><BR><BR><BR><BR><BR><BR>";
 echo "</notes>";
@@ -229,7 +221,7 @@ echo "</wrapper>";
 
 ?>
 
-<body onload = "GetAPLatinHW();">
+<body onload = "GetAPLatinHW(); SetupNoteHighlights();">
 
 <script>
 
@@ -238,7 +230,7 @@ function SetDifficulty(occurenceThreshold)
 	words = document.getElementsByTagName('assignment')[0].getElementsByTagName('word')
 	for (w=0; w<words.length; w++)
 	{
-		if((+words[w].getAttribute('ap-frequency')) <= (+occurenceThreshold))
+		if((+words[w].getAttribute('frequency')) <= (+occurenceThreshold))
 		{
 			words[w].setAttribute('reveal', 'true')
 		}
@@ -311,7 +303,7 @@ function GetAPLatinHW()
 						HWFound = true;
 
 						document.getElementById('dueDate').innerText = "" + DueDate + "" 
-						document.getElementById('dueDate').style.color = 'white'
+						document.getElementById('dueDate').style.color = '<?php echo $CSSColors[$BookTitle]['HeaderTextColor'];?>'
 					}
 					sd++
 				}
@@ -324,8 +316,60 @@ function GetAPLatinHW()
 
 }
 
+function ResetNoteHighlights()
+{
+	noteElements = document.getElementsByTagName('note')
 
+	for (var n= 0; n<noteElements.length; n++)
+	{
+		noteElements[n].removeAttribute('highlighted')
+	}
 
+}
+
+function HighlightNotes(hoveredElement)
+{
+	var ThereIsAHighlightedWord = false
+
+	noteElements = document.getElementsByTagName('note')
+
+	for (var n= 0; n<noteElements.length; n++)
+	{
+		if(noteElements[n].getAttribute('associatedwords').split(",").indexOf(hoveredElement.getAttribute('wordid') ) != -1)
+		{
+			noteElements[n].setAttribute('highlighted', "true")
+			ThereIsAHighlightedWord = true;
+		}
+		else
+		{
+			noteElements[n].setAttribute('highlighted', "false")
+		}
+	}
+
+	if(!ThereIsAHighlightedWord)
+	{
+		ResetNoteHighlights()
+	}
+}
+
+function SetupNoteHighlights()
+{
+	wordElements = document.getElementsByTagName('word')
+	
+	for (var w= 0; w<wordElements.length; w++)
+	{
+		wordElements[w].onmouseover = function()
+		{
+			HighlightNotes(this)
+		};
+
+		wordElements[w].onmouseout = function()
+		{
+			ResetNoteHighlights()
+		};	
+	}
+	
+}
 
 
 

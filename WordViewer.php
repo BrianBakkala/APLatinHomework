@@ -84,10 +84,12 @@ defintionheader {
 <?php
 
 require_once ( 'SQLConnection.php');
+require_once ( 'GenerateNotesandVocab.php'); 
+
 
 if(isset($_GET['wordid']))
 {
-	$word = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `#APDictionary` WHERE `id` = "'.$_GET['wordid'].'"')[0];
+	$word = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$LevelDictDB[$_GET['level']].'` WHERE `id` = "'.$_GET['wordid'].'"')[0];
 }
 
 echo "<A href = 'Dictionary.php'>← Dictionary</A>";
@@ -103,186 +105,101 @@ echo "</defintionheader>";
 echo "<BR><BR>";
 
 
-$usesV  = SQLQuarry('SELECT `id`, `book`, `lineNumber`, `word` FROM `#APAeneidText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `book`, `lineNumber`, `id` ');
-$TmesisV  = SQLQuarry('SELECT `id`  FROM `#APAeneidText` WHERE (`definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . ') AND `Tmesis` = 1    ');
-$usesC  = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `#APDBGText` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+ 
 
-$VergilUseString = "";
-$CaesarUseString = "";
-
-
-for($u = 0; $u < count($usesV); $u++)
+foreach($DictDB as $t => $d)
 {
-
-	$VergilLineNumber = (((int) $usesV[$u]['lineNumber'])-0);
-	$VergilPrevLineNumber = 0;
-	$VergilNextLineNumber = 0;
-
-	
-	$AttLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APAeneidText`  WHERE `lineNumber` = '.$usesV[$u]['lineNumber'].' and `book` = '.$usesV[$u]['book'].' GROUP BY `lineNumber`' );
-	
-	if(SQLQ(' SELECT  `id` FROM `#APAeneidText`  WHERE `lineNumber` = '. ($VergilLineNumber-1) .' and `book` = '.$usesV[$u]['book'].' GROUP BY `lineNumber`' ))
+	if($d == $LevelDictDB[$Level])
 	{
-		$VergilPrevLineNumber = ($VergilLineNumber-1);
-		$AttPrevLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APAeneidText`  WHERE `lineNumber` = '. $VergilPrevLineNumber .' and `book` = '.$usesV[$u]['book'].' GROUP BY `lineNumber`' );
+		$uses  = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `'.$BookDB[$t].'` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+
+		$UseString = "";
+
+		for($u = 0; $u < count($uses); $u++)
+		{
+			$TheLineNumber = (((int) $uses[$u]['lineNumber'])-0);
+			$PrevLineNumber = 0;
+			$NextLineNumber = 0;
+
+			
+			$AttLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
+			
+			if(SQLQ(' SELECT  `id` FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '. ($TheLineNumber-1) .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' ))
+			{
+				$PrevLineNumber = ($TheLineNumber-1);
+				$AttPrevLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '. $PrevLineNumber .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
+			}
+			else
+			{
+				$AttPrevLine = "";
+			}
+
+				
+			if(SQLQ(' SELECT  `id` FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '. ($TheLineNumber+1) .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' ))
+			{
+				$NextLineNumber = ($TheLineNumber+1);
+				$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '. $NextLineNumber .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
+			}
+			else
+			{
+				$AttNextLine = "";
+			}
+
+
+			//$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
+			
+			$SearchableWord = $uses[$u]['word'];
+			$SearchableWord = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]","",$SearchableWord);
+			
+			
+			$RegexStatement = "(^|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])(".$SearchableWord.")($|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])";
+			$AttLine = mb_ereg_replace($RegexStatement, "\\1<highlight>\\2</highlight>\\3", $AttLine, "i"); 
+			
+			
+			$UseString .= "<attestation wordid = '".$uses[$u]['id']."'>";
+			
+			if($PrevLineNumber != 0)
+			{
+				$UseString .= "<attline>";
+					$UseString .= "<attcitation>";
+					$UseString .= $uses[$u]['book'];
+					$UseString .= "." . $PrevLineNumber;
+					$UseString .= "</attcitation>";
+					$UseString .= $AttPrevLine . "<BR>";
+				$UseString .= "</attline>";
+			}
+			
+			$UseString .= "<attline  main = 'true'>";
+				$UseString .= "<attcitation>";
+				$UseString .= $uses[$u]['book'];
+				$UseString .= "." . $TheLineNumber;
+				$UseString .= "</attcitation>";
+				$UseString .= $AttLine . "<BR>";
+			$UseString .= "</attline>";
+
+			if($NextLineNumber != 0)
+			{
+				$UseString .= "<attline>";
+					$UseString .= "<attcitation>";
+					$UseString .= $uses[$u]['book'];
+					$UseString .= "." . $NextLineNumber;
+					$UseString .= "</attcitation>";
+					$UseString .= $AttNextLine . "<BR>";
+				$UseString .= "</attline>";
+			}
+
+			$UseString .= "</attestation>";
+			
+		}
+
+
+		echo "<h1><i>".$EnglishBookTitle[$t]."</i>: ".  GetFrequencyByTitle($_GET['wordid'], $t) ."</h1>"; 
+		echo "<attestations>"; 
+		echo $UseString; 
+		echo "</attestations>"; 
+
 	}
-	else
-	{
-		$AttPrevLine = "";
-	}
-
-		
-	if(SQLQ(' SELECT  `id` FROM `#APAeneidText`  WHERE `lineNumber` = '. ($VergilLineNumber+1) .' and `book` = '.$usesV[$u]['book'].' GROUP BY `lineNumber`' ))
-	{
-		$VergilNextLineNumber = ($VergilLineNumber+1);
-		$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APAeneidText`  WHERE `lineNumber` = '. $VergilNextLineNumber .' and `book` = '.$usesV[$u]['book'].' GROUP BY `lineNumber`' );
-	}
-	else
-	{
-		$AttNextLine = "";
-	}
-
-
-	//$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APAeneidText`  WHERE `lineNumber` = '.$usesV[$u]['lineNumber'].' and `book` = '.$usesV[$u]['book'].' GROUP BY `lineNumber`' );
-	
-	$SearchableWord = $usesV[$u]['word'];
-	$SearchableWord = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]","",$SearchableWord);
-	
-	
-	$RegexStatement = "(^|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])(".$SearchableWord.")($|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])";
-	$AttLine = mb_ereg_replace($RegexStatement, "\\1<highlight>\\2</highlight>\\3", $AttLine, "i"); 
-	
-	
-	$VergilUseString .= "<attestation wordid = '".$usesV[$u]['id']."'>";
-	
-	if($VergilPrevLineNumber != 0)
-	{
-		$VergilUseString .= "<attline>";
-			$VergilUseString .= "<attcitation>";
-			$VergilUseString .= $usesV[$u]['book'];
-			$VergilUseString .= "." . $VergilPrevLineNumber;
-			$VergilUseString .= "</attcitation>";
-			$VergilUseString .= $AttPrevLine . "<BR>";
-		$VergilUseString .= "</attline>";
-	}
-	
-	$VergilUseString .= "<attline  main = 'true'>";
-		$VergilUseString .= "<attcitation>";
-		$VergilUseString .= $usesV[$u]['book'];
-		$VergilUseString .= "." . $VergilLineNumber;
-		$VergilUseString .= "</attcitation>";
-		$VergilUseString .= $AttLine . "<BR>";
-	$VergilUseString .= "</attline>";
-
-	if($VergilNextLineNumber != 0)
-	{
-		$VergilUseString .= "<attline>";
-			$VergilUseString .= "<attcitation>";
-			$VergilUseString .= $usesV[$u]['book'];
-			$VergilUseString .= "." . $VergilNextLineNumber;
-			$VergilUseString .= "</attcitation>";
-			$VergilUseString .= $AttNextLine . "<BR>";
-		$VergilUseString .= "</attline>";
-	}
-
-	$VergilUseString .= "</attestation>";
-	
-}
-
-for($u = 0; $u < count($usesC); $u++)
-{
-
-	$CaesarLineNumber = (((int) $usesC[$u]['lineNumber'])-0);
-	$CaesarPrevLineNumber = 0;
-	$CaesarNextLineNumber = 0;
-
-	
-	$AttLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APDBGText`  WHERE `lineNumber` = '.$usesC[$u]['lineNumber'].' and `chapter` = '.$usesC[$u]['chapter'].' and `book` = '.$usesC[$u]['book'].' GROUP BY `lineNumber`' );
-	
-	if(SQLQ(' SELECT  `id` FROM `#APDBGText`  WHERE `lineNumber` = '. ($CaesarLineNumber-1) .' and `chapter` = '.$usesC[$u]['chapter'].' and `book` = '.$usesC[$u]['book'].' GROUP BY `lineNumber`' ))
-	{
-		$CaesarPrevLineNumber = ($CaesarLineNumber-1);
-		$AttPrevLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APDBGText`  WHERE `lineNumber` = '. $CaesarPrevLineNumber .' and `chapter` = '.$usesC[$u]['chapter'].' and `book` = '.$usesC[$u]['book'].' GROUP BY `lineNumber`' );
-	}
-	else
-	{
-		$AttPrevLine = "";
-	}
-
-		
-	if(SQLQ(' SELECT  `id` FROM `#APDBGText`  WHERE `lineNumber` = '. ($CaesarLineNumber+1) .' and `chapter` = '.$usesC[$u]['chapter'].' and `book` = '.$usesC[$u]['book'].' GROUP BY `lineNumber`' ))
-	{
-		$CaesarNextLineNumber = ($CaesarLineNumber+1);
-		$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APDBGText`  WHERE `lineNumber` = '. $CaesarNextLineNumber .' and `chapter` = '.$usesC[$u]['chapter'].' and `book` = '.$usesC[$u]['book'].' GROUP BY `lineNumber`' );
-	}
-	else
-	{
-		$AttNextLine = "";
-	}
-
-
-	//$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `#APDBGText`  WHERE `lineNumber` = '.$usesC[$u]['lineNumber'].' and `book` = '.$usesC[$u]['book'].' GROUP BY `lineNumber`' );
-	
-	$SearchableWord = $usesC[$u]['word'];
-	$SearchableWord = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]","",$SearchableWord);
-	
-	
-	$RegexStatement = "(^|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])(".$SearchableWord.")($|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])";
-	$AttLine = mb_ereg_replace($RegexStatement, "\\1<highlight>\\2</highlight>\\3", $AttLine, "i"); 
-	
-	
-	$CaesarUseString .= "<attestation wordid = '".$usesC[$u]['id']."'>";
-
-	if($CaesarPrevLineNumber != 0)
-	{
-		$CaesarUseString .= "<attline>";
-			$CaesarUseString .= "<attcitation>";
-			$CaesarUseString .= $usesC[$u]['book'];
-			$CaesarUseString .= ".";
-			$CaesarUseString .= $usesC[$u]['chapter'];
-			$CaesarUseString .= "." . $CaesarPrevLineNumber;
-			$CaesarUseString .= "</attcitation>";
-			$CaesarUseString .= $AttPrevLine . "<BR>";
-		$CaesarUseString .= "</attline>";
-	}
-
-	
-	$CaesarUseString .= "<attline  main = 'true'>";
-		$CaesarUseString .= "<attcitation>";
-		$CaesarUseString .= $usesC[$u]['book'];
-		$CaesarUseString .= ".";
-		$CaesarUseString .= $usesC[$u]['chapter'];
-		$CaesarUseString .= "." . $CaesarLineNumber;
-		$CaesarUseString .= "</attcitation>";
-		$CaesarUseString .= $AttLine . "<BR>";
-	$CaesarUseString .= "</attline>";
-
-	if($CaesarNextLineNumber != 0)
-	{
-		$CaesarUseString .= "<attline>";
-			$CaesarUseString .= "<attcitation>";
-			$CaesarUseString .= $usesC[$u]['book'];
-			$CaesarUseString .= ".";
-			$CaesarUseString .= $usesC[$u]['chapter'];
-			$CaesarUseString .= "." . $CaesarNextLineNumber;
-			$CaesarUseString .= "</attcitation>";
-			$CaesarUseString .= $AttNextLine . "<BR>";
-		$CaesarUseString .= "</attline>";
-	}
-
-
-	$CaesarUseString .= "</attestation>";
-	
-}
-
-echo "<h1><i>Aeneid</i>: ".  ((count($usesV) - (count($TmesisV)/2)) /( 1+ (int) $word['IsTwoWords'])) ."</h1>"; 
-echo "<attestations>"; 
-echo $VergilUseString; 
-echo "</attestations>"; 
-echo "<h1><i>Dē Bellō Gallicō</i>: ". (count($usesC)/( 1+(int) $word['IsTwoWords'])) ."</h1>"; 
-echo "<attestations>"; 
-echo $CaesarUseString; 
-echo "</attestations>"; 
+}  
 
 
 

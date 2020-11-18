@@ -3,16 +3,17 @@
 <textarea onchange = "Parse()"  onkeyup = "Parse()" rows = 10 cols = 80 id = 'textarea'></textarea>
 <BR>
 Text<select id = 'author'  onchange = "Parse()"  >
+<option >~Latin3CatullusText</option>
 <option >^Latin4InCatilinamText</option>
-<option selected>#APAeneidText</option>
+<option >#APAeneidText</option>
 <option >#APDBGText</option>
 </select>
 <BR>
 Book<input min = 0 max = 20 onchange = "Parse()"  id = 'book' type = 'number' value = 0>
 <BR>
-Chapter<input min = 0 max = 10000 onchange = "Parse()"  id = 'chapter' type = 'number' value = 0>
+Chapter<input min = -1 max = 10000 onchange = "Parse()"  id = 'chapter' type = 'number' value = 0>
 <BR> 
-Line Number Start<input min = 0 max = 10000 onchange = "Parse()"  id = 'line' type = 'number' value = 1>
+Line Number Start<input min = 1 max = 10000 onchange = "Parse()"  id = 'line' type = 'number' value = 1>
 <input type="reset" value="Reset"   onclick = 'document.getElementById("output").style.display = "none"' >
 </form>
 
@@ -57,17 +58,17 @@ for (l=0; l< Lines.length; l++)
 
 	for (w= 0; w < Words.length; w++)
 	{
-		if(Words[w].length >1 && !parseInt(Words[w]))
+		if(Words[w].length >=1 && !parseInt(Words[w]))
 		{
 			LineStart = document.getElementById('line').value
 			BookNumber = document.getElementById('book').value
-			ChapterNumber = document.getElementById('chapter').value
+			ChapterNumber = (document.getElementById('chapter').value == -1 ? "NULL" :document.getElementById('chapter').value); 
 			Author = document.getElementById('author').value
 			Words[w] = Words[w].replace(/'/g, '"') 
 			Words[w] = Words[w].replace(/\d/g, '') 
 
 
-			OutputText += "INSERT INTO `"+Author+"` (`word`,  `book`,  `chapter`, `lineNumber`, `definitionId`, `secondaryDefId`  ) VALUES ( '"+Words[w]+"', '"+BookNumber+"', '"+ChapterNumber+"', '"+(+LineStart+l)+"', 0, -1 );"
+			OutputText += "INSERT INTO `"+Author+"` (`word`,  `book`,  `chapter`, `lineNumber`, `definitionId`, `secondaryDefId`  ) VALUES ( '"+Words[w]+"', '"+BookNumber+"', "+ChapterNumber+", '"+(+LineStart+l)+"', 0, -1 );"
 			OutputText += "\n"
 		}
 

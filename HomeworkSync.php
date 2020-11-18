@@ -221,12 +221,12 @@ foreach ($TerminalLines as $linecode)
 	if ($linecode[1] == null)
 	{
 		$temp_author = "V";
-		$temp_line =  implode(' ', SQLQuarry('SELECT `word` FROM `#APAeneidText` WHERE `book` = '.$linecode[0].' and `lineNumber` = '.$linecode[2].'', true));
+		$temp_line =  implode(' ', SQLQuarry('SELECT `word` FROM `#APAeneidText` WHERE `book` = '.$linecode[0].' and `lineNumber` = '.$linecode[2].' ORDER BY `id` ASC', true));
 	}
 	else
 	{
 		$temp_author = "C";
-		$temp_line = implode(' ', SQLQuarry('SELECT `word` FROM `#APDBGText` WHERE `book` = '.$linecode[0].' and `chapter` = '.$linecode[1].' and `lineNumber` = '.$linecode[2].'', true));
+		$temp_line = implode(' ', SQLQuarry('SELECT `word` FROM `#APDBGText` WHERE `book` = '.$linecode[0].' and `chapter` = '.$linecode[1].' and `lineNumber` = '.$linecode[2].' ORDER BY `id` ASC', true));
 	}
 	
 	if(strpos($temp_line, ". ") != false)
