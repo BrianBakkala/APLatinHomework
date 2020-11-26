@@ -61,6 +61,7 @@
 
 require_once('SQLConnection.php');
 require_once('GenerateNotesandVocab.php');
+$context = new Context;
 
 if(isset($_GET['author']))
 {
@@ -108,9 +109,9 @@ else
 {
 	$LineEnd = $LineStart + 4;
 }
-echo $BookTitle;
-$Text = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$BookDB[$BookTitle].'` WHERE  `book` =  '.$Book .' '.$ChapterClause.' AND  `lineNumber` >= '. $LineStart.' AND `lineNumber` <= '. $LineEnd.' ORDER BY `id` ');
-$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition` FROM `'.$DictDB[$BookTitle].'`');
+echo $context->GetBookTitle();
+$Text = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$context->GetTextDB().'` WHERE  `book` =  '.$Book .' '.$ChapterClause.' AND  `lineNumber` >= '. $LineStart.' AND `lineNumber` <= '. $LineEnd.' ORDER BY `id` ');
+$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition` FROM `'.$context->GetDict().'`');
 $DictionaryJSONText = "";
 
 $DictionaryJSONText .= "{";
@@ -154,7 +155,7 @@ foreach ($Text as $word)
 	}
 	$CurrentLine = $word['lineNumber'];
 
-	$defintionInfo = SQLQuarry('SELECT   `definition`, `entry`, `id` FROM `'.$DictDB[$BookTitle].'` WHERE `id` = '.  $word['definitionId'] )[0];  
+	$defintionInfo = SQLQuarry('SELECT   `definition`, `entry`, `id` FROM `'.$context->GetDict().'` WHERE `id` = '.  $word['definitionId'] )[0];  
 
 	echo "<word wordid = ".$word['id'] ."  ";
 
@@ -183,7 +184,7 @@ foreach ($Text as $word)
 
 		if($word['secondaryDefId'] != -1)
 		{
-			$defintionInfo2 = SQLQuarry('SELECT   `definition`, `entry`, `id` FROM `'.$DictDB[$BookTitle].'` WHERE `id` = '.  $word['secondaryDefId'] )[0];  
+			$defintionInfo2 = SQLQuarry('SELECT   `definition`, `entry`, `id` FROM `'.$context->GetDict().'` WHERE `id` = '.  $word['secondaryDefId'] )[0];  
 			echo " | ";
 			echo $defintionInfo2['definition'];
 	
@@ -388,7 +389,7 @@ function SaveDefintionToWord(dropdownSelected)
 		}
 	};
 	
-	XMLURL = "AJAXAPL.php?updatedefinition=true&title=<?php echo $BookTitle;?>&level=<?php echo $Level;?>&wordid=" +  WordId + "&def1=" + DefId1 + "&def2=" + DefId2  ;
+	XMLURL = "AJAXAPL.php?updatedefinition=true&title=<?php echo  $context->GetBookTitle();?>&level=<?php   echo $context->GetLevel();?>&wordid=" +  WordId + "&def1=" + DefId1 + "&def2=" + DefId2  ;
 	xmlhttp.open("GET", XMLURL, true);
 	xmlhttp.send();
 	// cnsole.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL);

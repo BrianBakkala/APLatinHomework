@@ -7,155 +7,334 @@ require_once ( 'SQLConnection.php');
 
 
 
-if(!isset($_GET['level']))
-{
-	$Level = 'AP';
-}
-else
-{
-	$Level = $_GET['level'];
-}
-
-$LevelDB = [
-	"AP"=> "#APHW",
-	"4" => "^Latin4HW",
-	"3" => "~Latin3HW"
-];
-
 if(isset($_GET['hw']))
 {
-	$HWAssignment = SQLQuarry('SELECT `HW`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`, `BookTitle`, `AddToBeginning`, `SubtractFromEnd`  FROM `'.$LevelDB[$Level].'` WHERE `HW` = ' . (int)$_GET['hw'])[0]  ;
+	$Data = GetHWAssignment($_GET['hw']);
+	$HWAssignment = $Data['Assignment'];
+	$HWLines = $Data['Lines'];
+	$TargetedDictionary =$Data['Dictionary'];
+	$HWStartId =$Data['StartID'];
+	$HWEndId =$Data['EndID'];
+};
 
-	$Conjunction = " AND ";
+class Context
+{
+	
+	public const Poetry =
+	[
+		"Aeneid",
+		"Catullus"
+	];
+	
+	public const LevelDictDB =
+	[
+		"3" => "~Latin3Dictionary",
+		"4" => "^Latin4Dictionary",
+		"AP" => "#APDictionary"
+	];
+	
+	public const LevelNotesDB =
+	[
+		"3" => "~Latin3Notes",
+		"4" => "^Latin4Notes",
+		"AP" => "#APNotes"
+	];
+	
+	public const LevelDB = [
+		"AP"=> "#APHW",
+		"4" => "^Latin4HW",
+		"3" => "~Latin3HW"
+	];
+	
+	public const BookDB = 
+	[
+		"Aeneid" => "#APAeneidText",
+		"DBG" => "#APDBGText",
+		"InCatilinam" => "^Latin4InCatilinamText",
+		"Catullus" => "~Latin3CatullusText"
 
-	if($HWAssignment['StartChapter'] == null && $HWAssignment['EndChapter'] == null)
+	]; 
+
+	public const DictDB = 
+	[
+		"Aeneid" => "#APDictionary",
+		"DBG" => "#APDictionary",
+		"InCatilinam" => "^Latin4Dictionary",
+		"Catullus" => "~Latin3Dictionary"
+	]; 
+	
+	public const LatinBookTitle =
+	[
+		"Aeneid" => "Aenēis",
+		"DBG" => "Commentāriī Dē Bellō Gallicō",
+		"InCatilinam" => "Ōrātiō in Catilinam Prīma in Senātū Habita",
+		"Catullus" => "Carmina Catullī" 
+	];
+
+	public const EnglishBookTitle =
+	[
+		"Aeneid" => "Aeneid",
+		"DBG" => "De Bello Gallico",
+		"InCatilinam" => "In Catilinam",
+		"Catullus" => "Catullus" 
+	];
+
+
+
+	public function GetHWDB()
 	{
-		$WhereClause = ' ( `lineNumber` >= '.$HWAssignment['StartLine'].'  AND   `lineNumber` <= '.$HWAssignment['EndLine']. ')';
+		return self::LevelDB[self::GetLevel()];
 	}
 
-	if($HWAssignment['StartChapter'] != null && $HWAssignment['EndChapter'] != null)
+	public function GetNotesDB()
 	{
+		return self::LevelNotesDB[self::GetLevel()];
+	}
 
-		if($HWAssignment['StartChapter'] == $HWAssignment['EndChapter'] )
+	public function GetDict()
+	{
+		return self::LevelDictDB[self::GetLevel()];
+	}
+
+	public function GetTextDB()
+	{
+		return self::BookDB[self::GetBookTitle()];
+	}
+
+	public function GetLatinTitle()
+	{
+		return self::LatinBookTitle[self::GetBookTitle()];
+	}
+
+	public function GetEnglishTitle()
+	{
+		return self::EnglishBookTitle[self::GetBookTitle()];
+	}
+
+
+	public function GetLevel()
+	{
+		if(!isset($_GET['level']))
 		{
-			$WhereClause = ' `chapter` = "'.$HWAssignment['StartChapter'].'" AND (  `lineNumber` >= '.$HWAssignment['StartLine'].' AND   `lineNumber` <= '.$HWAssignment['EndLine']. ')';
+			$l = 'AP';
 		}
 		else
 		{
-			$WhereClause = '(( `chapter` = "'.$HWAssignment['StartChapter'].'" AND   `lineNumber` >= '.$HWAssignment['StartLine'].')  OR  ( `chapter` = "'.$HWAssignment['EndChapter'].'" AND   `lineNumber` <= '.$HWAssignment['EndLine'].')  )  ';
+			$l = $_GET['level'];
+		}
+		return $l;
+	}
+
+	public function GetBookTitle()
+	{
+
+		if(isset($_GET['title'] ))
+		{
+			$bt = $_GET['title'];	
+		}
+		else if(isset($_GET['hw'] ))
+		{
+			$bt = SQLQ('SELECT `BookTitle` FROM `'. self::LevelDB[self::GetLevel()] .'` WHERE `HW` = ' . $_GET['hw']);
+		}
+
+		return $bt;
+	}
+	
+}
+
+// echo ('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$BookDB[$BookTitle].'` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
+
+
+function GetHWAssignment($HWNum, $hwdb = null, $title = null)
+{
+	$context = new Context;
+
+	if(!isset($HWNum))
+	{
+		$HWNum = (int) $_GET['hw'];
+	}
+
+	if(!isset($hwdb))
+	{
+		$hwdb = $context->GetHWDB();
+	}
+
+	if(!isset($title))
+	{
+		$title = $context->GetBookTitle();
+	}
+
+	$Assignment = SQLQuarry('SELECT `HW`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`, `BookTitle`, `AddToBeginning`, `SubtractFromEnd`  FROM `'.$hwdb.'` WHERE `HW` = ' . ((int) $HWNum) )[0] ;
+
+	if($Assignment['StartChapter'] == null && $Assignment['EndChapter'] == null)
+	{
+		$WhereClause = ' ( `lineNumber` >= '.$Assignment['StartLine'].'  AND   `lineNumber` <= '.$Assignment['EndLine']. ')';
+	}
+
+	if($Assignment['StartChapter'] != null && $Assignment['EndChapter'] != null)
+	{
+
+		if($Assignment['StartChapter'] == $Assignment['EndChapter'] )
+		{
+			$WhereClause = ' `chapter` = "'.$Assignment['StartChapter'].'" AND (  `lineNumber` >= '.$Assignment['StartLine'].' AND   `lineNumber` <= '.$Assignment['EndLine']. ')';
+		}
+		else
+		{
+			$WhereClause = '(( `chapter` = "'.$Assignment['StartChapter'].'" AND   `lineNumber` >= '.$Assignment['StartLine'].')  OR  ( `chapter` = "'.$Assignment['EndChapter'].'" AND   `lineNumber` <= '.$Assignment['EndLine'].')  )  ';
 		}
 		
 	}
-}
+	
+	$StartId = ((int) SQLQ('SELECT MIN(`id`) FROM `'.$context::BookDB[$title].'` WHERE  `book` = '.$Assignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['AddToBeginning']) );
+	$EndId = ((int) SQLQ('SELECT MAX(`id`) FROM `'.$context::BookDB[$title].'` WHERE  `book` = '.$Assignment['EndBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['SubtractFromEnd']) );
+ 
+	$Lines = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$context::BookDB[$title].'` WHERE ( `book` = '.$Assignment['StartBook'].' or  `book` = '.$Assignment['EndBook'].') AND `id` >= '. $StartId .' AND `id` <= '. $EndId .' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
 
-
-
-if(isset($_GET['title'] ))
-{
-	$BookTitle = $_GET['title'];	
-}
-else if(!isset($HWAssignment['BookTitle'] ) || $HWAssignment['BookTitle'] == "")
-{
-	$BookTitle = "Aeneid";
-	if($HWAssignment['Author'] == "C")
-	{
-		$BookTitle = "DBG";	
-	}
-}
-else
-{
-	$BookTitle = $HWAssignment['BookTitle'];
-}
-
-
-$BookDB = 
-[
-	"Aeneid" => "#APAeneidText",
-	"DBG" => "#APDBGText",
-	"InCatilinam" => "^Latin4InCatilinamText",
-	"Catullus" => "~Latin3CatullusText"
-
-]; 
-
-
-$DictDB = 
-[
-	"Aeneid" => "#APDictionary",
-	"DBG" => "#APDictionary",
-	"InCatilinam" => "^Latin4Dictionary",
-	"Catullus" => "~Latin3Dictionary"
-]; 
-
-
-$NotesDB = 
-[
-	"Aeneid" => "#APNotes",
-	"DBG" => "#APNotes",
-	"InCatilinam" => "^Latin4Notes",
-	"Catullus" => "~Latin3Notes"
-]; 
-
-$LevelDictDB =
-[
-	"3" => "~Latin3Dictionary",
-	"4" => "^Latin4Dictionary",
-	"AP" => "#APDictionary"
-];
-
-$LevelNotesDB =
-[
-	"3" => "~Latin3Notes",
-	"4" => "^Latin4Notes",
-	"AP" => "#APNotes"
-];
-
-
-$LatinBookTitle =
-[
-	"Aeneid" => "Aenēis",
-	"DBG" => "Commentāriī Dē Bellō Gallicō",
-	"InCatilinam" => "Ōrātiō in Catilinam Prīmā in Senātū Habita",
-	"Catullus" => "Carmina Catullī" 
-];
-
-$EnglishBookTitle =
-[
-	"Aeneid" => "Aeneid",
-	"DBG" => "De Bello Gallico",
-	"InCatilinam" => "In Catilinam",
-	"Catullus" => "Catullus" 
-];
-
-
-
-// echo ('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$BookDB[$BookTitle].'` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
-if(isset($_GET['hw']))
-{
-	$HWStartId = ((int) SQLQ('SELECT MIN(`id`) FROM `'.$BookDB[$BookTitle].'` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $HWAssignment['AddToBeginning']) );
-	$HWEndId = ((int) SQLQ('SELECT MAX(`id`) FROM `'.$BookDB[$BookTitle].'` WHERE  `book` = '.$HWAssignment['EndBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $HWAssignment['SubtractFromEnd']) );
-	$HWLines = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$BookDB[$BookTitle].'` WHERE ( `book` = '.$HWAssignment['StartBook'].' or  `book` = '.$HWAssignment['EndBook'].') AND `id` >= '. $HWStartId .' AND `id` <= '. $HWEndId .' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
-
-
-	$HWDefinitionIds = array_map(function($x){return $x['definitionId'];},$HWLines);
-	$HWDefinitionIds2 = array_map(function($x){return $x['secondaryDefId'];},$HWLines);
+	$HWDefinitionIds = array_map(function($x){return $x['definitionId'];},$Lines);
+	$HWDefinitionIds2 = array_map(function($x){return $x['secondaryDefId'];},$Lines);
 	$HWDefinitionIds = array_unique(array_merge($HWDefinitionIds, $HWDefinitionIds2));
 
 
-	$TargetedDictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords`  FROM `'.$DictDB[$BookTitle].'` WHERE `id` <> 0 and `id` <> -1 and ( `id` = '. implode(" OR `id` = ", $HWDefinitionIds) .')   ORDER BY replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "Ā", "A") , "Ē", "E") , "Ī", "I") , "Ō", "O") , "Ū", "U") , "-", ""), "—, ", "")  COLLATE utf8_general_ci   ', false, "id"); 
+	$TD = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords`  FROM `'.$context->GetDict().'` WHERE `id` <> 0 and `id` <> -1 and ( `id` = '. implode(" OR `id` = ", $HWDefinitionIds) .')   ORDER BY replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "Ā", "A") , "Ē", "E") , "Ī", "I") , "Ō", "O") , "Ū", "U") , "-", ""), "—, ", "")  COLLATE utf8_general_ci   ', false, "id"); 
 
+	return [
+		"Assignment" => $Assignment,
+		"Lines" => $Lines,
+		"StartID" => $StartId,
+		"EndID" => $EndId,
+		"Dictionary" => $TD
+	];
+
+}
+
+function FindHWByWordID($title, $wordid)
+{
+	$context = new Context;
+
+	$lev = array_flip($context::LevelDictDB)[$context::DictDB[$title]];
+	$hwdb = $context::LevelDB[$lev];
+
+	$HWnums = SQLQuarry('SELECT `HW` FROM `'.$hwdb.'`', true);
+	$a = 0;
+	
+	do
+	{
+		$a++;
+		
+		$temp_assignment = ( GetHWAssignment($HWnums[$a], $hwdb, $title)['Lines']);
+		$temp_assignment = array_map( function($x){return $x['id'];}, $temp_assignment);
+	}
+	while (isset($HWnums[$a+1]) && !in_array($wordid, $temp_assignment) );
+
+	return (int) $a;
+}
+
+
+
+function GetFreqTable($defidsarray = null, $HWNum = null, $hwdb = null, $level = null)
+{
+	$context = new Context;
+
+	if(!isset($HWNum))
+	{
+		$HWNum = $_GET['hw'];
+	}
+
+	if(!isset($hwdb))
+	{
+		$hwdb = $context->GetHWDB();
+	}
+
+	if(!isset($level))
+	{
+		$level = $context->GetLevel();
+	}
+
+	if(!$defidsarray)
+	{
+		$temp_assignment = ( GetHWAssignment($HWNum, $hwdb)['Lines']);
+		$defidsarray = array_map( function($x){return $x['definitionId'];}, $temp_assignment);
+		$defidsarray = array_unique($defidsarray);
+	}
+
+	$CorrectDictionary = $context::LevelDictDB[$level];
+
+	
+	
+	$AllTextsClause_Array = [];
+	foreach($context::DictDB as $k=>$d)
+	{
+		if($d == $CorrectDictionary)
+		{
+			$ProseException = "";
+			if(!in_array($k, $context::Poetry))
+			{
+				$ProseException = " NULL as ";
+			}
+			array_push($AllTextsClause_Array, "(SELECT `id`, `definitionId`, `secondaryDefId`, ".$ProseException." `Tmesis` FROM `".$context::BookDB[$k]."`)");
+		}
+	}
+
+	$AllTextsClause = "( ".implode(" UNION ALL ",$AllTextsClause_Array)." ) as `combined`";
+	
+	$WhereClause = " WHERE 0 ";
+	foreach ($defidsarray as $defnumba)
+	{
+		$WhereClause .= "OR (`definitionId` = ".$defnumba.") ";
+	}
+	
+	$primaryuses = SQLQuarry(' SELECT `definitionId` , SUM(
+		CASE WHEN `id` IS NOT NULL
+			THEN CASE WHEN `Tmesis` <> 0 THEN 0.5
+			ELSE 
+				CASE WHEN `IsTwoWords` <> 0 THEN 0.5
+					ELSE 1
+				END
+			END
+			ELSE 0
+		END
+		)
+			as `frequency` FROM '.$AllTextsClause.'  INNER JOIN (SELECT `id` as `did`,  `IsTwoWords` FROM `'.$CorrectDictionary.'` ) as `dict` on (`dict`.`did` = `definitionId`)  '.$WhereClause.'  GROUP BY  `definitionId`   ' );
+		
+	$secondarydefidsarray = SQLQuarry('SELECT `id` FROM `#APDictionary` WHERE `entry` LIKE "-%" ', true);
+
+
+	$WhereClause = " WHERE 0 ";
+	foreach ($secondarydefidsarray as $sdefnumba)
+	{
+		$WhereClause .= "OR (`secondaryDefId` = ".$sdefnumba.") ";
+	}
+	
+	$secondaryuses =   SQLQuarry(' SELECT `secondaryDefId` , COUNT(`id`) as `frequency` FROM '.$AllTextsClause.'  '.$WhereClause.'  GROUP BY  `secondaryDefId`   ' );
+	$uses =  array_merge($primaryuses,  $secondaryuses);
+
+	$freqs = [];
+	foreach ($uses as $use)
+	{
+		if(isset($use['definitionId']))
+		{
+			$freqs[$use['definitionId']] = ((int) $use['frequency']);
+		}
+		else if(isset($use['secondaryDefId']))
+		{
+			$freqs[$use['secondaryDefId']] = ((int) $use['frequency']);
+		}
+	}
+
+	return $freqs;
 
 }
 
 function GetFrequencyByLevel($definitionIdNumber, $level = "AP")
 {
-	global $DictDB; 
-	global $LevelDictDB; 
+
+	$context = new Context;
 
 	$usecount = 0;
 
-	foreach($DictDB as $t => $d)
+	foreach($context::DictDB as $t => $d)
 	{
-		if($d == $LevelDictDB[$level])
+		if($d == $context->GetDict())
 		{
 			$usecount += GetFrequencyByTitle($definitionIdNumber, $t);
 		}
@@ -165,19 +344,20 @@ function GetFrequencyByLevel($definitionIdNumber, $level = "AP")
 
 function GetFrequencyByTitle($definitionIdNumber, $title)
 {
-	global $DictDB; 
-	global $BookDB; 
-
-	$TwoWordCheck = SQLQ('SELECT `IsTwoWords` FROM `'.$DictDB[$title].'` WHERE `id` = ' . $definitionIdNumber);
-	$uses = SQLQ('SELECT COUNT(`id`) FROM `'.$BookDB[$title].'` WHERE `definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber );
+	$context = new Context;
+	
+	$TwoWordCheck = SQLQ('SELECT `IsTwoWords` FROM `'.$context::DictDB[$title].'` WHERE `id` = ' . $definitionIdNumber);
+	$uses = SQLQ('SELECT COUNT(`id`) FROM `'.$context::BookDB[$title].'` WHERE `definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber );
 	
 	if($title == "Aeneid")
 	{
-		$Tmesis = SQLQ('SELECT COUNT(`id`) FROM `'.$BookDB[$title].'` WHERE (`definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber . ') and `Tmesis` = 1 ');
-		$uses = (($uses - ($Tmesis/2)) /( 1+(int) $TwoWordCheck ));
+		$Tmesis = SQLQ('SELECT COUNT(`id`) FROM `'.$context::BookDB[$title].'` WHERE (`definitionId` = ' .$definitionIdNumber . ' OR `secondaryDefId` = ' .$definitionIdNumber . ') and `Tmesis` = 1 ');
+		$uses = (($uses - ($Tmesis/2)));
 	}
+
+	$uses = ((int)$uses / ((((int) $TwoWordCheck) + 1))  );
 	
-	return ((int) $uses);
+	return ((int) $uses)  ;
 }
 
 function ParseNoteText($inputText, $showdevices)
@@ -209,10 +389,15 @@ function ParseNoteText($inputText, $showdevices)
 
 function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevices = true)
 {
-	global $NotesDB;
-	global $BookDB;
+	$context = new Context;
 
-	$WordNotes = SQLQuarry(' SELECT `'.$NotesDB[$title].'Locations`.`NoteId`, `AssociatedWordId`,   `'.$NotesDB[$title].'Text`.`Text`, `BookTitle`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `'.$NotesDB[$title].'Locations` INNER JOIN `'.$NotesDB[$title].'Text` ON (`'.$NotesDB[$title].'Text`.`NoteId` = `'.$NotesDB[$title].'Locations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `'.$BookDB[$title].'`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND `BookTitle` = "'.$title.'" AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
+	if($title == "")
+	{
+		$title= $context->GetBookTitle();
+	}
+	
+
+	$WordNotes = SQLQuarry(' SELECT `'.$context->GetNotesDB().'Locations`.`NoteId`, `AssociatedWordId`,   `'.$context->GetNotesDB().'Text`.`Text`, `BookTitle`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `'.$context->GetNotesDB().'Locations` INNER JOIN `'.$context->GetNotesDB().'Text` ON (`'.$context->GetNotesDB().'Text`.`NoteId` = `'.$context->GetNotesDB().'Locations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `'.$context->GetTextDB().'`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND `BookTitle` = "'.$title.'" AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
 
 	
 	if($title != "Aeneid")
@@ -225,7 +410,7 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	}
 	
 
-	$LineNotes = SQLQuarry('SELECT `'.$NotesDB[$title].'Locations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `'.$NotesDB[$title].'Text`.`Text`, `BookTitle`, `book`, `chapter`, `lineNumber` FROM `'.$NotesDB[$title].'Locations` INNER JOIN `'.$NotesDB[$title].'Text` ON (`'.$NotesDB[$title].'Text`.`NoteId` = `'.$NotesDB[$title].'Locations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `'.$BookDB[$title].'`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND `BookTitle` = "'.$title.'" ORDER BY `AssociatedLineCitation`, `lineNumber`');
+	$LineNotes = SQLQuarry('SELECT `'.$context->GetNotesDB().'Locations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `'.$context->GetNotesDB().'Text`.`Text`, `BookTitle`, `book`, `chapter`, `lineNumber` FROM `'.$context->GetNotesDB().'Locations` INNER JOIN `'.$context->GetNotesDB().'Text` ON (`'.$context->GetNotesDB().'Text`.`NoteId` = `'.$context->GetNotesDB().'Locations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `'.$context->GetTextDB().'`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND `BookTitle` = "'.$title.'" ORDER BY `AssociatedLineCitation`, `lineNumber`');
 	
 	$CondensedNotes = array();
 
@@ -424,7 +609,10 @@ function DisplayVocabText($dictionary, $condensed = false)
 //DisplayLines(true, $HWAssignment, $HWLines, $TargetedDictionary, $BookTitle)
 function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacing = 2)
 { 
-	global $Level;
+	$context = new Context;
+
+	$Frequencies = GetFreqTable();
+
 
 	$outputtext= "";
 		
@@ -505,7 +693,18 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 
 		if($showvocab == true)
 		{
-			$outputtext .= "<word  baseword = '".$Noclitics."' clitic = '".$Clitic."' defintionid = '".$word['definitionId']."' wordid = '".$word['id']."' frequency = '". GetFrequencyByLevel($word['definitionId'], $Level)."' reveal = 'false'  >";
+			$outputtext .= "<word  baseword = '".$Noclitics."' clitic = '".$Clitic."' defintionid = '".$word['definitionId']."' wordid = '".$word['id']."' id = '".$word['id']."' frequency = '". GetFrequencyByLevel($word['definitionId'], $context->GetLevel())."' reveal = ";
+			
+			if(isset($_GET['highlightedword']) && ( ((int) $_GET['highlightedword']) == ((int) $word['id']) ) )
+			{
+				$outputtext .= "'true'";
+			}
+			else
+			{
+				$outputtext .= "'false'";
+			}
+			
+			$outputtext .= " >";
 			
 			$outputtext .= "<baseword>";
 				
@@ -545,12 +744,9 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 			}
 
 				$outputtext .= "<freq>"; 
-				
-					global $Level;
-					global $BookTitle;
 					
-					$outputtext .= "<a target = '_blank' href = 'WordViewer.php?level=".$Level."&wordid=". $word['definitionId'] . "'>";
-					$outputtext .= GetFrequencyByTitle($word['definitionId'], $BookTitle);
+					$outputtext .= "<a target = '_blank' href = 'WordViewer.php?level=".$context->GetLevel()."&wordid=". $word['definitionId'] . "'>";
+					$outputtext .= ((int) $Frequencies[$word['definitionId']]);
 					$outputtext .= "</a>";
 					
 				$outputtext .= "</freq>";

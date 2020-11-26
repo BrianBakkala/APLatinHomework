@@ -35,6 +35,12 @@ highlight {
 	color: black;
 }
 
+highlight a
+{
+	color:inherit;
+	text-decoration:none;
+}
+
 
 attestations *,
 attestations,
@@ -85,11 +91,12 @@ defintionheader {
 
 require_once ( 'SQLConnection.php');
 require_once ( 'GenerateNotesandVocab.php'); 
+$context = new Context;
 
 
 if(isset($_GET['wordid']))
 {
-	$word = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$LevelDictDB[$_GET['level']].'` WHERE `id` = "'.$_GET['wordid'].'"')[0];
+	$word = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$context->GetDict().'` WHERE `id` = "'.$_GET['wordid'].'"')[0];
 }
 
 echo "<A href = 'Dictionary.php'>← Dictionary</A>";
@@ -107,11 +114,11 @@ echo "<BR><BR>";
 
  
 
-foreach($DictDB as $t => $d)
+foreach($context::DictDB as $t => $d)
 {
-	if($d == $LevelDictDB[$Level])
+	if($d == $context->GetDict())
 	{
-		$uses  = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `'.$BookDB[$t].'` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+		$uses  = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `'.$context::BookDB[$t].'` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
 
 		$UseString = "";
 
@@ -122,12 +129,12 @@ foreach($DictDB as $t => $d)
 			$NextLineNumber = 0;
 
 			
-			$AttLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
+			$AttLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
 			
-			if(SQLQ(' SELECT  `id` FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '. ($TheLineNumber-1) .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' ))
+			if(SQLQ(' SELECT  `id` FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '. ($TheLineNumber-1) .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' ))
 			{
 				$PrevLineNumber = ($TheLineNumber-1);
-				$AttPrevLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '. $PrevLineNumber .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
+				$AttPrevLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '. $PrevLineNumber .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
 			}
 			else
 			{
@@ -135,10 +142,10 @@ foreach($DictDB as $t => $d)
 			}
 
 				
-			if(SQLQ(' SELECT  `id` FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '. ($TheLineNumber+1) .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' ))
+			if(SQLQ(' SELECT  `id` FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '. ($TheLineNumber+1) .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' ))
 			{
 				$NextLineNumber = ($TheLineNumber+1);
-				$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '. $NextLineNumber .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
+				$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '. $NextLineNumber .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
 			}
 			else
 			{
@@ -146,14 +153,18 @@ foreach($DictDB as $t => $d)
 			}
 
 
-			//$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
+			//$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
 			
 			$SearchableWord = $uses[$u]['word'];
 			$SearchableWord = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]","",$SearchableWord);
 			
 			
 			$RegexStatement = "(^|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])(".$SearchableWord.")($|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])";
-			$AttLine = mb_ereg_replace($RegexStatement, "\\1<highlight>\\2</highlight>\\3", $AttLine, "i"); 
+			$AttLine = mb_ereg_replace($RegexStatement, "\\1<highlight wid = '".$uses[$u]['id']."' style = 'cursor:pointer;''>".
+
+			" <a target = '_blank' href = 'HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($t, $uses[$u]['id'])."&highlightedword=".$uses[$u]['id']."'>"
+			
+			."\\2</a></highlight>\\3", $AttLine, "i"); 
 			
 			
 			$UseString .= "<attestation wordid = '".$uses[$u]['id']."'>";
@@ -163,6 +174,7 @@ foreach($DictDB as $t => $d)
 				$UseString .= "<attline>";
 					$UseString .= "<attcitation>";
 					$UseString .= $uses[$u]['book'];
+					$UseString .= ($uses[$u]['chapter'] != "" ? ".". $uses[$u]['chapter'] : "");
 					$UseString .= "." . $PrevLineNumber;
 					$UseString .= "</attcitation>";
 					$UseString .= $AttPrevLine . "<BR>";
@@ -172,6 +184,7 @@ foreach($DictDB as $t => $d)
 			$UseString .= "<attline  main = 'true'>";
 				$UseString .= "<attcitation>";
 				$UseString .= $uses[$u]['book'];
+				$UseString .= ($uses[$u]['chapter'] != "" ? ".". $uses[$u]['chapter'] : "");
 				$UseString .= "." . $TheLineNumber;
 				$UseString .= "</attcitation>";
 				$UseString .= $AttLine . "<BR>";
@@ -182,6 +195,7 @@ foreach($DictDB as $t => $d)
 				$UseString .= "<attline>";
 					$UseString .= "<attcitation>";
 					$UseString .= $uses[$u]['book'];
+					$UseString .= ($uses[$u]['chapter'] != "" ? ".". $uses[$u]['chapter'] : "");
 					$UseString .= "." . $NextLineNumber;
 					$UseString .= "</attcitation>";
 					$UseString .= $AttNextLine . "<BR>";
@@ -193,7 +207,7 @@ foreach($DictDB as $t => $d)
 		}
 
 
-		echo "<h1><i>".$EnglishBookTitle[$t]."</i>: ".  GetFrequencyByTitle($_GET['wordid'], $t) ."</h1>"; 
+		echo "<h1><i>".$context::EnglishBookTitle[$t]."</i>: ".  GetFrequencyByTitle($_GET['wordid'], $t) ."</h1>"; 
 		echo "<attestations>"; 
 		echo $UseString; 
 		echo "</attestations>"; 

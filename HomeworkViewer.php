@@ -7,16 +7,22 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 
+
+
 if(!isset($_GET['hw']))
 {
 	$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; 
 	header('Location: $actual_link'.'?hw=1');
 }
 
+
+
 require_once ( 'GenerateNotesandVocab.php');
 require_once ( 'FontStyles.php');
 require_once ( 'HomeworkViewerStyles.php');
 require_once ( 'SQLConnection.php');
+$context = new Context;
+
 
 echo "<wrapper shownotes='true'>";
 echo "<assignment>";
@@ -41,7 +47,7 @@ echo "</span>";
 
 
 echo "<span class = 'menu-bar-option'>";
-echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php?level=".$Level."'>";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php?level=".$context->GetLevel()."'>";
 echo "Dictionary";
 echo "</A>";
 echo "</span>";
@@ -62,11 +68,11 @@ echo "<table>";
 echo "<tr>";
 echo "<td>";
 
-if( (SQLQ('SELECT (`HW`) FROM `'.$LevelDB[$Level].'` WHERE `HW` = ' . ((int) $_GET['hw']-1))) != "" )
+if( (SQLQ('SELECT (`HW`) FROM `'.$context->GetHWDB().'` WHERE `HW` = ' . ((int) $_GET['hw']-1))) != "" )
 {
 
-	$PrevHW = SQLQ('SELECT MAX(`HW`) FROM `'.$LevelDB[$Level].'` WHERE `HW` < ' . $_GET['hw'] );
-	echo "<A href = 'HomeworkViewer.php?level=".$Level."&hw=".$PrevHW."'>";
+	$PrevHW = SQLQ('SELECT MAX(`HW`) FROM `'.$context->GetHWDB().'` WHERE `HW` < ' . $_GET['hw'] );
+	echo "<A href = 'HomeworkViewer.php?level=".$context->GetLevel()."&hw=".$PrevHW."'>";
 	echo "<IMG id = 'leftarrow' SRC = 'Images/LHarrow.png'>";
 	echo "</A>";
 	
@@ -79,7 +85,7 @@ echo "<td>";
 echo "<h1>";
 
 	echo "<i>";
-	echo $LatinBookTitle[$BookTitle];
+	echo $context->GetLatinTitle();
 	echo "</i> ";
 
 	echo $HWAssignment['StartBook'];
@@ -107,11 +113,11 @@ echo "</td>";
 echo "<td>";
 
 
-if( (SQLQ('SELECT (`HW`) FROM `'.$LevelDB[$Level].'` WHERE `HW` = ' . ((int) $_GET['hw']+1))) != "" )
+if( (SQLQ('SELECT (`HW`) FROM `'.$context->GetHWDB().'` WHERE `HW` = ' . ((int) $_GET['hw']+1))) != "" )
 {
-	$NextHW = SQLQ('SELECT Min(`HW`) FROM `'.$LevelDB[$Level].'` WHERE `HW` > ' . $_GET['hw'] );
+	$NextHW = SQLQ('SELECT Min(`HW`) FROM `'.$context->GetHWDB().'` WHERE `HW` > ' . $_GET['hw'] );
 
-	echo "<A href = 'HomeworkViewer.php?level=".$Level."&hw=".$NextHW."'>";
+	echo "<A href = 'HomeworkViewer.php?level=".$context->GetLevel()."&hw=".$NextHW."'>";
 	echo "<IMG id = 'rightarrow' SRC = 'Images/LHarrow.png'>";
 	echo "</A>";	
 }
@@ -137,7 +143,7 @@ echo "</duedate>";
 echo "</span>";
 
 echo "<span class = 'submenu-item'>";
-echo "<A target = '_blank' href = 'https://aplatin.altervista.org/GeneratePDF.php?level=".$Level."&hw=".  $_GET['hw'] . "'>";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/GeneratePDF.php?level=".$context->GetLevel()."&hw=".  $_GET['hw'] . "'>";
 echo "PDF";
 echo "</A>";
 echo "</span>";
@@ -211,7 +217,7 @@ echo "</assignment>";
 
 echo "<notes>";
 echo "<BR>";
-	echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, $BookTitle);
+	echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, $context->GetBookTitle());
 	echo "<BR><BR><BR><BR><BR><BR><BR><BR>";
 echo "</notes>";
 
@@ -221,9 +227,31 @@ echo "</wrapper>";
 
 ?>
 
-<body onload = "GetAPLatinHW(); SetupNoteHighlights();">
+<body onload = "GetAPLatinHW(); SetupNoteHighlights(); <?php
+if(isset($_GET['highlightedword']))
+{
+	echo "	ScrollToWord('".$_GET['highlightedword']."')";
+}
+?>">
+
+
+
+
 
 <script>
+
+function ScrollToWord(wordId)
+{
+	
+	if(document.getElementById(""+wordId))
+	{
+		const yOffset = -200; 
+		newY = document.getElementById(""+wordId).getBoundingClientRect().top + window.pageYOffset + yOffset;
+	}
+
+	window.scrollTo({top: newY, behavior: 'smooth'});
+	
+}
 
 function SetDifficulty(occurenceThreshold)
 {
@@ -303,7 +331,7 @@ function GetAPLatinHW()
 						HWFound = true;
 
 						document.getElementById('dueDate').innerText = "" + DueDate + "" 
-						document.getElementById('dueDate').style.color = '<?php echo $CSSColors[$BookTitle]['HeaderTextColor'];?>'
+						document.getElementById('dueDate').style.color = '<?php $context = new Context; echo $CSSColors[$context->GetBookTitle()]['HeaderTextColor'];?>'
 					}
 					sd++
 				}

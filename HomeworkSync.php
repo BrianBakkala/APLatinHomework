@@ -192,7 +192,7 @@ else
 		".$EndLine.", 
 
 		'".$ActiveRow["Author"]."',
-		'".$$tempBT."'
+		'".$tempBT."'
 	);");
   
 

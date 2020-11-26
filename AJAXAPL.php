@@ -2,6 +2,7 @@
 
 require_once ( 'SQLConnection.php'); 
 require_once ( 'GenerateNotesandVocab.php'); 
+$context = new Context;
 
 $hint = "";
 
@@ -23,12 +24,12 @@ if (isset($_REQUEST["updatedefinition"]))
 
 	//SQLRun('UPDATE `~DeanReferrals` SET `DeanNotes`="'. $_REQUEST["deansnotes"] .'" WHERE `ReferralID` = "'. $_REQUEST["referralid"] .'"');
 	//   echo ('UPDATE `#AP'.$_REQUEST["authortext"].'Text` SET `definitionId` = '. $_REQUEST["def1"] .' , `secondaryDefId` = '. $_REQUEST["def2"] .'  WHERE `id` = '. $_REQUEST["wordid"] .';');
-	SQLRun('UPDATE `'.$BookDB[$BookTitle].'` SET `definitionId` = '. $_REQUEST["def1"] .' , `secondaryDefId` = '. $_REQUEST["def2"] .'  WHERE `id` = '. $_REQUEST["wordid"] .';');
-	$hint = SQLQ('SELECT `definition` FROM  `'.$LevelDictDB[$_REQUEST['level']] .'` WHERE  `id` = '. $_REQUEST["def1"] .'  ');
+	SQLRun('UPDATE `'.$context::BookDB[ $_REQUEST["title"]].'` SET `definitionId` = '. $_REQUEST["def1"] .' , `secondaryDefId` = '. $_REQUEST["def2"] .'  WHERE `id` = '. $_REQUEST["wordid"] .';');
+	$hint = SQLQ('SELECT `definition` FROM  `'.$context::LevelDictDB[$_REQUEST['level']] .'` WHERE  `id` = '. $_REQUEST["def1"] .'  ');
 	if( $_REQUEST["def2"]  != -1)
 	{
 		$hint .= " | ";
-		$hint .= SQLQ('SELECT `definition` FROM `'.$DictDB[$BookTitle].'` WHERE  `id` = '. $_REQUEST["def2"] .'  ');
+		$hint .= SQLQ('SELECT `definition` FROM `'.$context::DictDB[ $_REQUEST["title"]].'` WHERE  `id` = '. $_REQUEST["def2"] .'  ');
 	}
 } 
 
@@ -47,7 +48,14 @@ if (isset($_REQUEST["filterdictionary"]))
 				return (isset($Conversion[$x])) ?  $Conversion[$x] : $x;
 			}, $nomacronsfilterarray)); 
 			
-		$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$LevelDictDB[$_REQUEST['level']] .'` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%" OR `definition` COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%") '); 
+		$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$context::LevelDictDB[$_REQUEST['level']] .'` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%" OR `definition` COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%") '); 
+		
+		if(count($Dictionary) > 0)
+		{
+			$DefIDs = array_map(function($x){return $x['id'];}, $Dictionary);
+			$Frequencies = GetFreqTable($DefIDs);
+		}
+
 
 		usort($Dictionary, function ($a, $b) {
 			global $Conversion;
@@ -93,6 +101,7 @@ if (isset($_REQUEST["filterdictionary"]))
 		});
 
 		global $Conversion;
+
 		foreach($Dictionary as $word)
 		{
 
@@ -155,8 +164,13 @@ if (isset($_REQUEST["filterdictionary"]))
 				}
 				
 					$hint .= "<word  wordid = ". $word['id'] ."  ";
-					$hint .= " onclick = 'this.setAttribute(\"reveal\", (this.getAttribute(\"reveal\") == \"true\" ? \"false\" : \"true\"))' ";
 					$hint .= ">";
+					
+						$hint .= "<attestations>["; 
+	
+						$hint .= $Frequencies[$word['id']] ; 
+	
+						$hint .= "] </attestations>"; 
 					$hint .= "<entry>";
 					
 					$hint .= explode("⸻", $hightlightablestring)[0];
@@ -173,17 +187,6 @@ if (isset($_REQUEST["filterdictionary"]))
 					$hint .= "<img  onclick = 'GetWordInfo(this) '  class = 'InfoButton' src = 'Images/LHinfo.png'>";
 					$hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
 
-					if($Level == "AP")
-					{					
-						$hint .= "<attestations>"; 
-
-						$hint .= "<i>Aeneid</i>: ". GetFrequencyByTitle($word['id'], "Aeneid") ."" ;
-						$hint .= "; ";    
-						$hint .= "<i>Dē Bellō Gallicō</i>: ". GetFrequencyByTitle($word['id'], "DBG") ."" ; 
-
-						$hint .= "</attestations>"; 
-
-					}
 
 
 					$hint .= "</word>";
@@ -223,7 +226,7 @@ if (isset($_REQUEST["addnote"]))
 { 
 	
 
-	$NoteId = SQLRun('INSERT INTO `'.$LevelNotesDB[$_REQUEST["level"]].'Text` (`Text`) VALUES ("'.addslashes ($_REQUEST["notetext"]).'");'); 
+	$NoteId = SQLRun('INSERT INTO `'.$context::LevelNotesDB[$_REQUEST["level"]].'Text` (`Text`) VALUES ("'.addslashes ($_REQUEST["notetext"]).'");'); 
 	
 	
 	if( $_REQUEST["wordids"] != "")
@@ -232,7 +235,7 @@ if (isset($_REQUEST["addnote"]))
 		$WIDs = array_unique(array_filter($WIDs));
 		foreach($WIDs as $wid)
 		{
-			SQLRun("INSERT INTO `".$LevelNotesDB[$_REQUEST["level"]]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["booktitle"]."');"); 
+			SQLRun("INSERT INTO `".$context::LevelNotesDB[$_REQUEST["level"]]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.", ". $wid.", '', '".$_REQUEST["booktitle"]."');"); 
 		}
 	}
 	else
@@ -251,7 +254,7 @@ if (isset($_REQUEST["addnote"]))
 				$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APDBGText` WHERE CONCAT(`book`, ".", `chapter`, ".", `lineNumber`) = "'. $lid.'"');
 			}
 
-			SQLRun ("INSERT INTO `".$LevelNotesDB[$_REQUEST["level"]]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.",  ".$FirstID.", '". $lid."', '".$_REQUEST["booktitle"]."');"); 
+			SQLRun ("INSERT INTO `".$context::LevelNotesDB[$_REQUEST["level"]]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.",  ".$FirstID.", '". $lid."', '".$_REQUEST["booktitle"]."');"); 
 			
 		}
 

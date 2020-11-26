@@ -1,7 +1,11 @@
 <TITLE>Dictionary</TITLE>
 
-<?php 	require_once ( 'FontStyles.php');  ?>
-<?php 	require_once ( 'GenerateNotesandVocab.php');  ?>
+<?php 	require_once ( 'FontStyles.php');
+	require_once ( 'GenerateNotesandVocab.php');
+	$context = new Context;
+	
+	
+	?>
 
 <!-- 
 ///////FIND UNUSED WORDS
@@ -33,7 +37,7 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 		border-right: 3px solid white;
 		padding-bottom: 2px;
 		cursor: default;
-		width:50%;
+		width:70%;
 	}
 
 	word:nth-child(odd)
@@ -45,17 +49,7 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 	{
 		border-bottom: 3px solid white;
 	}
-
-	attestations {
-		display: block;
-		font-size: 0;
-	}
-
-	word[reveal="true"]:not([editing="true"]) attestations {
-
-		font-size: inherit;
-	}
-
+	
 	word[used-in-ap="true"] {
 		/* background-color:lightblue; */
 	}
@@ -235,7 +229,7 @@ function FilterDict(filterText)
 		}
 	};
 
-	XMLURL = "AJAXAPL.php?filterdictionary=true&level=<?php echo $Level;?>&filtertext=" + filterText;
+	XMLURL = "AJAXAPL.php?filterdictionary=true&level=<?php echo $context::GetLevel();?>&filtertext=" + filterText;
 	xmlhttp.open("GET", XMLURL, true);
 	xmlhttp.send();
 	// cnsole.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL);
@@ -358,7 +352,7 @@ function SaveEntry(WordElement)
 				}
 			};
 
-			XMLURL = "AJAXAPL.php?updatedictionary=true&level=<?php echo $Level;?>&wordid=" + WordId + "&newdefinition=" + NewDef + "&newentry=" + NewEntry;
+			XMLURL = "AJAXAPL.php?updatedictionary=true&level=<?php echo $context::GetLevel();?>&wordid=" + WordId + "&newdefinition=" + NewDef + "&newentry=" + NewEntry;
 			xmlhttp.open("GET", XMLURL, true);
 			xmlhttp.send();
 			console.log(NewDef)

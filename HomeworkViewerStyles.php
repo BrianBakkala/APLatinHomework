@@ -1,5 +1,8 @@
 <?php
 
+require_once ( 'GenerateNotesandVocab.php');
+$context = new Context;
+
 	$CSSColors = 
 	
 	[
@@ -45,12 +48,12 @@
 
 	
 	<style>
-
+	
 	*[aponly]
 	{
 		<?php
 		
-			if($Level != "AP")
+			if($context->GetLevel() != "AP")
 			{
 				echo "display:none;";
 			}
@@ -61,8 +64,9 @@
 	html {
 		-webkit-tap-highlight-color:  rgba(255, 255, 255, 0); 
 		margin:-8px;
-		background-color:<?php echo $CSSColors[$BookTitle]['BackgroundColor']; ?>;
+		background-color:<?php echo $CSSColors[$context->GetBookTitle()]['BackgroundColor']; ?>;
 		overflow-x:hidden;
+		scroll-behavior: smooth;
 	}
 
 	h1 {
@@ -99,7 +103,7 @@
 
 	word:hover {
 		border-radius: 8px;
-		background-color: <?php echo $CSSColors[$BookTitle]['WordHighlightColor'];?>;
+		background-color: <?php echo $CSSColors[$context->GetBookTitle()]['WordHighlightColor'];?>;
 	}
 
 	text {
@@ -219,7 +223,7 @@
 	}
 
 	freq a:hover {
-		background-color: <?php echo $CSSColors[$BookTitle]['BackgroundColor']; ?>;
+		background-color: <?php echo $CSSColors[$context->GetBookTitle()]['BackgroundColor']; ?>;
  
 	}
 
@@ -350,9 +354,9 @@
 	header, header table, header duedate
 	{  margin-left: auto;
 		margin-right: auto;
-		color:<?php echo $CSSColors[$BookTitle]['HeaderTextColor']; ?>;
+		color:<?php echo $CSSColors[$context->GetBookTitle()]['HeaderTextColor']; ?>;
 		text-align:center;
-		background-color:<?php echo $CSSColors[$BookTitle]['HeaderColor']; ?>;
+		background-color:<?php echo $CSSColors[$context->GetBookTitle()]['HeaderColor']; ?>;
 		position: relative; 
 	}
 	
@@ -380,7 +384,7 @@
 
 	.menu-bar-option a, .submenu-item a
 	{
-		color:<?php echo $CSSColors[$BookTitle]['HeaderTextColor']; ?>;
+		color:<?php echo $CSSColors[$context->GetBookTitle()]['HeaderTextColor']; ?>;
 		text-decoration:none;
 		
 	}

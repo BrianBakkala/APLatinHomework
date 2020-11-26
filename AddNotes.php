@@ -13,6 +13,7 @@ require_once ( 'GenerateNotesandVocab.php');
 require_once ( 'FontStyles.php');
 require_once ( 'HomeworkViewerStyles.php');
 require_once ( 'SQLConnection.php');
+$context = new Context;
 
 echo "<wrapper shownotes = 'true'>";
 
@@ -274,7 +275,7 @@ function AddNote()
 			}
 		};
 
-		XMLURL = "AJAXAPL.php?addnote=true&level=<?php echo $Level;?>&booktitle=<?php echo $BookTitle;?>&notetext="+NoteText+"&wordids=" + NoteWords+"&linecitations=" + NoteLines;
+		XMLURL = "AJAXAPL.php?addnote=true&booktitle=<?php echo  $context->GetBookTitle();?>&level=<?php   echo $context->GetLevel();?>&notetext="+NoteText+"&wordids=" + NoteWords+"&linecitations=" + NoteLines;
 		xmlhttp.open("GET", XMLURL, true);
 		xmlhttp.send();
 		console.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/" + XMLURL);
