@@ -110,6 +110,8 @@ else
 	$LineEnd = $LineStart + 4;
 }
 echo $context->GetBookTitle();
+echo ": Level ";
+echo $context->GetLevel();
 $Text = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$context->GetTextDB().'` WHERE  `book` =  '.$Book .' '.$ChapterClause.' AND  `lineNumber` >= '. $LineStart.' AND `lineNumber` <= '. $LineEnd.' ORDER BY `id` ');
 $Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition` FROM `'.$context->GetDict().'`');
 $DictionaryJSONText = "";
@@ -144,6 +146,10 @@ $DictionaryJSON = json_encode($DictionaryJSONText);
 
 
 echo "<line num = ".$LineStart .">";
+
+$CliticList = GetCliticList($Dictionary);
+
+
 foreach ($Text as $word)
 {
 	if(isset($CurrentLine))
@@ -170,7 +176,7 @@ foreach ($Text as $word)
 
 	echo "<span>";
  
-	$displayWord = mb_ereg_replace("(que|ne|ve|cum)[.!;,]?$","<u>\\1</u>", $word['word']);
+	$displayWord = mb_ereg_replace("(". implode("|", $CliticList['no_hyphens']). ")[.!;,]?$","<u>\\1</u>", $word['word']);
 	echo $displayWord ;
 
 	echo "</span>";
@@ -195,7 +201,7 @@ foreach ($Text as $word)
 	$Noclitics = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]","",$Noclitics);
 	if(strlen($Noclitics) > 3)
 	{
-		$Noclitics = mb_ereg_replace("(que$|ne$|ve$|cum$)","",$Noclitics);
+		$Noclitics = mb_ereg_replace("(". implode("|", $CliticList['no_hyphens_with_dollar_signs']). ")","", $Noclitics);
 	}
 
 	echo "<wrapper>";

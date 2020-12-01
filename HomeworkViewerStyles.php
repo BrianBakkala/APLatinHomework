@@ -32,9 +32,9 @@ $context = new Context;
 	
 	"Catullus" =>
 		[
-			'BackgroundColor' => "c5ffbf",
-			'HeaderColor' => "8cff80",
-			'WordHighlightColor' => "1aff00",
+			'BackgroundColor' => "f8edeb",
+			'HeaderColor' => "f9dcc4",
+			'WordHighlightColor' => "fec89a",
 			'HeaderTextColor' => "black"
 		]
 	]
@@ -53,7 +53,20 @@ $context = new Context;
 	{
 		<?php
 		
-			if($context->GetLevel() != "AP")
+			if(!($context->GetLevel() == "AP"))
+			{
+				echo "display:none;";
+			}
+		
+		?>
+	}
+
+		
+	*[nolatin3]
+	{
+		<?php
+		
+			if($context->GetLevel() == "3")
 			{
 				echo "display:none;";
 			}

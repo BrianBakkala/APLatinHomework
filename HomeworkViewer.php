@@ -24,7 +24,14 @@ require_once ( 'SQLConnection.php');
 $context = new Context;
 
 
-echo "<wrapper shownotes='true'>";
+echo "<wrapper ";
+
+if(!$context->GetTestStatus())
+{
+	echo "shownotes='true'";
+}
+
+echo ">";
 echo "<assignment>";
 
 echo "<header >";
@@ -142,19 +149,25 @@ echo "<duedate style = 'color:rgba(0,0,0,0); ' id = 'dueDate'>December 31";
 echo "</duedate>";
 echo "</span>";
 
-echo "<span class = 'submenu-item'>";
-echo "<A target = '_blank' href = 'https://aplatin.altervista.org/GeneratePDF.php?level=".$context->GetLevel()."&hw=".  $_GET['hw'] . "'>";
-echo "PDF";
-echo "</A>";
-echo "</span>";
+if(!$context->GetTestStatus())
+{
+	echo "<span class = 'submenu-item'>";
+	echo "<A target = '_blank' href = 'https://aplatin.altervista.org/GeneratePDF.php?level=".$context->GetLevel()."&hw=".  $_GET['hw'] . "'>";
+	echo "PDF";
+	echo "</A>";
+	echo "</span>";
+}
 
-echo "<span class = 'submenu-item'>"; 
-echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"shownotes\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"shownotes\") == \"true\" ?  \"false\" : \"true\" )'>";
-echo "Toggle Notes";
-echo "</a>";
-echo "</span>";
+if(!$context->GetTestStatus())
+{
+	echo "<span class = 'submenu-item'>"; 
+	echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"shownotes\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"shownotes\") == \"true\" ?  \"false\" : \"true\" )'>";
+	echo "Toggle Notes";
+	echo "</a>";
+	echo "</span>";
+}
 
-echo "<select onchange= 'SetDifficulty(this.value)'>";
+echo "<select nolatin3 onchange= 'SetDifficulty(this.value)'>";
 
 
 	echo "<option value='0' selected disabled hidden> ";
@@ -215,11 +228,14 @@ echo "<BR>";
 	echo DisplayLines(true, $HWAssignment, $HWLines, $TargetedDictionary);
 echo "</assignment>";
 
-echo "<notes>";
-echo "<BR>";
+if(!$context->GetTestStatus())
+{
+	echo "<notes>";
+	echo "<BR>";
 	echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, $context->GetBookTitle());
 	echo "<BR><BR><BR><BR><BR><BR><BR><BR>";
-echo "</notes>";
+	echo "</notes>";
+}
 
 echo "</wrapper>";
 
@@ -227,7 +243,7 @@ echo "</wrapper>";
 
 ?>
 
-<body onload = "GetAPLatinHW(); SetupNoteHighlights(); <?php
+<body onload = "GetAPLatinHW(); CheckSSE(); SetupNoteHighlights(); <?php
 if(isset($_GET['highlightedword']))
 {
 	echo "	ScrollToWord('".$_GET['highlightedword']."')";
@@ -240,6 +256,38 @@ if(isset($_GET['highlightedword']))
 
 <script>
 
+
+function CheckSSE()
+{
+	//non-IE/Edge Functionality
+	if (typeof(EventSource) !== "undefined")
+	{
+		var Level = "<?php echo $context->GetLevel();?>";
+		var source = new EventSource("TestModeSSE.php?level="+Level+"&timestampupdate=true");
+		Recheck = null;
+		source.onmessage = function(event)
+		{
+			SSEResponse = JSON.parse(event.data.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, ''))
+			if (SSEResponse[0]["TestMode"+Level] !=Recheck )
+			{
+				if(Recheck == null)
+				{
+					Recheck = SSEResponse[0]["TestMode"+Level]
+				}
+				else
+				{
+					location.reload();
+				}
+				
+			}
+		};
+	}
+	
+
+}
+
+
+
 function ScrollToWord(wordId)
 {
 	
@@ -247,9 +295,26 @@ function ScrollToWord(wordId)
 	{
 		const yOffset = -200; 
 		newY = document.getElementById(""+wordId).getBoundingClientRect().top + window.pageYOffset + yOffset;
+		window.scrollTo({top: newY, behavior: 'smooth'});
 	}
 
-	window.scrollTo({top: newY, behavior: 'smooth'});
+	
+}
+function ScrollToNote(noteId)
+{ 
+	boundingele = document.getElementsByTagName('notes')[0];
+	correctNote = [...document.getElementsByTagName('note')].filter(x=> x.getAttribute('noteid') == (""+noteId))[0]
+
+	if(correctNote)
+	{
+		if((correctNote.getBoundingClientRect().top < 0 || correctNote.getBoundingClientRect().top > window.innerHeight))
+		{
+			const yOffset = -100; 
+			newY = correctNote.getBoundingClientRect().top + boundingele.scrollTop + yOffset;
+
+			boundingele.scrollTo({top: newY, behavior: 'smooth'});
+		}
+	}
 	
 }
 
@@ -366,6 +431,7 @@ function HighlightNotes(hoveredElement)
 		if(noteElements[n].getAttribute('associatedwords').split(",").indexOf(hoveredElement.getAttribute('wordid') ) != -1)
 		{
 			noteElements[n].setAttribute('highlighted', "true")
+			ScrollToNote((+noteElements[n].getAttribute('noteid')))
 			ThereIsAHighlightedWord = true;
 		}
 		else

@@ -110,13 +110,27 @@ class Context
 	{
 		return self::EnglishBookTitle[self::GetBookTitle()];
 	}
+	
 
-
+	public function GetTestStatus()
+	{
+		$tl = self::GetLevel();
+		return (SQLQ('SELECT `TestMode'.$tl.'`  FROM `Control Panel`') == "1");
+	}
+	
 	public function GetLevel()
 	{
 		if(!isset($_GET['level']))
-		{
-			$l = 'AP';
+		{		
+			if(isset($_GET['title']))
+			{
+				$d = self::DictDB[$_GET['title']];
+				$l = array_flip(self::LevelDictDB)[$d];
+			}
+			else
+			{
+				$l = 'AP';
+			}
 		}
 		else
 		{
@@ -226,10 +240,22 @@ function FindHWByWordID($title, $wordid)
 	}
 	while (isset($HWnums[$a+1]) && !in_array($wordid, $temp_assignment) );
 
-	return (int) $a;
+	return (int) ($a+1);
 }
 
+function GetCliticList($dictionary)
+{
+	$CliticList = array_filter($dictionary, function($word){ return ($word ['entry'][0] == "-");});
+	$CliticList = array_map( function($word){return $word['entry'];}, $CliticList) ;
+	$CliticList = array_values(array_unique($CliticList));
+	
 
+	return array(
+		"normal" => $CliticList = array_values(array_unique($CliticList)),
+		"no_hyphens" => array_map(function($val) { return ltrim($val, '-');} , $CliticList),
+		"no_hyphens_with_dollar_signs" => array_map(function($val) { return ltrim($val, '-')."$";} , $CliticList)
+	);
+}
 
 function GetFreqTable($defidsarray = null, $HWNum = null, $hwdb = null, $level = null)
 {
@@ -522,7 +548,9 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	$lastLinesText = null;
 	foreach($CondensedNotes as $Cnote)
 	{
-		$outputText .= "<note cc = '".$Cnote["comparableCitation"]."' associatedwords = '".( gettype($Cnote["AssociatedWordId"]) == "array" ? implode(",", $Cnote["AssociatedWordId"]): 0)."' >";
+		$outputText .= "<note ";
+		$outputText .= "noteid = '" . $Cnote["NoteId"] . "'";
+		$outputText .= "cc = '".$Cnote["comparableCitation"]."' associatedwords = '".( gettype($Cnote["AssociatedWordId"]) == "array" ? implode(",", $Cnote["AssociatedWordId"]): 0)."' >";
 		$linestext = count($Cnote["lines"]) > 1 ? min($Cnote["lines"]) . "–" .  max($Cnote["lines"]) :   $Cnote["lines"][0];
 
 		if($lastLinesText != $linestext)
@@ -640,9 +668,7 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 
 	$CurrentLine = null;
 
-	$CliticList = array_filter($dictionary, function($word){ return ($word ['entry'][0] == "-");});
-	$CliticList = array_map( function($word){return $word['entry'];}, $CliticList) ;
-	$CliticList = array_values(array_unique($CliticList));
+	$CliticList = GetCliticList($dictionary);
 
 	foreach ($lines as $word)
 	{
@@ -680,13 +706,13 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 		if($word["secondaryDefId"] != -1)
 		{
 			
-			preg_match('/('. implode("|", array_map(function($val) { return ltrim($val, '-')."$";} , $CliticList)). ')/', $Noclitics, $clitics);
+			preg_match('/('. implode("|", $CliticList['no_hyphens_with_dollar_signs']). ')/', $Noclitics, $clitics);
 			$Clitic = $clitics[0];
 
-			$Noclitics = mb_ereg_replace('('. implode("|", array_map(function($val) { return ltrim($val, '-')."$";} , $CliticList)). ')',"",$Noclitics);
+			$Noclitics = mb_ereg_replace('('. implode("|", $CliticList['no_hyphens_with_dollar_signs']). ')',"",$Noclitics);
 
 
-			$SplitPos = preg_match('/('. implode("|", array_map(function($val) { return ltrim($val, '-');} , $CliticList)). ')[.!;,]?$/', $word['word'], $position, PREG_OFFSET_CAPTURE);
+			$SplitPos = preg_match('/('. implode("|", $CliticList['no_hyphens']). ')[.!;,]?$/', $word['word'], $position, PREG_OFFSET_CAPTURE);
 			$split1 = substr($word['word'], 0, $position[0][1] );
 			$split2 = substr($word['word'], $position[0][1]);
 		}

@@ -120,6 +120,11 @@ else
 	$temp_start_line = $HWAssignment['StartLine'];
 }
 echo "<line citation = '".$HWAssignment['StartBook'].".".$ChapterCitationText.$temp_start_line."' num = '".$temp_start_line."'>";
+
+
+$CliticList = GetCliticList($TargetedDictionary);
+
+
 foreach ($HWLines as $word)
 {
 	if($CurrentLine && $word['lineNumber'] != $CurrentLine)
@@ -140,13 +145,13 @@ foreach ($HWLines as $word)
 	$split1 = $word['word'];
 	if($word["secondaryDefId"] != -1)
 	{
-		preg_match('/(que$|ne$|ve$|cum$)/', $Noclitics, $clitics);
+		preg_match('/('. implode("|", $CliticList['no_hyphens_with_dollar_signs']). ')/', $Noclitics, $clitics);
 		$Clitic = $clitics[0];
 
-		$Noclitics = mb_ereg_replace("(que$|ne$|ve$|cum$)","",$Noclitics);
+		$Noclitics = mb_ereg_replace("(". implode("|", $CliticList['no_hyphens_with_dollar_signs']). ")","",$Noclitics);
 
 
-		$SplitPos = preg_match('/(que|ne|ve|cum)[.!;,]?$/', $word['word'], $position, PREG_OFFSET_CAPTURE);
+		$SplitPos = preg_match('/('. implode("|", $CliticList['no_hyphens']). ')[.!;,]?$/', $word['word'], $position, PREG_OFFSET_CAPTURE);
 		$split1 = substr($word['word'], 0, $position[0][1] );
 		$split2 = substr($word['word'], $position[0][1]);
 	}
@@ -199,11 +204,15 @@ echo "<span style = 'cursor:pointer;' onclick = 'TypeLine(this)'>(+)</span></lin
 echo "</assignment>";
 
 
+if(!$context->GetTestStatus())
+{
+	echo "<notes style = 'background-color:white'>";
+		echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, $BookTitle);
+	echo "</notes>";
+}
 
-echo "<notes style = 'background-color:white'>";
-	echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, $BookTitle);
-echo "</notes>";
-
+echo "<testmode>";
+echo "</testmode>";
 echo "</wrapper>";
 
 

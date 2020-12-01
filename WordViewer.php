@@ -159,10 +159,10 @@ foreach($context::DictDB as $t => $d)
 			$SearchableWord = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]","",$SearchableWord);
 			
 			
-			$RegexStatement = "(^|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])(".$SearchableWord.")($|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])";
+			$RegexStatement = "(^|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ] ?)( ?".$SearchableWord.")($|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])";
 			$AttLine = mb_ereg_replace($RegexStatement, "\\1<highlight wid = '".$uses[$u]['id']."' style = 'cursor:pointer;''>".
 
-			" <a target = '_blank' href = 'HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($t, $uses[$u]['id'])."&highlightedword=".$uses[$u]['id']."'>"
+			"<a target = '_blank' href = 'HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($t, $uses[$u]['id'])."&highlightedword=".$uses[$u]['id']."'>"
 			
 			."\\2</a></highlight>\\3", $AttLine, "i"); 
 			

@@ -245,7 +245,7 @@ function GetWordInfo(clickedElement)
 		WordElement = WordElement.parentElement
 	}
 
-	window.open( 'WordViewer.php?wordid=' + WordElement.getAttribute('wordid'), '_blank');
+	window.open( 'WordViewer.php?level=<?php echo $context->GetLevel();?>&wordid=' + WordElement.getAttribute('wordid'), '_blank');
 }
 
 function EditEntry(clickedElement)
