@@ -11,7 +11,8 @@ $context = new Context;
 			'BackgroundColor' => "FFF1AC",
 			'HeaderColor' => "FFE667",
 			'WordHighlightColor' => "FFE24F",
-			'HeaderTextColor' => "black"
+			'HeaderTextColor' => "black",
+			'TextColor' => "black"
 		],
 	
 	"DBG" =>
@@ -19,7 +20,8 @@ $context = new Context;
 			'BackgroundColor' => "D3E5FF",
 			'HeaderColor' => "abcdff",
 			'WordHighlightColor' => "94beff",
-			'HeaderTextColor' => "black"
+			'HeaderTextColor' => "black",
+			'TextColor' => "black"			
 		],
 	
 	"InCatilinam" =>
@@ -27,16 +29,47 @@ $context = new Context;
 			'BackgroundColor' => "c5ffbf",
 			'HeaderColor' => "8cff80",
 			'WordHighlightColor' => "1aff00",
-			'HeaderTextColor' => "black"
+			'HeaderTextColor' => "black",
+			'TextColor' => "black"
 		],
 	
 	"Catullus" =>
+		// [
+		// 	'BackgroundColor' => "#c3dde3",
+		// 	'HeaderColor' => "#167eaf",
+		// 	'WordHighlightColor' => "#e1b783",
+		// 	'HeaderTextColor' => "black",
+		// 	'TextColor' => "black"
+		// ] //Willem
 		[
-			'BackgroundColor' => "f8edeb",
-			'HeaderColor' => "f9dcc4",
-			'WordHighlightColor' => "fec89a",
-			'HeaderTextColor' => "black"
-		]
+			'BackgroundColor' => "#BEE7E8",
+			'HeaderColor' => "#A0D2DB",
+			'WordHighlightColor' => "#89f5d6",
+			'HeaderTextColor' => "black",
+			'TextColor' => "black"
+		] //Isabel/Vedant
+		// [
+		// 	'BackgroundColor' => "black",
+		// 	'HeaderColor' => "black",
+		// 	'WordHighlightColor' => "black",
+		// 	'HeaderTextColor' => "white",
+		// 	'TextColor' => "white"
+		// ] //Dalton
+		// [
+		// 	'BackgroundColor' => "#572600",
+		// 	'HeaderColor' => "black",
+		// 	'WordHighlightColor' => "gray",
+		// 	'HeaderTextColor' => "white",
+		// 	'TextColor' => "white"
+		// ] //Dalton 2.0
+
+		// [
+		// 	'BackgroundColor' => "#D3E5FF",
+		// 	'HeaderColor' => "lightblue",
+		// 	'WordHighlightColor' => "#4ee6bb",
+		// 	'HeaderTextColor' => "white",
+		// 	'TextColor' => "black"
+		// ]
 	]
 
 	
@@ -108,6 +141,7 @@ $context = new Context;
 	}
 
 	word {
+		color:<?php echo $CSSColors[$context->GetBookTitle()]['TextColor']; ?>;
 		cursor: pointer;
 		display: inline-block;
 		padding: 6.5px;
@@ -135,7 +169,6 @@ $context = new Context;
 
 	definition {
 		padding-left: 3px;
-		font-style: italic;
 		text-align: center;
 		display: block;
 	}
@@ -211,6 +244,7 @@ $context = new Context;
 
 	note
 	{
+		color:<?php echo $CSSColors[$context->GetBookTitle()]['TextColor']; ?>;
 		opacity:1;
 		-webkit-transition: .7s all ease-in-out; 
 		transition: .7s all ease-in-out;
@@ -256,7 +290,7 @@ $context = new Context;
 		padding-right:1em;
 		margin-top: 1.25em;
 		<?php
-			if($CSSHeaderTextColor == "white")
+			if($CSSColors[$context->GetBookTitle()]['HeaderTextColor'] == "white")
 			{
 				echo "filter:invert(100);";
 			}

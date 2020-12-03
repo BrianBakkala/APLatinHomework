@@ -24,7 +24,7 @@ if($_GET['hw'] != "1")
 {
 
 	$PrevHW = SQLQ('SELECT MAX(`HW`) FROM `#APHW` WHERE `HW` < ' . $_GET['hw'] );
-	echo "<A href = 'AddNotes.php?hw=".$PrevHW."'>";
+	echo "<A href = 'AddNotes.php?level=".$context->GetLevel()."&hw=".$PrevHW."'>";
 	echo "<IMG id = 'leftarrow' SRC = 'Images/LHarrow.png'>";
 	echo "</A>";
 	
@@ -72,7 +72,7 @@ if($_GET['hw'] != SQLQ('SELECT MAX(`HW`) FROM `#APHW` '))
 
 	$NextHW = SQLQ('SELECT Min(`HW`) FROM `#APHW` WHERE `HW` > ' . $_GET['hw'] );
 
-	echo "<A href = 'AddNotes.php?hw=".$NextHW."'>";
+	echo "<A href = 'AddNotes.php?level=".$context->GetLevel()."&hw=".$NextHW."'>";
 	echo "<IMG id = 'rightarrow' SRC = 'Images/LHarrow.png'>";
 	echo "</A>";
 	

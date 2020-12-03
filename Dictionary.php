@@ -13,6 +13,18 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 
 <p aponly style = 'text-align:left;'><A href = 'UnitsViewer.php'>← Units</A></p>
 <style> 
+
+	*[aponly]
+	{
+		<?php
+		
+			if(!($context->GetLevel() == "AP"))
+			{
+				echo "display:none;";
+			}
+		
+		?>
+	}
 	html {
 		text-align: center; 
 		background-color:lightgray;
@@ -26,7 +38,8 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 	}
 
 	highlight {
-		background-color: cornsilk;
+		/* background-color: cornsilk; */
+		color: #cc2929;
 	}
 
 	word {
@@ -56,10 +69,13 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 
 	definition,
 	.editDef {
-		font-style: italic;
 		font-family: inherit;
 		font-size: inherit;
 		padding-left: 5px;
+	}
+
+	.editDef {
+		font-style: italic;
 	}
 
 	entry,
@@ -205,35 +221,39 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 <script>
 function FilterDict(filterText)
 {
-	if (document.getElementById('dictionary').getElementsByClassName('spinnerbig').length == 0)
-	{
-		document.getElementById('dictionary').innerHTML = "<BR><BR><BR><DIV  class = 'spinnerbig'><DIV>"
-	}
 
 	if (typeof(xmlhttp) != "undefined")
 	{
 		xmlhttp.abort()
 	}
 
-	xmlhttp = new XMLHttpRequest();
-	xmlhttp.onreadystatechange = function()
+	if( document.getElementById('searchResult').innerText != filterText)
 	{
-		if (this.readyState == 4 && this.status == 200)
+		xmlhttp = new XMLHttpRequest();
+		xmlhttp.onreadystatechange = function()
 		{
-			Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
-			if (document.getElementById('filterdict').value == filterText && document.getElementById('searchResult').innerText != filterText)
+			if (document.getElementById('dictionary').getElementsByClassName('spinnerbig').length == 0)
 			{
-				document.getElementById('dictionary').innerHTML = Response;
-				document.getElementById('searchResult').innerText = filterText;
+				document.getElementById('dictionary').innerHTML = "<BR><BR><BR><DIV  class = 'spinnerbig'><DIV>"
 			}
-		}
-	};
+			if (this.readyState == 4 && this.status == 200)
+			{
+				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
+				if (document.getElementById('filterdict').value == filterText )
+				{
+					document.getElementById('dictionary').innerHTML = Response;
+					document.getElementById('searchResult').innerText = filterText;
+				}
+			}
+		};
 
-	XMLURL = "AJAXAPL.php?filterdictionary=true&level=<?php echo $context::GetLevel();?>&filtertext=" + filterText;
-	xmlhttp.open("GET", XMLURL, true);
-	xmlhttp.send();
-	// cnsole.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL);
-	// return window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL;
+		XMLURL = "AJAXAPL.php?filterdictionary=true&level=<?php echo $context::GetLevel();?>&filtertext=" + filterText;
+		xmlhttp.open("GET", XMLURL, true);
+		xmlhttp.send();
+		// cnsole.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL);
+		// return window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL;
+
+	}
 
 }
 
@@ -246,6 +266,16 @@ function GetWordInfo(clickedElement)
 	}
 
 	window.open( 'WordViewer.php?level=<?php echo $context->GetLevel();?>&wordid=' + WordElement.getAttribute('wordid'), '_blank');
+}
+
+function ConvertAntiItalicsToAsterisks(input)
+{
+	var temptext = input;
+	temptext = temptext.replace(/(^<i>)|(<\/i>$)/g, '');
+	temptext = temptext.replace(/<\/?highlight>/g, '');		
+	temptext = temptext.replace(/<\/?i>/g, '*');		
+
+	return temptext;
 }
 
 function EditEntry(clickedElement)
@@ -287,7 +317,9 @@ function EditEntry(clickedElement)
 		DefinitionEle.setAttribute('type', "text")
 		DefinitionEle.setAttribute('class', "editDef")
 		DefinitionEle.setAttribute('size', DefStatic.innerText.length + 5)
-		DefinitionEle.setAttribute('value', DefStatic.innerText)
+
+		DefinitionEle.setAttribute('value', ConvertAntiItalicsToAsterisks(DefStatic.innerHTML))
+
 		DefinitionEle.focus()
 		DefinitionElonfocusout = function(e)
 		{
@@ -323,7 +355,8 @@ function SaveEntry(WordElement)
 		NewDef = NewDef.replace(/\+/g, '%2B')
 
 		OldEntry = WordElement.getElementsByTagName('entry')[0].innerText
-		OldDef = WordElement.getElementsByTagName('definition')[0].innerText
+		OldDef = WordElement.getElementsByTagName('definition')[0].innerHTML
+		OldDef = ConvertAntiItalicsToAsterisks(OldDef)
 
 		WordElement.getElementsByClassName('editEntry')[0].parentElement.removeChild(WordElement.getElementsByClassName('editEntry')[0])
 		WordElement.getElementsByClassName('editDef')[0].parentElement.removeChild(WordElement.getElementsByClassName('editDef')[0])
@@ -333,7 +366,8 @@ function SaveEntry(WordElement)
 		WordElement.getElementsByClassName('editbutton')[0].style.display = ""
 		WordElement.getElementsByClassName('deletebutton')[0].style.display = ""
 		WordElement.getElementsByClassName('savebutton')[0].style.display = "none"
-
+ 
+		console.log(NewDef == OldDef)
 		if (NewEntry != OldEntry || NewDef != OldDef)
 		{
 
@@ -347,7 +381,12 @@ function SaveEntry(WordElement)
 					Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
 					Response = JSON.parse(Response)
 					WordElement.getElementsByTagName('entry')[0].innerText = Response['entry']
-					WordElement.getElementsByTagName('definition')[0].innerText = Response['definition']
+
+					var temptext = Response['definition'];
+					temptext = temptext.replace(/\*(.*?)\*/g, '</i>$1<i>'); 	
+					temptext = "<i>"+temptext+"</i>"; 	 
+
+					WordElement.getElementsByTagName('definition')[0].innerHTML = temptext
 					SpinnerEle.parentElement.removeChild(SpinnerEle)
 				}
 			};
@@ -395,3 +434,6 @@ function DeleteEntry(clickedElement)
 }
 
 </script>
+<BR><BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR><BR>

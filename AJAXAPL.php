@@ -177,9 +177,12 @@ if (isset($_REQUEST["filterdictionary"]))
 
 					$hint .= "</entry>";
 					$hint .= "<definition>";
+					$hint .= "<i>";
 					
-					$hint .= explode("⸻", $hightlightablestring)[1];
+					$deftext =  explode("⸻", $hightlightablestring)[1];
+					$hint .= preg_replace("/\*(.*?)\*/","</i>\\1<i>", $deftext );
 					
+					$hint .= "</i>"; 
 					$hint .= "</definition>"; 
 					
 					$hint .= "<img  onclick = 'SaveEntry(this) '  style = 'display:none;' class = 'savebutton' src = 'Images/LHcheck.png'>";
@@ -210,12 +213,8 @@ if (isset($_REQUEST["deletedictionaryentry"]))
 
 if (isset($_REQUEST["updatedictionary"]))
 { 
+	SQLRun('UPDATE `'.$context->GetDict().'` SET `entry` = "'.$_REQUEST["newentry"].'", `definition` = "'.$_REQUEST["newdefinition"].'"   WHERE `id` = '.$_REQUEST["wordid"].';');
 
-
-
-	SQLRun('UPDATE `'.$LevelDictDB[$_REQUEST["level"]].'` SET `entry` = "'.$_REQUEST["newentry"].'", `definition` = "'.$_REQUEST["newdefinition"].'"   WHERE `id` = '.$_REQUEST["wordid"].';');
- 
-	// $hint = ('UPDATE `'.$LevelDictDB[$_REQUEST["level"]].'` SET `entry` = "'.$_REQUEST["newentry"].'", `definition` = "'.$_REQUEST["newdefinition"].'"   WHERE `id` = '.$_REQUEST["wordid"].';');
 	$hint = '{"definition":"'.$_REQUEST["newdefinition"].'", "entry":"'.$_REQUEST["newentry"].'"}';
 }
 

@@ -1,3 +1,5 @@
+<html translate="no">
+
 <TITLE>AP Latin Word Concordance Viewer</TITLE>
  
 <STYLE>
@@ -78,12 +80,17 @@ entryheader {
 }
 
 
-defintionheader {
+definitionheader {
 	display: block;
 	font-size: 2vw;
-	font-style: italic;
 }
 
+speaker {
+	color:gray;
+	text-transform: lowercase;
+	font-variant: small-caps;
+	padding-left:10px;
+}
 
 </STYLE>
 
@@ -103,12 +110,14 @@ echo "<A href = 'Dictionary.php'>← Dictionary</A>";
 echo "<BR>";
 
 echo "<entryheader>";
-echo $word['entry'];
+	echo $word['entry'];
 echo "</entryheader>";
 
-echo "<defintionheader>";
-echo $word['definition'];
-echo "</defintionheader>";
+echo "<definitionheader>";
+	echo "<i>";
+		echo preg_replace("/\*(.*?)\*/","</i>\\1<i>", 	$word['definition']);
+	echo "</i>";
+echo "</definitionheader>";
 echo "<BR><BR>";
 
 
@@ -118,7 +127,17 @@ foreach($context::DictDB as $t => $d)
 {
 	if($d == $context->GetDict())
 	{
-		$uses  = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word` FROM `'.$context::BookDB[$t].'` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+		if(in_array($t, $context::SpeakerColumn))
+		{
+			$SpeakerClause = ", `Speaker`";
+		}
+		else
+		{
+			$SpeakerClause = "";
+		}
+
+
+		$uses  = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word`   '.$SpeakerClause.' FROM `'.$context::BookDB[$t].'` WHERE `definitionId` = ' .$word['id'] . '   OR  `secondaryDefId` = ' .$word['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
 
 		$UseString = "";
 
@@ -187,7 +206,14 @@ foreach($context::DictDB as $t => $d)
 				$UseString .= ($uses[$u]['chapter'] != "" ? ".". $uses[$u]['chapter'] : "");
 				$UseString .= "." . $TheLineNumber;
 				$UseString .= "</attcitation>";
-				$UseString .= $AttLine . "<BR>";
+				$UseString .= $AttLine ;
+				if(!$context->GetTestStatus())
+				{
+					$UseString .= "<speaker>";
+					$UseString .= $uses[$u]['Speaker'];
+					$UseString .= "</speaker>";
+				}
+				$UseString .=  "<BR>";
 			$UseString .= "</attline>";
 
 			if($NextLineNumber != 0)

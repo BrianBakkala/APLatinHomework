@@ -26,6 +26,11 @@ class Context
 		"Catullus"
 	];
 	
+	public const SpeakerColumn =
+	[
+		"Aeneid"
+	];
+	
 	public const LevelDictDB =
 	[
 		"3" => "~Latin3Dictionary",
@@ -744,7 +749,13 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 				$outputtext .= "</entry>";
 
 				$outputtext .= "<definition>";
-					$outputtext .= $dictionary[$word['definitionId']]['definition'];
+				$outputtext .= "<i>";
+
+					$tempdeftext = $dictionary[$word['definitionId']]['definition'];	
+					$tempdeftext = preg_replace("/\*(.*?)\*/","</i>\\1<i>", $tempdeftext);				
+					$outputtext .= $tempdeftext;
+
+				$outputtext .= "</i>";
 				$outputtext .= "</definition>";
 				
 
@@ -763,9 +774,15 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 					$outputtext .= "</entry>";
 
 					$outputtext .= "<definition>";
-						$outputtext .= $dictionary[$word['secondaryDefId']]['definition'];
+					$outputtext .= "<i>";
+
+						$tempdeftext = $dictionary[$word['secondaryDefId']]['definition'];	
+						$tempdeftext  = preg_replace("/\*(.*?)\*/","</i>\\1<i>", 	$tempdeftext);					
+						$outputtext .= $tempdeftext;
+
+					$outputtext .= "</i>";
 					$outputtext .= "</definition>";
-					
+
 				$outputtext .= "</clitic>";
 			}
 
