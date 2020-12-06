@@ -25,6 +25,13 @@ $context = new Context;
 		],
 	
 	"InCatilinam" =>
+		// [
+		// 	'BackgroundColor' => "#EEEEEE",
+		// 	'HeaderColor' => "BB9813",
+		// 	'WordHighlightColor' => "black",
+		// 	'HeaderTextColor' => "gold",
+		// 	'TextColor' => "BBBB13"
+		// ] 
 		[
 			'BackgroundColor' => "c5ffbf",
 			'HeaderColor' => "8cff80",
@@ -32,15 +39,9 @@ $context = new Context;
 			'HeaderTextColor' => "black",
 			'TextColor' => "black"
 		],
-	
+		
 	"Catullus" =>
-		// [
-		// 	'BackgroundColor' => "#c3dde3",
-		// 	'HeaderColor' => "#167eaf",
-		// 	'WordHighlightColor' => "#e1b783",
-		// 	'HeaderTextColor' => "black",
-		// 	'TextColor' => "black"
-		// ] //Willem
+
 		[
 			'BackgroundColor' => "#BEE7E8",
 			'HeaderColor' => "#A0D2DB",
@@ -48,13 +49,31 @@ $context = new Context;
 			'HeaderTextColor' => "black",
 			'TextColor' => "black"
 		] //Isabel/Vedant
+
 		// [
 		// 	'BackgroundColor' => "black",
 		// 	'HeaderColor' => "black",
 		// 	'WordHighlightColor' => "black",
-		// 	'HeaderTextColor' => "white",
-		// 	'TextColor' => "white"
+		// 	'HeaderTextColor' => "black",
+		// 	'TextColor' => "black"
 		// ] //Dalton
+
+		// [
+		// 	'BackgroundColor' => "red",
+		// 	'HeaderColor' => "darkred",
+		// 	'WordHighlightColor' => "gold",
+		// 	'HeaderTextColor' => "yellow",
+		// 	'TextColor' => "yellow"
+		// ] //McDonalds
+
+		// 		[
+		// 	'BackgroundColor' => "white",
+		// 	'HeaderColor' => "white",
+		// 	'WordHighlightColor' => "black",
+		// 	'HeaderTextColor' => "cornsilk",
+		// 	'TextColor' => "cornsilk"
+		// ] 
+
 		// [
 		// 	'BackgroundColor' => "#572600",
 		// 	'HeaderColor' => "black",
@@ -70,6 +89,14 @@ $context = new Context;
 		// 	'HeaderTextColor' => "white",
 		// 	'TextColor' => "black"
 		// ]
+
+		// [
+		// 	'BackgroundColor' => "#c3dde3",
+		// 	'HeaderColor' => "#167eaf",
+		// 	'WordHighlightColor' => "#e1b783",
+		// 	'HeaderTextColor' => "black",
+		// 	'TextColor' => "black"
+		// ] //Willem
 	]
 
 	
@@ -146,6 +173,7 @@ $context = new Context;
 		display: inline-block;
 		padding: 6.5px;
 		vertical-align: top;
+		/* font-family: 'Comic Sans MS', cursive; */
 	}
 
 	word:hover {
@@ -153,7 +181,7 @@ $context = new Context;
 		background-color: <?php echo $CSSColors[$context->GetBookTitle()]['WordHighlightColor'];?>;
 	}
 
-	text {
+	text, nomacrons {
 		font-size: 22pt;
 		display: inline-block;
 		text-align: center;
@@ -186,6 +214,8 @@ $context = new Context;
 	clitic {
 		display: inline-block;
 	}
+
+
 
 
 	word[reveal="true"] entry,
@@ -245,6 +275,7 @@ $context = new Context;
 	note
 	{
 		color:<?php echo $CSSColors[$context->GetBookTitle()]['TextColor']; ?>;
+		font-size:14pt;
 		opacity:1;
 		-webkit-transition: .7s all ease-in-out; 
 		transition: .7s all ease-in-out;
@@ -345,6 +376,22 @@ $context = new Context;
 		left:0;
 		width: calc(99.5% - var(--notes-width));
 	}
+
+
+	wrapper[showmacrons="true"] nomacrons, wrapper[showmacrons="false"] text
+	{
+		display:none;
+	}
+
+	wrapper[showmacrons="false"] nomacrons, wrapper[showmacrons="true"] text
+	{
+		display:inherit;
+	}
+
+
+
+
+
 
 	vocabword
 	{

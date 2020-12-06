@@ -418,6 +418,22 @@ function ParseNoteText($inputText, $showdevices)
 	return $outputText;
 }
 
+function StripMacrons($inputText)
+{
+	$StripMacronsArray = [
+		"ā" => "a", "ē" => "e", "ī" => "i", "ō" => "o", "ū" => "u", "ӯ" => "y",
+		"Ā" => "A", "Ē" => "E", "Ī" => "I", "Ō" => "O", "Ū" => "U", "Ȳ" => "Y"
+	];
+
+	$nomacronsarray = preg_split('/(?!^)(?=.)/u', $inputText);
+	$nomacronstext = implode("",array_map(function($x) use($StripMacronsArray)
+	{		
+		return (isset($StripMacronsArray[$x])) ?  $StripMacronsArray[$x] : $x;
+	}, $nomacronsarray)); 
+	
+	return $nomacronstext;
+}
+
 function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevices = true)
 {
 	$context = new Context;
@@ -742,6 +758,9 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 				$outputtext .= "<text>";
 					$outputtext .= $split1;
 				$outputtext .= "</text>";
+			$outputtext .= "<nomacrons>";
+				$outputtext .= StripMacrons($split1);
+			$outputtext .= "</nomacrons>";
 
 				
 				$outputtext .= "<entry>";
@@ -768,6 +787,9 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 					$outputtext .= "<text>";
 						$outputtext .= $split2;
 					$outputtext .= "</text>";
+					$outputtext .= "<nomacrons>";
+						$outputtext .= StripMacrons($split2);
+					$outputtext .= "</nomacrons>";
 
 					$outputtext .= "<entry>";
 						$outputtext .= $dictionary[$word['secondaryDefId']]['entry'];

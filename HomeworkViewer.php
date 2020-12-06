@@ -24,11 +24,11 @@ require_once ( 'SQLConnection.php');
 $context = new Context;
 
 
-echo "<wrapper ";
+echo "<wrapper showmacrons='true'";
 
 if(!$context->GetTestStatus())
 {
-	echo "shownotes='true'";
+	echo " shownotes='true' ";
 }
 
 echo ">";
@@ -167,6 +167,12 @@ if(!$context->GetTestStatus())
 	echo "</span>";
 }
 
+echo "<span class = 'submenu-item'>"; 
+	echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"showmacrons\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"showmacrons\") == \"true\" ?  \"false\" : \"true\" )'>";
+echo "Toggle Macrons";
+echo "</a>";
+echo "</span>";
+
 echo "<select nolatin3 onchange= 'SetDifficulty(this.value)'>";
 
 
@@ -285,8 +291,6 @@ function CheckSSE()
 	
 
 }
-
-
 
 function ScrollToWord(wordId)
 {
