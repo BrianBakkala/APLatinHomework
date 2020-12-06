@@ -388,11 +388,6 @@ $context = new Context;
 		display:inherit;
 	}
 
-
-
-
-
-
 	vocabword
 	{
 		display:block;

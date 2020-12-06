@@ -161,15 +161,15 @@ if(!$context->GetTestStatus())
 if(!$context->GetTestStatus())
 {
 	echo "<span class = 'submenu-item'>"; 
-	echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"shownotes\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"shownotes\") == \"true\" ?  \"false\" : \"true\" )'>";
-	echo "Toggle Notes";
+	echo "<a style = 'cursor:pointer;' onclick = 'ToggleNotes(this)'>";
+		echo "Notes: <b>on</b>";
 	echo "</a>";
 	echo "</span>";
 }
 
 echo "<span class = 'submenu-item'>"; 
-	echo "<a style = 'cursor:pointer;' onclick = 'document.getElementsByTagName(\"wrapper\")[0].setAttribute(\"showmacrons\", document.getElementsByTagName(\"wrapper\")[0].getAttribute(\"showmacrons\") == \"true\" ?  \"false\" : \"true\" )'>";
-echo "Toggle Macrons";
+echo "<a style = 'cursor:pointer;' onclick = 'ToggleMacrons(this)'>";
+	echo "Macrons: <b>on</b>";
 echo "</a>";
 echo "</span>";
 
@@ -262,6 +262,30 @@ if(isset($_GET['highlightedword']))
 
 <script>
 
+function ToggleNotes(element)
+{
+	const CurrentStatus = (document.getElementsByTagName("wrapper")[0].getAttribute("shownotes") == "true")
+	const NewStatus = !CurrentStatus
+
+	document.getElementsByTagName("wrapper")[0].setAttribute("shownotes", NewStatus.toString() )
+
+	element.innerHTML = "Notes: <b>"+(NewStatus? "on" : "off")+"</b>"
+
+}
+	
+
+function ToggleMacrons(element)
+{
+	const CurrentStatus = (document.getElementsByTagName("wrapper")[0].getAttribute("showmacrons") == "true")
+	const NewStatus = !CurrentStatus
+
+	document.getElementsByTagName("wrapper")[0].setAttribute("showmacrons", NewStatus.toString() )
+
+	console.log(element)
+	element.innerHTML = "Macrons: <b>"+(NewStatus? "on" : "off")+"</b>"
+
+}
+	
 
 function CheckSSE()
 {
