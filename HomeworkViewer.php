@@ -348,7 +348,7 @@ function ScrollToNote(noteId)
 
 	if(correctNote)
 	{
-		if((correctNote.getBoundingClientRect().top < 0 || correctNote.getBoundingClientRect().top > window.innerHeight))
+		if((correctNote.getBoundingClientRect().top < 0 || correctNote.getBoundingClientRect().top > (window.innerHeight-50)))
 		{
 			const yOffset = -100; 
 			newY = correctNote.getBoundingClientRect().top + boundingele.scrollTop + yOffset;
@@ -446,7 +446,7 @@ function GetAPLatinHW()
 		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/1/public/values?alt=json", true);
 		
 		xmlhttp.send();
- 
+
 
 }
 
