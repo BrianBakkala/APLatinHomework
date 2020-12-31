@@ -144,7 +144,10 @@ echo "HW ".$HWAssignment['HW'];
 echo "</span>";
 
 echo "<span class = 'submenu-item'   >"; 
-echo count( array_unique(array_map(function($x) {return $x['lineNumber'];},$HWLines)));
+
+echo count( array_unique(array_map(function($x) {return $x['chapter'].$x['lineNumber'];},$HWLines)));
+
+
 echo " lines";
 echo "</span>";
 
