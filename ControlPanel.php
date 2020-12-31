@@ -71,7 +71,7 @@ hwtitle
 	font-weight:bold;
 }
 
-hwduedate
+hwdescription
 {
 	font-style:italic;
 }
@@ -342,6 +342,7 @@ function SuggestHW(HWArray, LatestNumber)
 						var tempDays = +(SheetData[sd+1]['gs$cell'].numericValue) -25568
 						var tempD =  new Date ((  tempDays *1000*60*60*24))
 						var tempDate = tempD.getFullYear() + "-"+ ("00"+(tempD.getMonth()+1)).slice(-2)+ "-"+ ("00"+tempD.getDate()).slice(-2)
+						var tempDoW = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")[tempD.getDay()]
 						var tempHWDueDate =  SheetData[sd+1].content['$t']
 						var tempHWCitation = tempHWbookName+ " "+ SheetData[sd+4].content['$t']
 						var tempUnit =   SheetData[sd+3].content['$t'].substring(SheetData[sd+3].content['$t'].length-1)
@@ -364,8 +365,8 @@ function SuggestHW(HWArray, LatestNumber)
 						tempHW.setAttribute('hwnum', tempHWNum)
 						tempHW.setAttribute('unit', tempUnit)
 						tempHW.setAttribute('rd', tempRD)
-						tempHW.innerHTML = "<hwtitle>HW" + (+(SheetData[sd].content['$t'].substring(1))) + " ["+tempUnit+"] </hwtitle>" 
-						tempHW.innerHTML += "<hwduedate>" + tempD.toLocaleDateString(undefined) + "</hwduedate>" 
+						tempHW.innerHTML = "<hwtitle>HW" + (+(SheetData[sd].content['$t'].substring(1))) + " [Unit "+tempUnit+"] </hwtitle>" 
+						tempHW.innerHTML += "<hwduedate>" + tempDoW +", " + tempD.toLocaleDateString(undefined) + "</hwduedate>" 
 						tempHW.innerHTML += "<hwdescription>" + tempHWCitation + "</hwdescription>" 
 						document.getElementById('hwAssigned').appendChild(tempHW)
 
@@ -462,6 +463,9 @@ function CreateAPLatinHWAssignment(clickedElement)
 </json>
 
 
+<BR>
+<BR>
+<BR>
 
 <div id= 'hwWrapper'>
 	<div id = 'hwAssigned'>
@@ -473,5 +477,6 @@ function CreateAPLatinHWAssignment(clickedElement)
 <BR>
 <BR>
 <BR>
-<span onclick = 'signOut()'>signout</span>
-<div data-containertype= "button" style = ' '  onclick = 'SignInWithCheck()' >Link with Google API</div>
+<span  style = 'padding:5px;' onclick = 'SignInWithCheck()' >Link with Google API</span> 
+
+<span  style = 'padding:5px;' onclick = 'signOut()'>Sign Out</span>
