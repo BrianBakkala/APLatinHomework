@@ -16,8 +16,18 @@ $Conversion = [
 ];
 
 
-// ///////////////////////////
 
+//////////////////////////////////////
+
+if (isset($_REQUEST["toggletestmode"]))
+{
+	$temp_Testmode = "TestMode" . $_GET['level'];
+	$currentMode = SQLQ('SELECT   `TestModeAP`  FROM `Control Panel`  ');
+	$newMode = (int) $_REQUEST["newval"];
+
+	SQLRun('UPDATE `Control Panel` SET `'.$temp_Testmode.'` = '.$newMode.' WHERE `Control Panel`.`id` = 1;');
+	$hint = $_REQUEST['level'] . " " . $newMode;
+}
 
 if (isset($_REQUEST["updatedefinition"]))
 {
@@ -210,16 +220,12 @@ if (isset($_REQUEST["deletedictionaryentry"]))
 	SQLRun( 'DELETE FROM `'.$DictDB[$BookTitle].'` WHERE `id` = ' . $_REQUEST["wordid"]);
 }
 
-
 if (isset($_REQUEST["updatedictionary"]))
 { 
 	SQLRun('UPDATE `'.$context->GetDict().'` SET `entry` = "'.$_REQUEST["newentry"].'", `definition` = "'.$_REQUEST["newdefinition"].'"   WHERE `id` = '.$_REQUEST["wordid"].';');
 
 	$hint = '{"definition":"'.$_REQUEST["newdefinition"].'", "entry":"'.$_REQUEST["newentry"].'"}';
 }
-
-//////////////////////////////////////
-
 
 if (isset($_REQUEST["addnote"]))
 { 
@@ -244,15 +250,8 @@ if (isset($_REQUEST["addnote"]))
 		foreach($LIDs as $lid)
 		{ 
 			
-			if($_REQUEST["author"] == "V")
-			{
-				$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APAeneidText` WHERE CONCAT(`book`, ".", `lineNumber`) = "'. $lid.'"');
-			}
-			else
-			{
-				$FirstID = SQLQ('SELECT MIN(`id`)  FROM `#APDBGText` WHERE CONCAT(`book`, ".", `chapter`, ".", `lineNumber`) = "'. $lid.'"');
-			}
-
+			$FirstID = SQLQ('SELECT MIN(`id`)  FROM `'.$context::BookDB[ $_REQUEST["booktitle"]].'` WHERE CONCAT(`book`, ".", `lineNumber`) = "'. $lid.'" OR  CONCAT(`book`, ".", `chapter`, ".", `lineNumber`) = "'. $lid.'"');
+			
 			SQLRun ("INSERT INTO `".$context::LevelNotesDB[$_REQUEST["level"]]."Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (".$NoteId.",  ".$FirstID.", '". $lid."', '".$_REQUEST["booktitle"]."');"); 
 			
 		}
@@ -262,7 +261,21 @@ if (isset($_REQUEST["addnote"]))
 	$hint = "Notes Added";
 }
 
-//////////////////////////////////////
+/////////////////////////////
+
+if (isset($_REQUEST["endsession"]))
+{
+	SQLRun('DELETE FROM `_UserSessions` WHERE `SessionID` = "'. $_REQUEST["sessid"] .'"  ');
+	SQLRun('DELETE FROM `_UserSessions` WHERE `SessionID` = "'. $_REQUEST["sessid"] .'"  ');
+	SQLRun('DELETE FROM `_UserSessions` WHERE `SessionID` = "'. base64_encode($_REQUEST["sessid"]) .'"  ');
+	SQLRun('DELETE FROM `_UserSessions` WHERE `SessionID` = "'. base64_decode($_REQUEST["sessid"]) .'"  ');
+	$hint = 'Removed';
+}
+
+/////////////////////////////
+
+
+
 
 $hint = trim($hint);
 

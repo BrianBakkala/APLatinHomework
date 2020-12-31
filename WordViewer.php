@@ -146,10 +146,33 @@ foreach($context::DictDB as $t => $d)
 			$TheLineNumber = (((int) $uses[$u]['lineNumber'])-0);
 			$PrevLineNumber = 0;
 			$NextLineNumber = 0;
+			
+			$WordsOnLine = SQLQuarry(' SELECT   `word`, `id`  FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ', false ,"id" );
 
-			
-			$AttLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
-			
+			$temp_word_id = $uses[$u]['id'];
+			$WordsOnLine= array_values($WordsOnLine);
+
+			$AttLine = "";
+			for ($w=0; $w< count($WordsOnLine); $w++)
+			{
+				if($w !=0)
+				{
+					$AttLine .=" ";
+				}
+				if($WordsOnLine[$w]['id'] == $temp_word_id )
+				{
+					$AttLine .= "<highlight wid = '".$WordsOnLine[$w]['id']."' style = 'cursor:pointer;''>";
+					$AttLine .= "<a target = '_blank' href = 'HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($t, $WordsOnLine[$w]['id'])."&highlightedword=".$WordsOnLine[$w]['id']."'>";
+					$AttLine .= $WordsOnLine[$w]['word'];
+					$AttLine .= "</a>";
+					$AttLine .= "</highlight>";
+				}
+				else
+				{
+					$AttLine .=$WordsOnLine[$w]['word'];
+				}
+			}
+
 			if(SQLQ(' SELECT  `id` FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '. ($TheLineNumber-1) .' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' ))
 			{
 				$PrevLineNumber = ($TheLineNumber-1);
@@ -170,21 +193,6 @@ foreach($context::DictDB as $t => $d)
 			{
 				$AttNextLine = "";
 			}
-
-
-			//$AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ' );
-			
-			$SearchableWord = $uses[$u]['word'];
-			$SearchableWord = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]","",$SearchableWord);
-			
-			
-			$RegexStatement = "(^|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ] ?)( ?".$SearchableWord.")($|[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ])";
-			$AttLine = mb_ereg_replace($RegexStatement, "\\1<highlight wid = '".$uses[$u]['id']."' style = 'cursor:pointer;''>".
-
-			"<a target = '_blank' href = 'HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($t, $uses[$u]['id'])."&highlightedword=".$uses[$u]['id']."'>"
-			
-			."\\2</a></highlight>\\3", $AttLine, "i"); 
-			
 			
 			$UseString .= "<attestation wordid = '".$uses[$u]['id']."'>";
 			

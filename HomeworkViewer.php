@@ -143,6 +143,11 @@ echo "<span class = 'submenu-item'  style = 'font-weight:bold;'>";
 echo "HW ".$HWAssignment['HW'];
 echo "</span>";
 
+echo "<span class = 'submenu-item'   >"; 
+echo count( array_unique(array_map(function($x) {return $x['lineNumber'];},$HWLines)));
+echo " lines";
+echo "</span>";
+
 
 echo "<span  aponly  class = 'submenu-item'>"; 
 echo "<duedate style = 'color:rgba(0,0,0,0); ' id = 'dueDate'>December 31";
@@ -158,22 +163,29 @@ if(!$context->GetTestStatus())
 	echo "</span>";
 }
 
-if(!$context->GetTestStatus())
-{
+
+
+
+
+echo "</submenu>";
+
+echo "<submenu>";
+	if(!$context->GetTestStatus())
+	{
+		echo "<span class = 'submenu-item'>"; 
+		echo "<a style = 'cursor:pointer;' onclick = 'ToggleNotes(this)'>";
+			echo "Notes: <b>on</b>";
+		echo "</a>";
+		echo "</span>";
+	}
+
 	echo "<span class = 'submenu-item'>"; 
-	echo "<a style = 'cursor:pointer;' onclick = 'ToggleNotes(this)'>";
-		echo "Notes: <b>on</b>";
+	echo "<a style = 'cursor:pointer;' onclick = 'ToggleMacrons(this)'>";
+		echo "Macrons: <b>on</b>";
 	echo "</a>";
 	echo "</span>";
-}
 
-echo "<span class = 'submenu-item'>"; 
-echo "<a style = 'cursor:pointer;' onclick = 'ToggleMacrons(this)'>";
-	echo "Macrons: <b>on</b>";
-echo "</a>";
-echo "</span>";
-
-echo "<select nolatin3 onchange= 'SetDifficulty(this.value)'>";
+	echo "<select nolatin3 onchange= 'SetDifficulty(this.value)'>";
 
 
 	echo "<option value='0' selected disabled hidden> ";
@@ -215,9 +227,8 @@ echo "<select nolatin3 onchange= 'SetDifficulty(this.value)'>";
 echo "</select>";
 
 echo "</submenu>";
-echo "<BR>";
 
-echo "<BR>";
+// echo "<BR>";
 
 
 
@@ -295,20 +306,22 @@ function CheckSSE()
 		var Level = "<?php echo $context->GetLevel();?>";
 		var source = new EventSource("TestModeSSE.php?level="+Level+"&timestampupdate=true");
 		Recheck = null;
+		const StatusOnLoad = "<?php echo ($context->GetTestStatus()) ? "1" : "0"; ?>";
+
 		source.onmessage = function(event)
 		{
 			SSEResponse = JSON.parse(event.data.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, ''))
-			if (SSEResponse[0]["TestMode"+Level] !=Recheck )
+			if(Recheck == null)
 			{
-				if(Recheck == null)
-				{
-					Recheck = SSEResponse[0]["TestMode"+Level]
-				}
-				else
-				{
-					location.reload();
-				}
-				
+				Recheck = SSEResponse[0]["TestMode"+Level]
+			}
+			
+			if (SSEResponse[0]["TestMode"+Level] != Recheck || StatusOnLoad != Recheck )
+			{
+				document.getElementsByTagName('html')[0].innerHTML = "";
+				source.onmessage = function(event){}
+				source.close();
+				location.reload();
 			}
 		};
 	}

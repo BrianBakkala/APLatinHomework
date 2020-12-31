@@ -6,5 +6,6 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Sabberworm\\CSS' => array($vendorDir . '/sabberworm/php-css-parser/lib'),
+    'Google_Service_' => array($vendorDir . '/google/apiclient-services/src'),
+    'Google_' => array($vendorDir . '/google/apiclient/src'),
 );

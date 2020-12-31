@@ -8,21 +8,6 @@ ob_start();
 
 require 'vendor/autoload.php';
 use TCPDF;
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // create new PDF document
 require_once('vendor/tecnickcom/tcpdf/tcpdf.php');

@@ -1,6 +1,7 @@
 <?php
 
 require_once ( 'GenerateNotesandVocab.php');
+
 $context = new Context;
 
 	$CSSColors = 
@@ -402,6 +403,7 @@ $context = new Context;
 	.tooltiptext
 	{
 		font-variant:none;
+		padding: 10px 10px;
 	}
 
 	.literarydevice 
@@ -422,7 +424,7 @@ $context = new Context;
 		color: #fff;
 		text-align: center;
 		border-radius: 6px;
-		padding: 10px 5px;
+		
 		
 		/* Position the literarydevice */
 		position: absolute;
@@ -459,8 +461,14 @@ $context = new Context;
 	{
 		position: -webkit-sticky;
 		position: sticky;
-		top:-116px;
+		top:-125px;
 		z-index:1;
+	}
+
+	submenu
+	{
+		display: block;
+		padding-bottom:10px;
 	}
 
 	select,	.menu-bar-option, .submenu-item

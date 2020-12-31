@@ -27,7 +27,8 @@ $NextLine4 = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `'.$context:
 <a href = 'HomeworkSync.php'>Homework Sync</a><BR>
 <a href = 'https://s513.altervista.org/phpmyadmin/?sid=c9590099a532d3c364f6e3e8b3f25f77#PMAURL-0:index.php?db=&table=&server=1&target=&lang=en&collation_connection=utf8mb4_general_ci&token=e18d06d00ccd6305ec345a226dce05db'>PHP My Admin</a><BR>
 
-
+<BR><BR><BR>
+<a href = 'AdminSignIn.php'>Admin</a><BR>
 
 
 <?
