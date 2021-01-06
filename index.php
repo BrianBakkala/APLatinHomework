@@ -12,7 +12,7 @@ $NextLine3 = SQLQuarry('SELECT  min(id)  FROM `'.$context::BookDB[$Book3].'` WHE
 $NextLine3 = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `'.$context::BookDB[$Book3].'` WHERE `id` = '. $NextLine3)[0];
 
 
-$Book4 = "InCatilinam";
+$Book4 = "PlinyEpistulae";
 $NextLine4 = SQLQuarry('SELECT  min(id)  FROM `'.$context::BookDB[$Book4].'` WHERE `definitionId` = 0', true)[0];
 $NextLine4 = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `'.$context::BookDB[$Book4].'` WHERE `id` = '. $NextLine4)[0];
  
@@ -22,13 +22,20 @@ $NextLine4 = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `'.$context:
 <a href = 'Dictionary.php'>Dictionary</a><BR>
 <a href = 'Definer.php?title=<?php echo $Book3;?>&level=3&book=<?php echo $NextLine3['book'];?>&line=<?php echo $NextLine3['lineNumber'];?>'>Definer 3</a><BR>
 <a href = 'Definer.php?title=<?php echo $Book4;?>&level=4&book=<?php echo $NextLine4['book'];?>&chapter=<?php echo $NextLine4['chapter'];?>&line=<?php echo $NextLine4['lineNumber'];?>'>Definer 4</a><BR>
-<a href = 'HomeworkViewer.php?hw=1'>Homework Viewer</a><BR>
+<BR>
+<a href = 'HomeworkViewer.php?hw=<?php echo SQLQ('SELECT MAX(`HW`) FROM `~Latin3HW`');?>&level=3'>Homework Viewer 3</a><BR>
+<a href = 'HomeworkViewer.php?hw=<?php echo SQLQ('SELECT MAX(`HW`) FROM `^Latin4HW`');?>&level=4'>Homework Viewer 4</a><BR>
+<a href = 'HomeworkViewer.php?hw=1'>Homework Viewer AP</a><BR>
+<BR>
+<a href = 'TextParser.php'>Add Text</a><BR>
 <a href = 'AddNotes.php?hw=1'>Add Notes</a><BR>
+<BR>
 <a href = 'HomeworkSync.php'>Homework Sync</a><BR>
+<BR>
 <a href = 'https://s513.altervista.org/phpmyadmin/?sid=c9590099a532d3c364f6e3e8b3f25f77#PMAURL-0:index.php?db=&table=&server=1&target=&lang=en&collation_connection=utf8mb4_general_ci&token=e18d06d00ccd6305ec345a226dce05db'>PHP My Admin</a><BR>
 
-<BR><BR><BR>
-<a href = 'AdminSignIn.php'>Admin</a><BR>
+<BR>
+<a href = 'AdminSignIn.php'>Control Panel</a><BR>
 
 
 <?

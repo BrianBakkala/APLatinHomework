@@ -80,7 +80,7 @@ else
 	$Author =  	"Aeneid";
 }
 
-$Book =  (int) $_GET['book'];
+$Book =    $_GET['book'];
 if(isset($_GET['chapter']))
 {
 	$Chapter = $_GET['chapter'];

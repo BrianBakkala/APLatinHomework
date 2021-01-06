@@ -20,6 +20,13 @@ if(isset($_GET['hw']))
 class Context
 {
 	
+	public const Chapters =
+	[
+		"DBG",
+		"InCatilinam",
+		"PlinyEpistulae"
+	];
+	
 	public const Poetry =
 	[
 		"Aeneid",
@@ -57,6 +64,7 @@ class Context
 		"Aeneid" => "#APAeneidText",
 		"DBG" => "#APDBGText",
 		"InCatilinam" => "^Latin4InCatilinamText",
+		"PlinyEpistulae" => "^Latin4PlinyEpistulaeText",
 		"Catullus" => "~Latin3CatullusText"
 
 	]; 
@@ -66,6 +74,7 @@ class Context
 		"Aeneid" => "#APDictionary",
 		"DBG" => "#APDictionary",
 		"InCatilinam" => "^Latin4Dictionary",
+		"PlinyEpistulae" => "^Latin4Dictionary",
 		"Catullus" => "~Latin3Dictionary"
 	]; 
 	
@@ -74,7 +83,17 @@ class Context
 		"Aeneid" => "Aenēis",
 		"DBG" => "Commentāriī Dē Bellō Gallicō",
 		"InCatilinam" => "Ōrātiō in Catilinam Prīma in Senātū Habita",
+		"PlinyEpistulae" => "Epistulae",
 		"Catullus" => "Carmina Catullī" 
+	];
+
+	public const Author =
+	[
+		"Aeneid" => "Pvblivs Vergilivs Maro",
+		"DBG" => "Gaivs Ivlivs Caesar",
+		"InCatilinam" => "Marcvs Tvllivs Cicero",
+		"PlinyEpistulae" => "Gaivs Plinivs Caecilivs Secvndvs",
+		"Catullus" => "Gaivs Valerivs Catvllus" 
 	];
 
 	public const EnglishBookTitle =
@@ -82,6 +101,7 @@ class Context
 		"Aeneid" => "Aeneid",
 		"DBG" => "De Bello Gallico",
 		"InCatilinam" => "In Catilinam",
+		"PlinyEpistulae" => "Epistulae",
 		"Catullus" => "Catullus" 
 	];
 
@@ -110,6 +130,11 @@ class Context
 	public function GetLatinTitle()
 	{
 		return self::LatinBookTitle[self::GetBookTitle()];
+	}
+
+	public function GetAuthor()
+	{
+		return self::Author[self::GetBookTitle()];
 	}
 
 	public function GetEnglishTitle()
@@ -165,7 +190,13 @@ class Context
 // echo ('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$BookDB[$BookTitle].'` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
 
 
-
+function ReadableFloat($input)
+{
+	$input = $input."";
+	$input = rtrim ($input, " 0" );
+	$input = rtrim ($input, "." );
+	return $input;
+}
 
 function GetHWLineIDs($HWNum, $hwdb, $title)
 {
@@ -249,6 +280,8 @@ function GetHWAssignment($HWNum, $hwdb = null, $title = null)
 	];
 
 }
+
+
 
 function FindHWByWordID($title, $wordid)
 {
@@ -482,7 +515,7 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	$WordNotes = SQLQuarry(' SELECT `'.$context->GetNotesDB().'Locations`.`NoteId`, `AssociatedWordId`,   `'.$context->GetNotesDB().'Text`.`Text`, `BookTitle`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `'.$context->GetNotesDB().'Locations` INNER JOIN `'.$context->GetNotesDB().'Text` ON (`'.$context->GetNotesDB().'Text`.`NoteId` = `'.$context->GetNotesDB().'Locations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `'.$context->GetTextDB().'`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND `BookTitle` = "'.$title.'" AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
 
 	
-	if($title != "Aeneid")
+	if(in_array($title, $context::Chapters))
 	{
 		$ConcatText = "CONCAT(`sub`.`book`, '.',`sub`.`chapter`, '.', `sub`.`lineNumber`)";
 	}
@@ -623,7 +656,9 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 		}
 		$lastLinesText = $linestext;
 		
-		$outputText .= "<B>". preg_replace("/[\[\];,()?!\.:\"\']/","", $Cnote['phrase']) ;
+		$filternote = preg_replace("/[\[\];,()?!\.:\"\']/","", $Cnote['phrase']);
+		$filternote = preg_replace("/—/","", $filternote);
+		$outputText .= "<B>". $filternote ;
 		$outputText .= $Cnote['phrase'] == "" ? "" : ":";
 		$outputText .= " </B>";
 		$outputText .= ParseNoteText($Cnote['Text'], $literaryDevices);
@@ -723,7 +758,7 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 
 	if($showvocab == true)
 	{
-		$outputtext .=  "<line citation = '".$assignment['StartBook'].".".$ChapterCitationText.$temp_start_line."' num = '".$temp_start_line."'>";
+		$outputtext .=  "<line citation = '".ReadableFloat($assignment['StartBook']).".".$ChapterCitationText.$temp_start_line."' num = '".$temp_start_line."'>";
 	}
 
 	$CurrentLine = null;
@@ -732,7 +767,7 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 
 	foreach ($lines as $word)
 	{
-		if($CurrentLine && $word['lineNumber'] != $CurrentLine)
+		if(isset($CurrentLine) && $word['lineNumber'] != $CurrentLine)
 		{
 			$ChapterCitationText = "";
 			if($assignment['StartChapter'] != null)
@@ -752,7 +787,7 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 			}
 			if($showvocab == true)
 			{
-				$outputtext .= "<line   citation = '".$word['book'].".".$ChapterCitationText.$word['lineNumber']."'    num = '".$word['lineNumber']."'>";
+				$outputtext .= "<line   citation = '".ReadableFloat($word['book']).".".$ChapterCitationText.$word['lineNumber']."'    num = '".$word['lineNumber']."'>";
 			}
 		}
 		$CurrentLine = $word['lineNumber'];

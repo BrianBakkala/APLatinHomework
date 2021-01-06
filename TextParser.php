@@ -1,12 +1,36 @@
+<?php
+
+require_once ( 'GenerateNotesandVocab.php');
+require_once ( 'SQLConnection.php');
+$context = new Context;
+
+?>
+
 <form id = 'form'  onchange = "Parse()"  >
 
 <textarea onchange = "Parse()"  onkeyup = "Parse()" rows = 10 cols = 80 id = 'textarea'></textarea>
 <BR>
 Text<select id = 'author'  onchange = "Parse()"  >
-<option >~Latin3CatullusText</option>
-<option >^Latin4InCatilinamText</option>
-<option >#APAeneidText</option>
-<option >#APDBGText</option>
+
+<?php
+$temptitles = $context::BookDB;
+
+foreach($temptitles as $tt)
+{
+	echo "<option ";
+
+
+	if(strpos(strtolower($tt), "epistulae") !== false)
+	{
+		echo " selected ";
+	}
+
+
+	echo ">";
+	echo $tt;
+	echo "</option>";
+}
+?> 
 </select>
 <BR>
 Book<input min = 0 max = 20 onchange = "Parse()"  id = 'book' type = 'number' value = 0>
@@ -52,6 +76,13 @@ while (!LineNumberDetected && i < Lines.length)
 	i++
 }
 
+const Author = document.getElementById('author').value
+const BookNumber = document.getElementById('book').value
+var ChapterNumber = (document.getElementById('chapter').value == -1 ? "NULL" :document.getElementById('chapter').value); 
+var	LineNumber = document.getElementById('line').value
+
+const ChapterDemarcator = '𓄋chapter𓄋'
+
 for (l=0; l< Lines.length; l++)
 {
 	Words = Lines[l].split(' ')
@@ -60,19 +91,25 @@ for (l=0; l< Lines.length; l++)
 	{
 		if(Words[w].length >=1 && !parseInt(Words[w]))
 		{
-			LineStart = document.getElementById('line').value
-			BookNumber = document.getElementById('book').value
-			ChapterNumber = (document.getElementById('chapter').value == -1 ? "NULL" :document.getElementById('chapter').value); 
-			Author = document.getElementById('author').value
 			Words[w] = Words[w].replace(/'/g, '"') 
 			Words[w] = Words[w].replace(/\d/g, '') 
 
+			if(Words[w].trim() == ChapterDemarcator)
+			{
+				ChapterNumber++
+				LineNumber=0;
+			}
+			else
+			{
+				OutputText += "INSERT INTO `"+Author+"` (`word`,  `book`,  `chapter`, `lineNumber`, `definitionId`, `secondaryDefId`  ) VALUES ( '"+Words[w]+"', '"+BookNumber+"', "+ChapterNumber+", '"+(+LineNumber)+"', 0, -1 );"
+				OutputText += "\n"
+			}
+			
 
-			OutputText += "INSERT INTO `"+Author+"` (`word`,  `book`,  `chapter`, `lineNumber`, `definitionId`, `secondaryDefId`  ) VALUES ( '"+Words[w]+"', '"+BookNumber+"', "+ChapterNumber+", '"+(+LineStart+l)+"', 0, -1 );"
-			OutputText += "\n"
 		}
 
 	}
+				LineNumber++;
 
 
 }

@@ -40,6 +40,14 @@ $context = new Context;
 			'HeaderTextColor' => "black",
 			'TextColor' => "black"
 		],
+	"PlinyEpistulae" => 
+		[
+			'BackgroundColor' => "c5ffbf",
+			'HeaderColor' => "8cff80",
+			'WordHighlightColor' => "1aff00",
+			'HeaderTextColor' => "black",
+			'TextColor' => "black"
+		],
 		
 	"Catullus" =>
 
@@ -315,7 +323,7 @@ $context = new Context;
 	#rightarrow,
 	#leftarrow
 	{
-		height: 2.5em;
+		height: 1.3em;
 		display:inline-block;
 
 		padding-left:1em;
@@ -439,6 +447,13 @@ $context = new Context;
 		visibility: visible;
 	}
 
+	author
+	{
+		z-index:100;
+		font-family:Cinzel;
+		
+	}
+
 
 
 
@@ -463,6 +478,11 @@ $context = new Context;
 		position: sticky;
 		top:-125px;
 		z-index:1;
+	}
+
+	submenu:nth-of-type(1) 
+	{
+		padding-top:15px;
 	}
 
 	submenu

@@ -95,7 +95,7 @@ echo "<h1>";
 	echo $context->GetLatinTitle();
 	echo "</i> ";
 
-	echo $HWAssignment['StartBook'];
+	echo ReadableFloat($HWAssignment['StartBook']);
 	echo ".";
 	if($HWAssignment['StartChapter'] != null)
 	{
@@ -105,7 +105,7 @@ echo "<h1>";
 	echo $HWAssignment['StartLine'];
 
 	echo "–";
-	echo $HWAssignment['EndBook'];
+	echo ReadableFloat($HWAssignment['EndBook']);
 	echo ".";
 	if($HWAssignment['EndChapter'] != null)
 	{
@@ -132,6 +132,11 @@ if( (SQLQ('SELECT (`HW`) FROM `'.$context->GetHWDB().'` WHERE `HW` = ' . ((int) 
 echo "</td>";
 echo "</tr>";
 echo "</table>";
+
+echo "<author>";
+echo $context->GetAuthor();
+echo "</author>";
+
 echo "</assignmentdata>";
 
 
@@ -139,38 +144,38 @@ echo "</assignmentdata>";
 echo "<BR>";
 echo "<submenu >";
 
-echo "<span class = 'submenu-item'  style = 'font-weight:bold;'>"; 
-echo "HW ".$HWAssignment['HW'];
-echo "</span>";
-
-echo "<span class = 'submenu-item'   >"; 
-
-echo count( array_unique(array_map(function($x) {return $x['chapter'].$x['lineNumber'];},$HWLines)));
-
-
-echo " lines";
-echo "</span>";
-
-
-echo "<span  aponly  class = 'submenu-item'>"; 
-echo "<duedate style = 'color:rgba(0,0,0,0); ' id = 'dueDate'>December 31";
-echo "</duedate>";
-echo "</span>";
-
-if(!$context->GetTestStatus())
-{
-	echo "<span class = 'submenu-item'>";
-	echo "<A target = '_blank' href = 'https://aplatin.altervista.org/GeneratePDF.php?level=".$context->GetLevel()."&hw=".  $_GET['hw'] . "'>";
-	echo "PDF";
-	echo "</A>";
+	echo "<span class = 'submenu-item'  style = 'font-weight:bold;'>"; 
+	echo "HW ".$HWAssignment['HW'];
 	echo "</span>";
-}
+
+	echo "<span class = 'submenu-item'   >"; 
+
+	echo count( array_unique(array_map(function($x) {return $x['chapter'].".".$x['lineNumber'];},$HWLines)));
 
 
+	echo " lines";
+	echo "</span>";
 
 
-
+	echo "<span  aponly  class = 'submenu-item'>"; 
+	echo "<duedate style = 'color:rgba(0,0,0,0); ' id = 'dueDate'>December 31";
+	echo "</duedate>";
+	echo "</span>";
+	
+	if(!$context->GetTestStatus())
+	{
+		echo "<span class = 'submenu-item'>";
+		echo "<A target = '_blank' href = 'https://aplatin.altervista.org/GeneratePDF.php?level=".$context->GetLevel()."&hw=".  $_GET['hw'] . "'>";
+		echo "PDF";
+		echo "</A>";
+		echo "</span>";
+	}
 echo "</submenu>";
+
+
+
+
+
 
 echo "<submenu>";
 	if(!$context->GetTestStatus())
@@ -191,43 +196,43 @@ echo "<submenu>";
 	echo "<select nolatin3 onchange= 'SetDifficulty(this.value)'>";
 
 
-	echo "<option value='0' selected disabled hidden> ";
-	echo "Difficulty";
-	echo "</option> ";
+		echo "<option value='0' selected disabled hidden> ";
+		echo "Difficulty";
+		echo "</option> ";
 
-	echo "<option value = '500'>";
-	echo "Absolute Scrub";
-	echo "</option>";
+		echo "<option value = '500'>";
+		echo "Absolute Scrub";
+		echo "</option>";
 
-	echo "<option value = '30'>";
-	echo "#ezpz🍋squeezy";
-	echo "</option>";
+		echo "<option value = '30'>";
+		echo "#ezpz🍋squeezy";
+		echo "</option>";
 
-	echo "<option value = '20'>";
-	echo "Easy";
-	echo "</option>";
+		echo "<option value = '20'>";
+		echo "Easy";
+		echo "</option>";
 
-	echo "<option value = '10'>";
-	echo "Medium";
-	echo "</option>";
+		echo "<option value = '10'>";
+		echo "Medium";
+		echo "</option>";
 
-	echo "<option value = '5'>";
-	echo "Hard";
-	echo "</option>";
+		echo "<option value = '5'>";
+		echo "Hard";
+		echo "</option>";
 
-	echo "<option value = '3'>";
-	echo "Professional Latin interpreter";
-	echo "</option>";
+		echo "<option value = '3'>";
+		echo "Professional Latin interpreter";
+		echo "</option>";
 
-	echo "<option value = '1'>";
-	echo "Ancient Roman God of Translation";
-	echo "</option>";
+		echo "<option value = '1'>";
+		echo "Ancient Roman God of Translation";
+		echo "</option>";
 
-	echo "<option value = '0'>";
-	echo "I literally think in Latin 🦂🔴👨🏻‍🦲";
-	echo "</option>";
+		echo "<option value = '0'>";
+		echo "I literally think in Latin 🦂🔴👨🏻‍🦲";
+		echo "</option>";
 
-echo "</select>";
+	echo "</select>";
 
 echo "</submenu>";
 
@@ -263,7 +268,7 @@ echo "</wrapper>";
 
 ?>
 
-<body onload = "GetAPLatinHW(); CheckSSE(); SetupNoteHighlights(); <?php
+<body onload = "GetHWDueDate(); CheckSSE(); InitializeWords(); SetupNoteHighlights(); <?php
 if(isset($_GET['highlightedword']))
 {
 	echo "	ScrollToWord('".$_GET['highlightedword']."')";
@@ -276,6 +281,45 @@ if(isset($_GET['highlightedword']))
 
 <script>
 
+function InitializeWords()
+{
+	words = document.getElementsByTagName('word')
+
+	for (i = 0; i < words.length; i++)
+	{
+		words[i].onclick = function()
+		{
+			this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
+		}
+		// words[i].onmouseover = function()
+		// {
+		// 	this.setAttribute("preview", ("true"))
+		// }
+		// words[i].onmouseout = function()
+		// {
+		// 	this.setAttribute("preview", ("false"))
+		// }
+
+		words[i].ontouchstart = function()
+		{
+			this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
+
+			for (i = 0; i < words.length; i++)
+			{
+				words[i].onclick = function() {}
+				words[i].onmouseover = function() {}
+				words[i].onmouseout = function() {}
+
+				words[i].ontouchstart = function()
+				{
+					this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
+				}
+
+			}
+
+		}
+	}
+}
 function ToggleNotes(element)
 {
 	const CurrentStatus = (document.getElementsByTagName("wrapper")[0].getAttribute("shownotes") == "true")
@@ -286,7 +330,6 @@ function ToggleNotes(element)
 	element.innerHTML = "Notes: <b>"+(NewStatus? "on" : "off")+"</b>"
 
 }
-	
 
 function ToggleMacrons(element)
 {
@@ -299,7 +342,6 @@ function ToggleMacrons(element)
 	element.innerHTML = "Macrons: <b>"+(NewStatus? "on" : "off")+"</b>"
 
 }
-	
 
 function CheckSSE()
 {
@@ -377,46 +419,8 @@ function SetDifficulty(occurenceThreshold)
 		}
 	}
 }
-// alert(navigator.msMaxTouchPoints)
-words = document.getElementsByTagName('word')
 
-for (i=0; i <words.length; i++ )
-{
-	words[i].onclick = function()
-	{
-		this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
-	}
-	// words[i].onmouseover = function()
-	// {
-	// 	this.setAttribute("preview", ("true"))
-	// }
-	// words[i].onmouseout = function()
-	// {
-	// 	this.setAttribute("preview", ("false"))
-	// }
-
-	words[i].ontouchstart = function()
-	{
-		this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
-		
-		for (i=0; i <words.length; i++ )
-		{
-			words[i].onclick = function(){}
-			words[i].onmouseover = function(){}
-			words[i].onmouseout = function(){}
-
-			words[i].ontouchstart = function()
-			{
-				this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
-			}
-
-		}
-
-
-	}
-}
-
-function GetAPLatinHW()
+function GetHWDueDate()
 {
 	SpreadsheetDocID = "1CKcfxPCIV2Kz7b7QAbhK6JJ5kroxVdZoreGDXvngjS8"
  
@@ -509,23 +513,7 @@ function SetupNoteHighlights()
 	
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </script>
+<script async defer src="https://apis.google.com/js/api.js"></script>
+
 <BR><BR><BR><BR><BR><BR><BR><BR>

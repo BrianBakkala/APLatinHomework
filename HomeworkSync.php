@@ -194,26 +194,7 @@ else
 		'".$ActiveRow["Author"]."',
 		'".$tempBT."'
 	);");
-  
-
-	echo "INSERT INTO `#APHW` (`HW`, `Unit`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`, `BookTitle`) 
 	
-	VALUES (
-		
-		".$ActiveRow["HW Number"].", 
-		".intval( explode(" ", $ActiveRow["Unit"])[1]).", 
-
-		".$StartBook.", 
-		".$StartChapter.", 
-		".$StartLine.", 
-
-		".$EndBook.", 
-		".$EndChapter.", 
-		".$EndLine.", 
-
-		'".$ActiveRow["Author"]."',
-		'".$tempBT."'
-	);";
 }
 
 foreach ($TerminalLines as $linecode)

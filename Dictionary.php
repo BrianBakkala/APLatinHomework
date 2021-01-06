@@ -8,8 +8,12 @@
 	?>
 
 <!-- 
+
 ///////FIND UNUSED WORDS
-SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`definitionId` = `#APDictionary`.`id`) LEFT JOIN `#APDBGText` on (`#APDBGText`.`definitionId` = `#APDictionary`.`id`) where `#APAeneidText`.`definitionId` IS NULL AND `#APDBGText`.`definitionId` IS NULL and `entry` NOT LIKE "-%" AND `#APDictionary`.`id` > 0 -->
+
+SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`definitionId` = `#APDictionary`.`id`) LEFT JOIN `#APDBGText` on (`#APDBGText`.`definitionId` = `#APDictionary`.`id`) where `#APAeneidText`.`definitionId` IS NULL AND `#APDBGText`.`definitionId` IS NULL and `entry` NOT LIKE "-%" AND `#APDictionary`.`id` > 0
+
+-->
 
 <p aponly style = 'text-align:left;'><A href = 'UnitsViewer.php'>← Units</A></p>
 <style> 
