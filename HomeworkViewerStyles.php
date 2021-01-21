@@ -199,7 +199,6 @@ $context = new Context;
 
 
 	entry {
-		font-weight: bold;
 		display: block;
 		text-align: center;
 	}
@@ -476,7 +475,7 @@ $context = new Context;
 	{
 		position: -webkit-sticky;
 		position: sticky;
-		top:-125px;
+		top:-138px;
 		z-index:1;
 	}
 

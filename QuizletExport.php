@@ -14,7 +14,6 @@ foreach ($dictionary as &$entry)
 }
 
 usort($dictionary, function ($a, $b) {
-	global $Conversion;
 
 	$a = $a['freq'];
 	$b = $b['freq'];
@@ -30,7 +29,7 @@ usort($dictionary, function ($a, $b) {
 
 
 
-function QuizletExport($dictionary, $topNum = 10000, $minNum = 0, $MaxNum = 10000)
+function QuizletExport($dictionary, $wordLimit = 10000, $minNum = 0, $MaxNum = 10000)
 {
 	
 	$dictionary = array_filter($dictionary, function ($entry) use($minNum) {
@@ -45,18 +44,39 @@ function QuizletExport($dictionary, $topNum = 10000, $minNum = 0, $MaxNum = 1000
 	
 	});
 
-	$dictionary = array_slice($dictionary, 0, $topNum); 
+	$dictionary = array_slice($dictionary, 0, $wordLimit); 
+
+	usort($dictionary, function ($a, $b) {
+	
+		$a = StripMacrons($a['entry']);
+		$b = StripMacrons($b['entry']);
+	
+		$a = preg_replace("/[, —-]/","", $a);
+		$b = preg_replace("/[, —-]/","", $b);
+		
+		$a = strtolower($a);
+		$b = strtolower($b);
+				
+		return $a <=> $b;
+		
+	
+	});
 
 
 	$output = '';
 	foreach($dictionary as $entry)
 	{
-		$output .= $entry['entry'] . "𓄋".$entry['definition'] . "𓄂";
+		$temptext = "**".$entry['entry']."** " . "[".$entry['freq']."]" . "𓄋".$entry['definition'] . "𓄂";
+		$temptext  = preg_replace("/\*\*\*\*/","", $temptext);
+		$temptext  = preg_replace("/\*\*/","𓆱", $temptext);
+		$temptext  = preg_replace("/\*/","", $temptext);
+		$temptext  = preg_replace("/𓆱/","*", $temptext);
+		$output .= $temptext;
 	}
 
-	return "<textarea style = ' '>".$output."</textarea>";
+	return "<textarea cols = 110 rows = 20 style = ' '>".$output."</textarea>";
 }
 
 
-echo QuizletExport($dictionary, 1000000 ,5 ,20);
+echo QuizletExport($dictionary, 100, 1 ,10000);
 ?>

@@ -101,7 +101,7 @@ class Context
 		"Aeneid" => "Aeneid",
 		"DBG" => "De Bello Gallico",
 		"InCatilinam" => "In Catilinam",
-		"PlinyEpistulae" => "Epistulae",
+		"PlinyEpistulae" => "Epistulae Plīniī Secundī",
 		"Catullus" => "Catullus" 
 	];
 
@@ -281,6 +281,15 @@ function GetHWAssignment($HWNum, $hwdb = null, $title = null)
 
 }
 
+function ConvertAsterisks($input)
+{ 
+	$input = preg_replace("/\*\*\*\*(.*?)\*\*\*\*/","<b>\\1</b>", $input);
+	$input = preg_replace("/\*\*\*(.*?)\*\*\*/","<i>\\1</i>", $input);
+	$input = preg_replace("/\*\*(.*?)\*\*/","</b>\\1<b>", $input);
+	$input = preg_replace("/\*(.*?)\*/","</i>\\1<i>", $input);	
+
+	return $input;
+}
 
 
 function FindHWByWordID($title, $wordid)
@@ -291,7 +300,9 @@ function FindHWByWordID($title, $wordid)
 	$lev = array_flip($context::LevelDictDB)[$context::DictDB[$title]];
 	$hwdb = $context::LevelDB[$lev];
 
-	$HWnums = SQLQuarry('SELECT `HW` FROM `'.$hwdb.'`', true);
+	$HWnums = SQLQuarry('SELECT `HW` FROM `'.$hwdb.'` WHERE `BookTitle` = "'.$title.'"', true);
+	$HWnums = array_map(function($x){return (int) $x;}, $HWnums);
+	
 	
 	$a = 0;	
 	do
@@ -301,13 +312,14 @@ function FindHWByWordID($title, $wordid)
 		$tempEnd = $temp_id_nums['EndID'];
 		
 		$lineIdsArray =  SQLQuarry('SELECT `id`  FROM `'.$context::BookDB[$title].'` WHERE ( `book` = '.$temp_id_nums['StartBook'].' or  `book` = '.$temp_id_nums['EndBook'].') AND  `id` >= '. $temp_id_nums['StartID'] .' AND `id` <= '. $temp_id_nums['EndID'] , true);
+		$lineIdsArray = array_map(function($x){return (int) $x;}, $lineIdsArray);
 
 		$a++;
 		
 	}
-	while (isset($HWnums[$a+1]) && !in_array($wordid, $lineIdsArray)   );
+	while (isset($HWnums[$a]) && !in_array($wordid, $lineIdsArray)   );
 
-	return (int) $a;
+	return $HWnums[$a-1];
 }
 
 function GetCliticList($dictionary)
@@ -838,15 +850,18 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 
 				
 				$outputtext .= "<entry>";
-					$outputtext .= $dictionary[$word['definitionId']]['entry'];
+				$outputtext .= "<b>";
+				
+					$outputtext .= ConvertAsterisks($dictionary[$word['definitionId']]['entry']);
+
+				$outputtext .= "</b>";
 				$outputtext .= "</entry>";
 
 				$outputtext .= "<definition>";
 				$outputtext .= "<i>";
 
-					$tempdeftext = $dictionary[$word['definitionId']]['definition'];	
-					$tempdeftext = preg_replace("/\*(.*?)\*/","</i>\\1<i>", $tempdeftext);				
-					$outputtext .= $tempdeftext;
+					$outputtext .= ConvertAsterisks($dictionary[$word['definitionId']]['definition']);
+
 
 				$outputtext .= "</i>";
 				$outputtext .= "</definition>";

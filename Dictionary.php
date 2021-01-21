@@ -81,10 +81,13 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 	.editDef {
 		font-style: italic;
 	}
+	
+	.editEntry {
+		font-weight: bold;
+	}
 
 	entry,
 	.editEntry {
-		font-weight: bold;
 		font-family: inherit;
 		font-size: inherit;
 		padding-left: 5px;
@@ -272,12 +275,45 @@ function GetWordInfo(clickedElement)
 	window.open( 'WordViewer.php?level=<?php echo $context->GetLevel();?>&wordid=' + WordElement.getAttribute('wordid'), '_blank');
 }
 
+function ConvertAntiAsterisks(input)
+{
+
+	// var temptext = input;
+	// temptext = temptext.replace(/(^<i>)|(<\/i>$)/g, '');
+	// temptext = temptext.replace(/<\/?highlight>/g, '');		
+	// temptext = temptext.replace(/<\/?i>/g, '*');		
+
+
+
+
+	// var temptext = input;
+	// temptext = temptext.replace(/(^<i>)|(<\/i>$)/g, '');
+	// temptext = temptext.replace(/<\/?highlight>/g, '');		
+	// temptext = temptext.replace(/<\/?i>/g, '*');		
+
+
+
+	return ConvertAntiItalicsToAsterisks(ConvertAntiBoldToAsterisks(input));
+}
+
 function ConvertAntiItalicsToAsterisks(input)
 {
 	var temptext = input;
 	temptext = temptext.replace(/(^<i>)|(<\/i>$)/g, '');
 	temptext = temptext.replace(/<\/?highlight>/g, '');		
-	temptext = temptext.replace(/<\/?i>/g, '*');		
+	temptext = temptext.replace(/<i>(.*?)<\/i>/g, '***$1***');		
+	temptext = temptext.replace(/<\/i>(.*?)<i>/g, '*$1*');		
+
+	return temptext;
+}
+
+function ConvertAntiBoldToAsterisks(input)
+{
+	var temptext = input;
+	temptext = temptext.replace(/(^<b>)|(<\/b>$)/g, '');
+	temptext = temptext.replace(/<\/?highlight>/g, '');		
+	temptext = temptext.replace(/<b>(.*?)<\/b>/g, '****$1****');		
+	temptext = temptext.replace(/<\/b>(.*?)<b>/g, '**$1**');		
 
 	return temptext;
 }
@@ -310,8 +346,8 @@ function EditEntry(clickedElement)
 		EntryEle = document.createElement('input')
 		EntryEle.setAttribute('type', "text")
 		EntryEle.setAttribute('class', "editEntry")
-		EntryEle.setAttribute('size', EntryStatic.innerText.length + 5)
-		EntryEle.setAttribute('value', EntryStatic.innerText)
+		EntryEle.setAttribute('size', EntryStatic.innerHTML.length + 5)
+		EntryEle.setAttribute('value', ConvertAntiAsterisks(EntryStatic.innerHTML))
 		EntryEle.onfocusout = function(e)
 		{
 			console.log(e.srcElement)
@@ -320,9 +356,9 @@ function EditEntry(clickedElement)
 		DefinitionEle = document.createElement('input')
 		DefinitionEle.setAttribute('type', "text")
 		DefinitionEle.setAttribute('class', "editDef")
-		DefinitionEle.setAttribute('size', DefStatic.innerText.length + 5)
+		DefinitionEle.setAttribute('size', DefStatic.innerHTML.length + 5)
 
-		DefinitionEle.setAttribute('value', ConvertAntiItalicsToAsterisks(DefStatic.innerHTML))
+		DefinitionEle.setAttribute('value', ConvertAntiAsterisks(DefStatic.innerHTML))
 
 		DefinitionEle.focus()
 		DefinitionElonfocusout = function(e)
@@ -358,9 +394,10 @@ function SaveEntry(WordElement)
 		NewDef = WordElement.getElementsByClassName('editDef')[0].value
 		NewDef = NewDef.replace(/\+/g, '%2B')
 
-		OldEntry = WordElement.getElementsByTagName('entry')[0].innerText
+		OldEntry = WordElement.getElementsByTagName('entry')[0].innerHTML
+		OldEntry = ConvertAntiAsterisks(OldEntry)
 		OldDef = WordElement.getElementsByTagName('definition')[0].innerHTML
-		OldDef = ConvertAntiItalicsToAsterisks(OldDef)
+		OldDef = ConvertAntiAsterisks(OldDef)
 
 		WordElement.getElementsByClassName('editEntry')[0].parentElement.removeChild(WordElement.getElementsByClassName('editEntry')[0])
 		WordElement.getElementsByClassName('editDef')[0].parentElement.removeChild(WordElement.getElementsByClassName('editDef')[0])
@@ -389,8 +426,14 @@ function SaveEntry(WordElement)
 					var temptext = Response['definition'];
 					temptext = temptext.replace(/\*(.*?)\*/g, '</i>$1<i>'); 	
 					temptext = "<i>"+temptext+"</i>"; 	 
-
 					WordElement.getElementsByTagName('definition')[0].innerHTML = temptext
+
+					
+					var temptext = Response['entry'];
+					temptext = temptext.replace(/\*\*(.*?)\*\*/g, '</b>$1<b>'); 	
+					temptext = "<b>"+temptext+"</b>"; 	 
+					WordElement.getElementsByTagName('entry')[0].innerHTML = temptext
+
 					SpinnerEle.parentElement.removeChild(SpinnerEle)
 				}
 			};
@@ -428,7 +471,7 @@ function DeleteEntry(clickedElement)
 			}
 		};
 
-		XMLURL = "AJAXAPL.php?deletedictionaryentry=true&wordid=" + WordId;
+		XMLURL = "AJAXAPL.php?deletedictionaryentry=true&level=<?php echo $context::GetLevel();?>&wordid=" + WordId;
 		xmlhttp.open("GET", XMLURL, true);
 		xmlhttp.send();
 		console.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/" + XMLURL);

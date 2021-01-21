@@ -228,15 +228,6 @@ foreach ($Text as $word)
 }
 echo "</line>";
 
-
-
-
-
-
-
-
-
-
 ?>
 
 <body onload = 'PopulateDefDDs()'>

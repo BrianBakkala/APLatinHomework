@@ -182,15 +182,18 @@ if (isset($_REQUEST["filterdictionary"]))
 	
 						$hint .= "] </attestations>"; 
 					$hint .= "<entry>";
+					$hint .= "<b>";
 					
-					$hint .= explode("⸻", $hightlightablestring)[0];
-
+					$entrytext =  explode("⸻", $hightlightablestring)[0];
+					$hint .= ConvertAsterisks( $entrytext );
+					
+					$hint .= "</b>";
 					$hint .= "</entry>";
 					$hint .= "<definition>";
 					$hint .= "<i>";
 					
 					$deftext =  explode("⸻", $hightlightablestring)[1];
-					$hint .= preg_replace("/\*(.*?)\*/","</i>\\1<i>", $deftext );
+					$hint .= ConvertAsterisks( $deftext ); 
 					
 					$hint .= "</i>"; 
 					$hint .= "</definition>"; 
@@ -217,7 +220,7 @@ if (isset($_REQUEST["filterdictionary"]))
 
 if (isset($_REQUEST["deletedictionaryentry"]))
 {
-	SQLRun( 'DELETE FROM `'.$DictDB[$BookTitle].'` WHERE `id` = ' . $_REQUEST["wordid"]);
+	SQLRun( 'DELETE FROM `'.$context->GetDict().'` WHERE `id` = ' . $_REQUEST["wordid"]);
 }
 
 if (isset($_REQUEST["updatedictionary"]))

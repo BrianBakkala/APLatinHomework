@@ -76,7 +76,6 @@ attestation {
 entryheader {
 	display: block;
 	font-size: 2.5vw;
-	font-weight: bold;
 }
 
 
@@ -106,16 +105,18 @@ if(isset($_GET['wordid']))
 	$word = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$context->GetDict().'` WHERE `id` = "'.$_GET['wordid'].'"')[0];
 }
 
-echo "<A href = 'Dictionary.php'>← Dictionary</A>";
+echo "<A href = 'Dictionary.php?level=". $context->GetLevel() ."'>← Dictionary</A>";
 echo "<BR>";
 
 echo "<entryheader>";
-	echo $word['entry'];
+	echo "<b>";
+	echo ConvertAsterisks(	$word['entry']);
+	echo "</b>";
 echo "</entryheader>";
 
 echo "<definitionheader>";
 	echo "<i>";
-		echo preg_replace("/\*(.*?)\*/","</i>\\1<i>", 	$word['definition']);
+		echo ConvertAsterisks($word['definition']);
 	echo "</i>";
 echo "</definitionheader>";
 echo "<BR><BR>";
