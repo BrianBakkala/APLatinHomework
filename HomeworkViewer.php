@@ -427,9 +427,7 @@ function SetDifficulty(occurenceThreshold)
 }
 
 function GetHWDueDate()
-{
-	SpreadsheetDocID = "<?php echo $DocumentID;?>"
- 
+{ 
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function()
 		{
@@ -459,7 +457,7 @@ function GetHWDueDate()
 				}
 			}
 		};
-		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/".$ExportPageNumber."/public/values?alt=json", true);
+		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/<?php echo $DocumentID;?>/<?php echo $ExportPageNumber;?>/public/values?alt=json", true);
 		
 		xmlhttp.send();
 

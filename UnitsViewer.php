@@ -126,53 +126,38 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 
 <script>
 
-
-
-	SpreadsheetDocID = "<?php echo $DocumentID;?>"
-
-		var xmlhttp = new XMLHttpRequest();
-		xmlhttp.onreadystatechange = function()
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.onreadystatechange = function()
+	{
+		if (this.readyState == 4 && this.status == 200)
 		{
-			if (this.readyState == 4 && this.status == 200)
+			Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
+			SheetData = (JSON.parse(Response).feed.entry)
+			
+			sd = 0;
+			
+			while ( sd < SheetData.length )
 			{
-				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
-				SheetData = (JSON.parse(Response).feed.entry)
-				
-				sd = 0;
-				
-
-				
-				while ( sd < SheetData.length )
+				if((SheetData[sd].title["$t"]).startsWith("A")  )
 				{
+					var tempHWNum = (+(SheetData[sd].content['$t'].substring(1)))
+					var tempDays = +(SheetData[sd+1]['gs$cell'].numericValue) -25568
+					var tempD =  new Date ((  tempDays *1000*60*60*24))
+					var tempDate = tempD.getFullYear() + "-"+ ("00"+(tempD.getMonth()+1)).slice(-2)+ "-"+ ("00"+tempD.getDate()).slice(-2)
 					
-					if((SheetData[sd].title["$t"]).startsWith("A")  )
+					if(document.getElementById('duedate'+tempHWNum))
 					{
-						var tempHWNum = (+(SheetData[sd].content['$t'].substring(1)))
-						var tempDays = +(SheetData[sd+1]['gs$cell'].numericValue) -25568
-						var tempD =  new Date ((  tempDays *1000*60*60*24))
-						var tempDate = tempD.getFullYear() + "-"+ ("00"+(tempD.getMonth()+1)).slice(-2)+ "-"+ ("00"+tempD.getDate()).slice(-2)
-						
-						if(document.getElementById('duedate'+tempHWNum))
-						{
-							document.getElementById('duedate'+tempHWNum).innerText = tempD.toLocaleString('en-US', { weekday: 'long', year: '2-digit', month: 'long', day: 'numeric' }).slice(0, -4)
-							document.getElementById('hw'+tempHWNum).setAttribute('passed',  ((tempD - new Date()) < 0))
-						}
-						
-
-
-
-
+						document.getElementById('duedate'+tempHWNum).innerText = tempD.toLocaleString('en-US', { weekday: 'long', year: '2-digit', month: 'long', day: 'numeric' }).slice(0, -4)
+						document.getElementById('hw'+tempHWNum).setAttribute('passed',  ((tempD - new Date()) < 0))
 					}
-					sd++
+					
 				}
+				sd++
 			}
-		};
-		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/".$ExportPageNumber."/public/values?alt=json", true);
-		
-		xmlhttp.send();
+		}
+	};
+	xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/<?php echo $DocumentID;?>/<?php echo $ExportPageNumber;?>/public/values?alt=json", true);
 
-
-
-
+	xmlhttp.send();
 
 </script>

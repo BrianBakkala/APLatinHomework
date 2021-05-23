@@ -317,7 +317,6 @@ function SuggestHW(HWArray, LatestNumber)
 		LatestNumber = 0;
 	}
 
-	SpreadsheetDocID = "<?php echo $DocumentID;?>"
 
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function()
@@ -377,7 +376,7 @@ function SuggestHW(HWArray, LatestNumber)
 				}
 			}
 		};
-		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/".$ExportPageNumber."/public/values?alt=json", true);
+		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/<?php echo $DocumentID;?>/<?php echo $ExportPageNumber;?>/public/values?alt=json", true);
 		
 		xmlhttp.send();
 
