@@ -7,6 +7,7 @@
 
 
 
+
 phpversion();
 ?>
 
@@ -166,7 +167,7 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 				}
 			}
 		};
-		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/1/public/values?alt=json", true);
+		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/".$ExportPageNumber."/public/values?alt=json", true);
 		
 		xmlhttp.send();
 

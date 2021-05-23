@@ -446,6 +446,9 @@ function GetHWDueDate()
 					
 					if((SheetData[sd].title["$t"]).startsWith("A") && SheetData[sd].content["$t"].endsWith("<?php echo $_GET['hw']; ?>"))
 					{
+
+						console.log((SheetData[sd]))
+						console.log((SheetData[sd+1]))
 						DueDate = (SheetData[sd+1].content["$t"])
 						HWFound = true;
 
@@ -456,7 +459,7 @@ function GetHWDueDate()
 				}
 			}
 		};
-		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/1/public/values?alt=json", true);
+		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/".$ExportPageNumber."/public/values?alt=json", true);
 		
 		xmlhttp.send();
 

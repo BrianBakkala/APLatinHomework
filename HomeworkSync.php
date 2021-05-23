@@ -3,7 +3,10 @@
 <?php
  
 require_once ( 'SQLConnection.php');
+
 $DocumentID = "11j0cC45e8RBiHbt0FKzJ-gHUZ_fEpDQzVo-cEU5eYAU";
+$ExportPageNumber = 7;
+
 
 function SanitizeString($str)
 {
@@ -49,7 +52,7 @@ function TargetSpecificSheetTab($documentKey, $sheetname = "Export")
 		$pageNum++;
 	}
 	while ($pageNum < 25 && !$foundpagenum);
-
+	echo $url ;
 	return $url ;
 }
 
@@ -246,7 +249,7 @@ echo "Assignments synchronized.";
 
 <SCRIPT>
 
-console.log(<?php echo (json_encode($GSA))?> )
+// console.log(<?php echo (json_encode($GSA))?> )
 
 
 </SCRIPT>

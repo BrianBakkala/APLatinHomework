@@ -377,7 +377,7 @@ function SuggestHW(HWArray, LatestNumber)
 				}
 			}
 		};
-		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/1/public/values?alt=json", true);
+		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/" + SpreadsheetDocID + "/".$ExportPageNumber."/public/values?alt=json", true);
 		
 		xmlhttp.send();
 
