@@ -7,7 +7,6 @@
 
 
 
-
 phpversion();
 ?>
 
@@ -22,10 +21,36 @@ phpversion();
 		text-align: center;
 		font-family: "Palatino Linotype";
 	}
+
+	homework[passed="false"]
+	{
+		padding:18 20 18 20px;
+		margin:5px;
+	}
+	homework[passed="true"]
+	{
+		padding:5px;
+		margin:5px;
+	}
  
-	 homework[passed="true"] {
-		 opacity:.5;
+	homework[passed="true"] {
+		 opacity:.4;
+		 } 
+	 homework[passed="true"] .fontL, .dueDate {
+		 font-size:small;
 		 }
+
+	homework[passed="true"] .fontS {
+	font-size:small;
+	}
+
+	homework[passed="false"] .fontS {
+	font-size:medium;
+	}
+	homework[passed="false"] .fontL, homework[passed="false"] .dueDate {
+	font-size:large;
+	}
+
 
 	 homework[author="C"]:hover, homework[author="V"]:hover { background-color:darkgray;}
 
@@ -71,12 +96,18 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 	
 	for ($hw = 0; $hw < $HWsCount; $hw++)
 	{
+		$assignment_temp = GetHWAssignment($HWs[$hw]["HW"], "#APHW");
+		$HWLines_temp = $assignment_temp['Lines'];
+		$LineCount_temp = count( array_unique(array_map(function($x) {return $x['chapter'].".".$x['lineNumber'];},$HWLines_temp)));
+
+
 		$citation = $HWs[$hw]["Author"] == "C" ? $HWs[$hw]["StartBook"].".".$HWs[$hw]["StartChapter"].".".$HWs[$hw]["StartLine"]." - ".$HWs[$hw]["EndBook"].".".$HWs[$hw]["EndChapter"].".".$HWs[$hw]["EndLine"] : $HWs[$hw]["StartBook"].".".$HWs[$hw]["StartLine"]." - ".$HWs[$hw]["EndBook"].".".$HWs[$hw]["EndLine"];
 		echo "<a    href = 'http://aplatin.altervista.org/HomeworkViewer.php?hw=".$HWs[$hw]["HW"]."'>";
-			echo "<homework id = 'hw".$HWs[$hw]["HW"]."' author = '".$HWs[$hw]["Author"] . "' citation = '".$citation."' title = '".$HWs[$hw]["BookTitle"]."' style = '   border:1px solid gray; display:inline-block;  padding:18 20 18 20px; margin:5px;'>";
-				echo "<span style = 'font-size:large;' >".$HWs[$hw]["HW"]."</span><BR>";
-				echo "<span  style = 'font-size:small;'  ><i>".$HWs[$hw]["BookTitle"] . "</i> ". $citation."</span><BR>";
-				echo "<span class = 'dueDate' id = 'duedate".$HWs[$hw]["HW"]."' style = 'font-size:small;' >&nbsp</span>";
+			echo "<homework id = 'hw".$HWs[$hw]["HW"]."' author = '".$HWs[$hw]["Author"] . "' citation = '".$citation."' title = '".$HWs[$hw]["BookTitle"]."' style = '   border:1px solid gray; display:inline-block;'>";
+				echo "<span class = 'fontL' ><B>HW".$HWs[$hw]["HW"]."</B></span> ";
+				echo "<span class = 'fontL' >(".$LineCount_temp.")</span><BR>";
+				echo "<span  class = 'fontS'  ><i>".$HWs[$hw]["BookTitle"] . "</i> ". $citation."</span><BR>";
+				echo "<span class = 'dueDate' id = 'duedate".$HWs[$hw]["HW"]."' class = 'fontS' >&nbsp</span>";
 			echo "</homework>";
 		echo "</a>";
 	}
@@ -96,7 +127,7 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 
 
 
-	SpreadsheetDocID = "1CKcfxPCIV2Kz7b7QAbhK6JJ5kroxVdZoreGDXvngjS8"
+	SpreadsheetDocID = "<?php echo $DocumentID;?>"
 
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function()

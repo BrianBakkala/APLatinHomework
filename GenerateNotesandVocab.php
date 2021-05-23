@@ -2,7 +2,7 @@
 
 require_once ( 'SQLConnection.php');
 
-
+$DocumentID = "11j0cC45e8RBiHbt0FKzJ-gHUZ_fEpDQzVo-cEU5eYAU";
 
 
 
@@ -211,9 +211,11 @@ function GetHWLineIDs($HWNum, $hwdb, $title)
 	
 	$Assignment = SQLQuarry('SELECT `HW`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`, `BookTitle`, `AddToBeginning`, `SubtractFromEnd`  FROM `'.$hwdb.'` WHERE `HW` = ' . ((int) $HWNum) )[0] ;
 
+	
 	if($Assignment['StartChapter'] == null && $Assignment['EndChapter'] == null)
 	{
 		$WhereClause = ' ( `lineNumber` >= '.$Assignment['StartLine'].'  AND   `lineNumber` <= '.$Assignment['EndLine']. ')';
+		$WhereClause2 = $WhereClause;
 	}
 
 	if($Assignment['StartChapter'] != null && $Assignment['EndChapter'] != null)
@@ -222,16 +224,19 @@ function GetHWLineIDs($HWNum, $hwdb, $title)
 		if($Assignment['StartChapter'] == $Assignment['EndChapter'] )
 		{
 			$WhereClause = ' `chapter` = "'.$Assignment['StartChapter'].'" AND (  `lineNumber` >= '.$Assignment['StartLine'].' AND   `lineNumber` <= '.$Assignment['EndLine']. ')';
+			$WhereClause2 = $WhereClause;
 		}
 		else
 		{
-			$WhereClause = '(( `chapter` = "'.$Assignment['StartChapter'].'" AND   `lineNumber` >= '.$Assignment['StartLine'].')  OR  ( `chapter` = "'.$Assignment['EndChapter'].'" AND   `lineNumber` <= '.$Assignment['EndLine'].')  )  ';
+			$WhereClause = '(( `chapter` = "'.$Assignment['StartChapter'].'" AND   `lineNumber` >= '.$Assignment['StartLine'].')     )  ';
+			$WhereClause2 = '(   ( `chapter` = "'.$Assignment['EndChapter'].'" AND   `lineNumber` <= '.$Assignment['EndLine'].')  )  ';
 		}
 		
 	}
-	
+		
 	$StartId = ((int) SQLQ('SELECT MIN(`id`) FROM `'.$context::BookDB[$title].'` WHERE  `book` = '.$Assignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['AddToBeginning']) );
-	$EndId = ((int) SQLQ('SELECT MAX(`id`) FROM `'.$context::BookDB[$title].'` WHERE  `book` = '.$Assignment['EndBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['SubtractFromEnd']) );
+
+	$EndId = ( (int) SQLQ('SELECT MAX(`id`) FROM `'.$context::BookDB[$title].'` WHERE  `book` = '.$Assignment['EndBook'].' AND ' . $WhereClause2 . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['SubtractFromEnd']) );
 
 	return array(
 		"StartID" => $StartId,
@@ -259,7 +264,7 @@ function GetHWAssignment($HWNum, $hwdb = null, $title = null)
 
 	if(!isset($title))
 	{
-		$title = $context->GetBookTitle();
+		$title =SQLQ('SELECT  `BookTitle` FROM `'.$hwdb.'` WHERE `HW` = ' . $HWNum);
 	}
 
 	
@@ -539,9 +544,19 @@ function ParseNoteText($inputText, $showdevices)
 		$m = $matches[0];
 		$m = preg_replace("/\<\<(\d*?)\>\>/","\\1",$m);
 
-		return "<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($context->GetBookTitle(), $m)."&highlightedword=".$m."'>".GetCitationByWordID($context->GetBookTitle(), $m)."</a>";
+		$hwnum_temp = FindHWByWordID($context->GetBookTitle(), $m);
+
+		if($hwnum_temp == $_GET['hw'])
+		{
+			return "<a href = '#".$m."' onclick = 'ScrollToWord(".$m.");  return false;'>".GetCitationByWordID($context->GetBookTitle(), $m)."</a>";
+
+		}
+		else
+		{
+			return "<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".$context->GetLevel()."&hw=".$hwnum_temp."&highlightedword=".$m."'>".GetCitationByWordID($context->GetBookTitle(), $m)."</a>";
+		}
+
 	}, $outputText);
-//FindHWByWordID($title, $wordid)
 	return $outputText;
 }
 
@@ -596,13 +611,17 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	foreach($WordNotes as $note)
 	{
 		$templinecitation = "";
-		if($note["chapter"] == "" || $note["chapter"] == NULL || !isset($note["chapter"]))
+		
+		$templinecitation = ($note["lineNumber"]) ;
+		
+		if ($hwassignment['StartChapter'] != $hwassignment['EndChapter'] )
 		{
-			$templinecitation = ($note["lineNumber"]) ;
+			$templinecitation = ($note["chapter"]) . "." . $templinecitation;
 		}
-		else
+
+		if($hwassignment['StartBook'] != $hwassignment['EndBook'] )
 		{
-			$templinecitation = ($note["chapter"].".".$note["lineNumber"]) ;
+			$templinecitation = ($note["book"]) . "." . $templinecitation;
 		}
 
 		if(!isset($CondensedNotes[$note["NoteId"]]))
@@ -738,45 +757,52 @@ function DisplayVocabText($dictionary, $condensed = false)
 	{
 		$freq = GetFrequencyByLevel($entry['id']);
 	
-		if($condensed == true && $freq <= 5)
+		if($condensed == true && $freq <= 10)
 		{
 			$outputtext .=  "<b>";
-			$outputtext .=  $entry['entry'];
+			$outputtext .=  preg_replace('/\*/', '', $entry['entry']);
 			$outputtext .=  "</b>";
 			$outputtext .=  " ";
 			$outputtext .=  "<i>";
-			$outputtext .=  $entry['definition'];
+			$outputtext .=  preg_replace('/\*/', '', $entry['definition']);
 			$outputtext .=  "</i>";
 
 
-			$outputtext .=  " ";
+			if(!isset($_GET['level']) || (isset($_GET['level']) && $_GET['level'] == "AP"))
+			{
 
-			$outputtext .=  "(";
-			// var_dump($Tmesis);
+				$outputtext .=  " ";
+				
+				$outputtext .=  "(";
+				// var_dump($Tmesis);
 				$outputtext .=  $freq;
-			$outputtext .=  ")";
-
-
-			$outputtext .= "<BR>";
+				$outputtext .=  ")";
+				
+			}
+				
+				$outputtext .= "<BR>";
 		}
 		else if ($condensed != true)
 		{
 			$outputtext .=  "<vocabword id = '".$entry['id']."' >";
 			$outputtext .= "<span style = 'font-weight:bold;'>";
-			$outputtext .=  $entry['entry'];
+			$outputtext .=  preg_replace('/\*/', '', $entry['entry']);
 			$outputtext .=  "</span>";
 			$outputtext .=  " ";
 			$outputtext .=  "<span style = 'font-style:italic;'>";
-			$outputtext .=  $entry['definition'];
+			$outputtext .=  preg_replace('/\*/', '', $entry['definition']);
 			$outputtext .=  "</span>";
 
+			if(!isset($_GET['level']) || (isset($_GET['level']) && $_GET['level'] == "AP"))
+			{
+				$outputtext .=  " ";
 
-			$outputtext .=  " ";
-
-			$outputtext .=  "<span>(";
-			// var_dump($Tmesis);
-				$outputtext .=  $freq;
-			$outputtext .=  ")</span>";
+				$outputtext .=  "<span>(";
+				// var_dump($Tmesis);
+					$outputtext .=  $freq;
+				$outputtext .=  ")</span>";
+				
+			}
 
 
 			$outputtext .= "</vocabword>";

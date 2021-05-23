@@ -20,6 +20,10 @@ require_once ( 'GenerateNotesandVocab.php');
 require_once ( 'FontStyles.php');
 require_once ( 'HomeworkViewerStyles.php');
 require_once ( 'SQLConnection.php');
+
+
+
+
 $context = new Context;
 
 
@@ -381,6 +385,9 @@ function ScrollToWord(wordId)
 		const yOffset = -200; 
 		newY = document.getElementById(""+wordId).getBoundingClientRect().top + window.pageYOffset + yOffset;
 		window.scrollTo({top: newY, behavior: 'smooth'});
+		document.getElementById(""+wordId).setAttribute('reveal', "true")
+		history.pushState({state:wordId}, "State 1", "#"+wordId);
+		history.pushState({state:wordId}, "State 2", window.location.href.split("#")[0]); 
 	}
 
 	
@@ -421,7 +428,7 @@ function SetDifficulty(occurenceThreshold)
 
 function GetHWDueDate()
 {
-	SpreadsheetDocID = "1CKcfxPCIV2Kz7b7QAbhK6JJ5kroxVdZoreGDXvngjS8"
+	SpreadsheetDocID = "<?php echo $DocumentID;?>"
  
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function()

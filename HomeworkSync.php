@@ -3,6 +3,7 @@
 <?php
  
 require_once ( 'SQLConnection.php');
+$DocumentID = "11j0cC45e8RBiHbt0FKzJ-gHUZ_fEpDQzVo-cEU5eYAU";
 
 function SanitizeString($str)
 {
@@ -126,7 +127,7 @@ function CreateCatalogDatabase($scrubbedarraystring)
 
 <?php 
 
-$GSA =  ( CreateCatalogDatabase(ScrubGoogleSheetJSON(TargetSpecificSheetTab("1CKcfxPCIV2Kz7b7QAbhK6JJ5kroxVdZoreGDXvngjS8", "Export"))));
+$GSA =  ( CreateCatalogDatabase(ScrubGoogleSheetJSON(TargetSpecificSheetTab( $DocumentID, "Export"))));
 
 
 SQLRun("TRUNCATE `#APHW`");

@@ -317,7 +317,7 @@ function SuggestHW(HWArray, LatestNumber)
 		LatestNumber = 0;
 	}
 
-	SpreadsheetDocID = "1CKcfxPCIV2Kz7b7QAbhK6JJ5kroxVdZoreGDXvngjS8"
+	SpreadsheetDocID = "<?php echo $DocumentID;?>"
 
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function()
@@ -325,6 +325,7 @@ function SuggestHW(HWArray, LatestNumber)
 			if (this.readyState == 4 && this.status == 200)
 			{
 				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
+
 				SheetData = (JSON.parse(Response).feed.entry)
 				
 				sd = 0;
@@ -410,7 +411,7 @@ function CreateAPLatinHWAssignment(clickedElement)
 	
 	var description = citeit+`
 	http://aplatin.altervista.org/HomeworkViewer.php?hw=`+numbah+`
-	https://docs.google.com/spreadsheets/d/1CKcfxPCIV2Kz7b7QAbhK6JJ5kroxVdZoreGDXvngjS8`
+	https://docs.google.com/spreadsheets/d/<?php echo $DocumentID;?>`
 
 	//Test Class Id =========    "46640113054"
 

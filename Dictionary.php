@@ -99,7 +99,7 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 		background-color: lightyellow;
 	}
 
-	.deletebutton {
+	.deletebutton ,	.editbutton{
 		display: none;
 	}
 
