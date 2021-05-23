@@ -9,13 +9,12 @@ error_reporting(E_ALL);
 
 
 
-if(!isset($_GET['hw']))
+$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; 
+if(strpos($actual_link, "&amp;") !== false)
 {
-	$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; 
-	header('Location: $actual_link'.'?hw=1');
+	echo $actual_link;
+	header('Location:'. str_replace("&amp;","&",$actual_link)  );
 }
-
-
 
 require_once ( 'GenerateNotesandVocab.php');
 require_once ( 'FontStyles.php');

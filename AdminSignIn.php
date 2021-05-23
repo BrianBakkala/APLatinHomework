@@ -33,22 +33,15 @@
 	{
 		session_start();
 	}
-
-
+	
 ?>
-
-
-
-
-
 
 <html><CENTER> 
 
-
 <head>
 
- 
-    <meta name="google-signin-client_id" content="790205495686-ks9kmt2e4n6696khie0dhr796u88quer.apps.googleusercontent.com">
+
+<meta name="google-signin-client_id" content="790205495686-ks9kmt2e4n6696khie0dhr796u88quer.apps.googleusercontent.com">
 
 
  
@@ -56,7 +49,7 @@
 
 
 
-  <TITLE>Ndse</TITLE>
+  <TITLE>Admin Sign In</TITLE>
 
 <script>
 
@@ -78,15 +71,9 @@
 			console.log("<?php if (isset($_GET['redirect'])){echo preg_replace("/"."𓄋"."/", "&" , $_GET['redirect']);} ?>")
 
 			RedirectURL = "<?php if (isset($_GET['redirect'])){echo preg_replace("/"."𓄋"."/", "&" , $_GET['redirect']);} ?>";
-			if (RedirectURL === "")
-			{ 
-				window.location.href = "ControlPanel.php" ; 
-				
-			}
-			else
-			{
+
 				window.location.href = RedirectURL
-			}
+
 
 		};
 		xhr.send('sessid=' + "<?php echo base64_encode(session_id()); ?>" + '&idtoken=' + id_token); 

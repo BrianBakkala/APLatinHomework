@@ -137,6 +137,8 @@ for ($m = 1; $m <=count($GSA); $m++ )
 {
 	$ActiveRow = $GSA[$m];
 
+	var_dump($ActiveRow); 
+
 	$SplitStart  = explode(".", $ActiveRow["Start Line"]);
 
 	$StartBook = $SplitStart[0];

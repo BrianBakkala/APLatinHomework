@@ -59,8 +59,10 @@
 
 <?php
 
-require_once('SQLConnection.php');
-require_once('GenerateNotesandVocab.php');
+require_once ('SQLConnection.php');
+require_once ('GoogleClassroom/APLGSI.php');  
+require_once ('GenerateNotesandVocab.php');
+
 $context = new Context;
 
 if(isset($_GET['author']))
@@ -230,7 +232,7 @@ echo "</line>";
 
 ?>
 
-<body onload = 'PopulateDefDDs()'>
+<body onload = 'GoogleCheck(); PopulateDefDDs()'>
 
 
 <script>

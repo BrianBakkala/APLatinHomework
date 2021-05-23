@@ -148,7 +148,7 @@ foreach($context::DictDB as $t => $d)
 			$PrevLineNumber = 0;
 			$NextLineNumber = 0;
 			
-			$WordsOnLine = SQLQuarry(' SELECT   `word`, `id`  FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].'   ', false ,"id" );
+			$WordsOnLine = SQLQuarry(' SELECT   `word`, `id`  FROM `'.$context::BookDB[$t].'`  WHERE `lineNumber` = '.$uses[$u]['lineNumber'].' and `chapter` '.($uses[$u]['chapter'] == "" ? "IS NULL" : "=" ) ." ". $uses[$u]['chapter'].' and `book` = '.$uses[$u]['book'].' ORDER BY `id` ASC  ', false ,"id" );
 
 			$temp_word_id = $uses[$u]['id'];
 			$WordsOnLine= array_values($WordsOnLine);

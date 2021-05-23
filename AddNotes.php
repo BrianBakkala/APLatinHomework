@@ -2,12 +2,7 @@
  
 <?php
 
-
-if(!isset($_GET['hw']))
-{
-	$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; 
-	header('Location: $actual_link'.'?hw=1');
-}
+require_once ('GoogleClassroom/APLGSI.php');  
 
 require_once ( 'GenerateNotesandVocab.php');
 require_once ( 'FontStyles.php');
@@ -31,19 +26,12 @@ if($_GET['hw'] != "1")
 }
 
 echo "<h1>";
-	echo "HW ".$HWAssignment['HW']." | ";
+
 	echo "<i>";
-	if($HWAssignment['Author'] == "C")
-	{
-		echo "Dē Bellō Gallicō";
-	}
-	else
-	{
-		echo "Aeneid";
-	}
+	echo $context->GetEnglishTitle();
 	echo "</i> ";
 
-	echo $HWAssignment['StartBook'];
+	echo ReadableFloat($HWAssignment['StartBook']);
 	echo ".";
 	if($HWAssignment['StartChapter'] != null)
 	{
@@ -53,7 +41,7 @@ echo "<h1>";
 	echo $HWAssignment['StartLine'];
 
 	echo "–";
-	echo $HWAssignment['EndBook'];
+	echo ReadableFloat($HWAssignment['EndBook']);
 	echo ".";
 	if($HWAssignment['EndChapter'] != null)
 	{
@@ -119,7 +107,7 @@ else
 {
 	$temp_start_line = $HWAssignment['StartLine'];
 }
-echo "<line citation = '".$HWAssignment['StartBook'].".".$ChapterCitationText.$temp_start_line."' num = '".$temp_start_line."'>";
+echo "<line citation = '".ReadableFloat($HWAssignment['StartBook']).".".$ChapterCitationText.$temp_start_line."' num = '".$temp_start_line."'>";
 
 
 $CliticList = GetCliticList($TargetedDictionary);
@@ -204,12 +192,10 @@ echo "<span style = 'cursor:pointer;' onclick = 'TypeLine(this)'>(+)</span></lin
 echo "</assignment>";
 
 
-if(!$context->GetTestStatus())
-{
-	echo "<notes style = 'background-color:white'>";
-		echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, $BookTitle);
-	echo "</notes>";
-}
+echo "<notes style = 'background-color:white'>";
+	echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, $BookTitle);
+echo "</notes>";
+
 
 echo "<testmode>";
 echo "</testmode>";
@@ -223,7 +209,11 @@ echo "</wrapper>";
 
 ?>
 
-<body >
+<body onload = 'GoogleCheck();'>
+
+
+
+
 
 <script>
 
@@ -306,7 +296,53 @@ function TypeLine(ele)
 
 
 
+const CLIENT_ID = '448443480105-krbg7mnhjqd7s4kdevurs1dtffe1uf1t.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es';
+const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest", "https://www.googleapis.com/discovery/v1/apis/classroom/v1/rest"];
+const SCOPES = (["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.readonly", "https://www.googleapis.com/auth/classroom.topics.readonly",  "https://www.googleapis.com/auth/classroom.coursework.students"].join(" "));
 
+const GoogleClassroomCourseName = "AP Latin E12";
+
+
+
+function InitializeCalendarGAPI()
+{
+	gapi.load('client:auth2', function()
+	{
+		gapi.client.init(
+		{
+			apiKey: API_KEY,
+			clientId: CLIENT_ID,
+			discoveryDocs: DISCOVERY_DOCS,
+			scope: SCOPES
+			
+		}).then(function()
+		{
+			// PullGoogleClassroomCalendars();
+			FindClassroomCourse(GoogleClassroomCourseName);
+
+		}, function(error)
+		{
+			return new Promise(function(resolve, reject)
+			{
+				reject();
+			});
+		});
+
+	})
+
+}
+
+function SignInWithCheck()
+{
+	(gapi.auth2.getAuthInstance().signIn())
+	.then(
+		function()
+		{
+			InitializeCalendarGAPI() 
+		}
+	);
+}
 
 
 

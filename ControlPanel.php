@@ -78,7 +78,7 @@ hwdescription
 
 </style>
 
-<body onload = 'GetRotationDaysJSON(); InitializeCalendarGAPI();'>
+<body onload = 'GoogleCheck(); GetRotationDaysJSON(); InitializeCalendarGAPI();'>
 <?php>
 
 require_once ('GoogleClassroom/APLGSI.php');  

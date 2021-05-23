@@ -12,7 +12,7 @@ $NextLine3 = SQLQuarry('SELECT  min(id)  FROM `'.$context::BookDB[$Book3].'` WHE
 $NextLine3 = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `'.$context::BookDB[$Book3].'` WHERE `id` = '. $NextLine3)[0];
 
 
-$Book4 = "PlinyEpistulae";
+$Book4 = "AUC";
 $NextLine4 = SQLQuarry('SELECT  min(id)  FROM `'.$context::BookDB[$Book4].'` WHERE `definitionId` = 0', true)[0];
 $NextLine4 = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `'.$context::BookDB[$Book4].'` WHERE `id` = '. $NextLine4)[0];
  
@@ -32,10 +32,10 @@ $NextLine4 = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `'.$context:
 <BR>
 <a href = 'HomeworkSync.php'>Homework Sync</a><BR>
 <BR>
-<a href = 'https://s519.altervista.org/phpmyadmin/?sid=e0c4a55960c9fcda16924a5e31a8eb83#PMAURL-0:index.php?db=&table=&server=1&target=&token=87a7119a683a4d7f5bf1ff96943a558f'>PHP My Admin</a><BR>
+<a href = 'https://s519.altervista.org/dashboard.pl?sid=9bacea2c88ce68da2d0ad9de7483317d'>PHP My Admin</a><BR>
 
 <BR>
-<a href = 'AdminSignIn.php'>Control Panel</a><BR>
+<a href = 'ControlPanel.php'>Control Panel</a><BR>
 
 
 <?

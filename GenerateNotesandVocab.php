@@ -23,6 +23,7 @@ class Context
 	public const Chapters =
 	[
 		"DBG",
+		"AUC",
 		"InCatilinam",
 		"PlinyEpistulae"
 	];
@@ -63,6 +64,7 @@ class Context
 	[
 		"Aeneid" => "#APAeneidText",
 		"DBG" => "#APDBGText",
+		"AUC" => "^Latin4AUCText",
 		"InCatilinam" => "^Latin4InCatilinamText",
 		"PlinyEpistulae" => "^Latin4PlinyEpistulaeText",
 		"Catullus" => "~Latin3CatullusText"
@@ -73,6 +75,7 @@ class Context
 	[
 		"Aeneid" => "#APDictionary",
 		"DBG" => "#APDictionary",
+		"AUC" => "^Latin4Dictionary",
 		"InCatilinam" => "^Latin4Dictionary",
 		"PlinyEpistulae" => "^Latin4Dictionary",
 		"Catullus" => "~Latin3Dictionary"
@@ -82,6 +85,7 @@ class Context
 	[
 		"Aeneid" => "Aenēis",
 		"DBG" => "Commentāriī Dē Bellō Gallicō",
+		"AUC" => "Ab Urbe Condītā Librī",
 		"InCatilinam" => "Ōrātiō in Catilinam Prīma in Senātū Habita",
 		"PlinyEpistulae" => "Epistulae",
 		"Catullus" => "Carmina Catullī" 
@@ -92,6 +96,7 @@ class Context
 		"Aeneid" => "Pvblivs Vergilivs Maro",
 		"DBG" => "Gaivs Ivlivs Caesar",
 		"InCatilinam" => "Marcvs Tvllivs Cicero",
+		"AUC" => "Titvs Livivs",
 		"PlinyEpistulae" => "Gaivs Plinivs Caecilivs Secvndvs",
 		"Catullus" => "Gaivs Valerivs Catvllus" 
 	];
@@ -100,6 +105,7 @@ class Context
 	[
 		"Aeneid" => "Aeneid",
 		"DBG" => "De Bello Gallico",
+		"AUC" => "Ab Urbe Condita",
 		"InCatilinam" => "In Catilinam",
 		"PlinyEpistulae" => "Epistulae Plīniī Secundī",
 		"Catullus" => "Catullus" 
@@ -291,10 +297,43 @@ function ConvertAsterisks($input)
 	return $input;
 }
 
-
-function FindHWByWordID($title, $wordid)
+function GetCitationByWordID($title, $wordid)
 {
 	$context = new Context;
+
+	if($title == null)
+	{
+		$title = $context->GetBookTitle();
+	}
+	
+	$wordid = $wordid."";
+	$hwdb = $context::BookDB[$title];
+
+	$tempdata = SQLQuarry('SELECT *   FROM `'.$hwdb.'` WHERE `id` = ' . $wordid)[0];
+
+	$citationoutput = "";
+	$citationoutput .= $tempdata['book'];
+
+	if($tempdata['chapter'] != null)
+	{
+		$citationoutput .= ".". $tempdata['chapter'];
+	}
+	
+	$citationoutput .= ".".$tempdata['lineNumber'];
+
+	return $citationoutput ;
+
+}
+
+function FindHWByWordID($title = null, $wordid)
+{
+	$context = new Context;
+
+	if($title == null)
+	{
+		$title = $context->GetBookTitle();
+	}
+
 	$wordid = $wordid."";
 
 	$lev = array_flip($context::LevelDictDB)[$context::DictDB[$title]];
@@ -472,6 +511,7 @@ function GetFrequencyByTitle($definitionIdNumber, $title)
 
 function ParseNoteText($inputText, $showdevices)
 {
+	$context = new Context;
 	$outputText = $inputText;
 
 	$literaryDevices = SQLQuarry('SELECT `Device`, `Description` FROM `#APLiteraryDevices`', false, "Device");
@@ -493,7 +533,15 @@ function ParseNoteText($inputText, $showdevices)
 	}
 	$outputText = preg_replace("/\*\*(.*?)\*\*/","<b>\\1</b>",$outputText);
 	$outputText = preg_replace("/\*(.*?)\*/","<i>\\1</i>",$outputText);
+	// $outputText = preg_replace_callback("/\<\<(\d*?)\>\>/","<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($context->GetBookTitle(), "\1")."&highlightedword="."\\1"."'>\\1</a>", $outputText);
+	$outputText = preg_replace_callback("/\<\<(\d*?)\>\>/",
+	function($matches) use($context){
+		$m = $matches[0];
+		$m = preg_replace("/\<\<(\d*?)\>\>/","\\1",$m);
 
+		return "<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($context->GetBookTitle(), $m)."&highlightedword=".$m."'>".GetCitationByWordID($context->GetBookTitle(), $m)."</a>";
+	}, $outputText);
+//FindHWByWordID($title, $wordid)
 	return $outputText;
 }
 
@@ -819,7 +867,7 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 			$Noclitics = mb_ereg_replace('('. implode("|", $CliticList['no_hyphens_with_dollar_signs']). ')',"",$Noclitics);
 
 
-			$SplitPos = preg_match('/('. implode("|", $CliticList['no_hyphens']). ')[.!;,]?$/', $word['word'], $position, PREG_OFFSET_CAPTURE);
+			$SplitPos = preg_match('/('. implode("|", $CliticList['no_hyphens']). ')[.!;,\)]?$/', $word['word'], $position, PREG_OFFSET_CAPTURE);
 			$split1 = substr($word['word'], 0, $position[0][1] );
 			$split2 = substr($word['word'], $position[0][1]);
 		}
@@ -881,15 +929,17 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 					$outputtext .= "</nomacrons>";
 
 					$outputtext .= "<entry>";
-						$outputtext .= $dictionary[$word['secondaryDefId']]['entry'];
-					$outputtext .= "</entry>";
+				$outputtext .= "<b>";
+					$outputtext .= ConvertAsterisks($dictionary[$word['secondaryDefId']]['entry']);
+				$outputtext .= "</b>";
+				$outputtext .= "</entry>";
 
 					$outputtext .= "<definition>";
 					$outputtext .= "<i>";
 
 						$tempdeftext = $dictionary[$word['secondaryDefId']]['definition'];	
 						$tempdeftext  = preg_replace("/\*(.*?)\*/","</i>\\1<i>", 	$tempdeftext);					
-						$outputtext .= $tempdeftext;
+						$outputtext .= ConvertAsterisks($tempdeftext);
 
 					$outputtext .= "</i>";
 					$outputtext .= "</definition>";

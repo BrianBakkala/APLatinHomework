@@ -157,12 +157,13 @@ if($_SERVER['SCRIPT_NAME'] != "/Nexus/Mailer.php")
 
 ?>
 
-<body onload = 'GoogleCheck();'>
+
 
 
 <!-- ///////////////////Start Google Sign-In -->
  
 <script>  
+
 
 function signOut()
 {

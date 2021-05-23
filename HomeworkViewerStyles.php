@@ -48,6 +48,14 @@ $context = new Context;
 			'HeaderTextColor' => "black",
 			'TextColor' => "black"
 		],
+	"AUC" => 
+		[
+			'BackgroundColor' => "ffe3fe",
+			'HeaderColor' => "b4aee8",
+			'WordHighlightColor' => "c28bc8",
+			'HeaderTextColor' => "black",
+			'TextColor' => "black"
+		],
 		
 	"Catullus" =>
 
@@ -275,7 +283,9 @@ $context = new Context;
 	}
 
 	word[reveal="true"]:not([clitic=""]) clitic text::before,
-	word[preview="true"]:not([clitic=""]) clitic text::before
+	word[preview="true"]:not([clitic=""]) clitic text::before,
+	word[reveal="true"]:not([clitic=""]) clitic nomacrons::before,
+	word[preview="true"]:not([clitic=""]) clitic nomacrons::before
 	{
 		content: "-";
 	}
