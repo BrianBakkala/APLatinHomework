@@ -75,7 +75,7 @@
                 "guzzlehttp/psr7": "^1.2",
                 "monolog/monolog": "^1.17",
                 "php": ">=5.4",
-                "phpseclib/phpseclib": "~2.0"
+                "phpseclib/phpseclib": "~2.031"
             },
             "require-dev": {
                 "phpunit/phpunit": "~4",
