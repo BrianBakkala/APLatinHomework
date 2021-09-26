@@ -434,20 +434,21 @@ function GetHWDueDate()
 			if (this.readyState == 4 && this.status == 200)
 			{
 				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
-				SheetData = (JSON.parse(Response).feed.entry)
+				SheetData = (JSON.parse(Response).values)
 				
 				sd = 0;
 				HWFound = false;
 				
 				while ( sd < SheetData.length && !HWFound  )
 				{
+					console.log(SheetData[sd])
 					
-					if((SheetData[sd].title["$t"]).startsWith("A") && SheetData[sd].content["$t"].endsWith("<?php echo $_GET['hw']; ?>"))
+					if(( (SheetData[sd][0]).startsWith("C") || (SheetData[sd][0]).startsWith("V")) && SheetData[sd][0].endsWith("<?php echo $_GET['hw']; ?>"))
 					{
 
-						console.log((SheetData[sd]))
-						console.log((SheetData[sd+1]))
-						DueDate = (SheetData[sd+1].content["$t"])
+						console.log((SheetData[sd][0]))
+						console.log((SheetData[sd][1]))
+						DueDate = (SheetData[sd][1])
 						HWFound = true;
 
 						document.getElementById('dueDate').innerText = "" + DueDate + "" 
@@ -457,7 +458,7 @@ function GetHWDueDate()
 				}
 			}
 		};
-		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/<?php echo $DocumentID;?>/<?php echo $ExportPageNumber;?>/public/values?alt=json", true);
+		xmlhttp.open("GET", "https://sheets.googleapis.com/v4/spreadsheets/<?php echo $DocumentID;?>/values/Export?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es", true);
 		
 		xmlhttp.send();
 

@@ -41,7 +41,7 @@
 <head>
 
 
-<meta name="google-signin-client_id" content="790205495686-ks9kmt2e4n6696khie0dhr796u88quer.apps.googleusercontent.com">
+<meta name="google-signin-client_id" content="448443480105-5it7jncqi2b3t2g7br1ful9q1no188rt.apps.googleusercontent.com">
 
 
  
@@ -88,7 +88,7 @@
 		// console.log('Email: ' + profile.getEmail());
 		//    alert(profile.getEmail().toLowerCase().slice((-('amsacs.org').length)))
 
-		if (profile.getEmail().toLowerCase()  != ("b.bakkala@amsacs.org").toLowerCase())
+		if (profile.getEmail().toLowerCase()  != ("bbakkala@amsacs.org").toLowerCase())
 		{
 			signOut();
 			document.getElementById('invalidEmailText').innerHTML = "Not you."

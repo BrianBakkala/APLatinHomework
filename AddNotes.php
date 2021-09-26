@@ -296,7 +296,7 @@ function TypeLine(ele)
 
 
 
-const CLIENT_ID = '448443480105-krbg7mnhjqd7s4kdevurs1dtffe1uf1t.apps.googleusercontent.com';
+const CLIENT_ID = '448443480105-5it7jncqi2b3t2g7br1ful9q1no188rt.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es';
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest", "https://www.googleapis.com/discovery/v1/apis/classroom/v1/rest"];
 const SCOPES = (["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.readonly", "https://www.googleapis.com/auth/classroom.topics.readonly",  "https://www.googleapis.com/auth/classroom.coursework.students"].join(" "));

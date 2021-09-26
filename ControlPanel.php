@@ -129,12 +129,12 @@ echo "</div>";
 
 
 <script>
-const CLIENT_ID = '448443480105-krbg7mnhjqd7s4kdevurs1dtffe1uf1t.apps.googleusercontent.com';
+const CLIENT_ID = '448443480105-5it7jncqi2b3t2g7br1ful9q1no188rt.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es';
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest", "https://www.googleapis.com/discovery/v1/apis/classroom/v1/rest"];
-const SCOPES = (["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.readonly", "https://www.googleapis.com/auth/classroom.topics.readonly",  "https://www.googleapis.com/auth/classroom.coursework.students"].join(" "));
+const SCOPES = (["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.readonly", "https://www.googleapis.com/auth/classroom.courses.readonly", "https://www.googleapis.com/auth/classroom.topics.readonly",  "https://www.googleapis.com/auth/classroom.coursework.students"].join(" "));
 
-const GoogleClassroomCourseName = "AP Latin E12";
+const GoogleClassroomCourseName = "AP Latin-G12";
 
 function ToggleTestMode(clickedElement)
 {
@@ -310,6 +310,7 @@ function DisplayCurrentHW(HWArray)
 	SuggestHW(HWArray, LatestNumber)
 }
 
+
 function SuggestHW(HWArray, LatestNumber)
 {
 	if (LatestNumber == null)
@@ -325,34 +326,40 @@ function SuggestHW(HWArray, LatestNumber)
 			{
 				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
 
-				SheetData = (JSON.parse(Response).feed.entry)
+				SheetData = (JSON.parse(Response).values)
+				// console.log(SheetData)
 				
 				sd = 0;
+				nextten = 0;
 				
 				var tempRDJSON = JSON.parse(document.getElementById('RotationDaysJSON').innerText)
 
 				
-				while ( sd < SheetData.length )
+				while ( sd < SheetData.length && nextten <10 )
 				{
-					
-					if((SheetData[sd].title["$t"]).startsWith("A") && +(SheetData[sd].content['$t'].substring(1)) > LatestNumber )
+					// console.log(SheetData[sd])	
+					if( +(SheetData[sd][0].substring(1)) > LatestNumber && +(SheetData[sd][0].substring(1)) > 0 )
 					{
-						var tempHWNum = (+(SheetData[sd].content['$t'].substring(1)))
-						var tempHWbookName = (SheetData[sd].content['$t'].substring(0,1)) == "V" ? "A" : "DBG"
-						var tempDays = +(SheetData[sd+1]['gs$cell'].numericValue) -25568
-						var tempD =  new Date ((  tempDays *1000*60*60*24))
+						var tempHWNum = (+(SheetData[sd][0].substring(1)))
+						var tempHWbookName = (SheetData[sd][0].substring(0,1)) == "V" ? "A" : "DBG"
+						var tempD =  new Date (SheetData[sd][1])
 						var tempDate = tempD.getFullYear() + "-"+ ("00"+(tempD.getMonth()+1)).slice(-2)+ "-"+ ("00"+tempD.getDate()).slice(-2)
 						var tempDoW = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")[tempD.getDay()]
-						var tempHWDueDate =  SheetData[sd+1].content['$t']
-						var tempHWCitation = tempHWbookName+ " "+ SheetData[sd+4].content['$t']
-						var tempUnit =   SheetData[sd+3].content['$t'].substring(SheetData[sd+3].content['$t'].length-1)
+						var tempHWDueDate =  SheetData[sd][1]
+						var tempHWCitation = tempHWbookName+ " "+ SheetData[sd][4]
+						var tempUnit =   SheetData[sd][3].substring(SheetData[sd][3].length-1)
 						var tempRD =   ((tempRDJSON[tempDate] != undefined) ? tempRDJSON[tempDate].RD : -1)
+						console.log
 						var temptimestamp = {
 							"-1":"00:00",
-							"2":"07:55",
-							"4":"07:55",
-							"6":"13:35",
-							"8":"13:35",
+							"1":"13:11",
+							"2":"12:22",
+							"3":"11:11",
+							"4":"10:22",
+							"5":"09:33",
+							"6":"08:44",
+							"7":"07:55",
+							"8":"14:00"
 						}[tempRD]+ ":00";
 
 
@@ -365,10 +372,11 @@ function SuggestHW(HWArray, LatestNumber)
 						tempHW.setAttribute('hwnum', tempHWNum)
 						tempHW.setAttribute('unit', tempUnit)
 						tempHW.setAttribute('rd', tempRD)
-						tempHW.innerHTML = "<hwtitle>HW" + (+(SheetData[sd].content['$t'].substring(1))) + " [Unit "+tempUnit+"] </hwtitle>" 
+						tempHW.innerHTML = "<hwtitle>HW" + (+tempHWNum) + " [Unit "+tempUnit+"] </hwtitle>" 
 						tempHW.innerHTML += "<hwduedate>" + tempDoW +", " + tempD.toLocaleDateString(undefined) + "</hwduedate>" 
 						tempHW.innerHTML += "<hwdescription>" + tempHWCitation + "</hwdescription>" 
 						document.getElementById('hwAssigned').appendChild(tempHW)
+						nextten++
 
 
 					}
@@ -376,7 +384,7 @@ function SuggestHW(HWArray, LatestNumber)
 				}
 			}
 		};
-		xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/<?php echo $DocumentID;?>/<?php echo $ExportPageNumber;?>/public/values?alt=json", true);
+		xmlhttp.open("GET", "https://sheets.googleapis.com/v4/spreadsheets/<?php echo $DocumentID;?>/values/Export?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es", true);
 		
 		xmlhttp.send();
 
@@ -409,7 +417,7 @@ function CreateAPLatinHWAssignment(clickedElement)
 	var dateobj = (new Date(dateee + " " + timeee + ""))
 	
 	var description = citeit+`
-	http://aplatin.altervista.org/HomeworkViewer.php?hw=`+numbah+`
+	https://aplatin.altervista.org/HomeworkViewer.php?hw=`+numbah+`
 	https://docs.google.com/spreadsheets/d/<?php echo $DocumentID;?>`
 
 	//Test Class Id =========    "46640113054"

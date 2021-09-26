@@ -132,17 +132,17 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 		if (this.readyState == 4 && this.status == 200)
 		{
 			Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
-			SheetData = (JSON.parse(Response).feed.entry)
+			SheetData = (JSON.parse(Response).values)
+			console.log(SheetData)
 			
-			sd = 0;
+			sd = 1;
 			
 			while ( sd < SheetData.length )
 			{
-				if((SheetData[sd].title["$t"]).startsWith("A")  )
+				if((SheetData[sd][0]).startsWith("V") || (SheetData[sd][0]).startsWith("C")  )
 				{
-					var tempHWNum = (+(SheetData[sd].content['$t'].substring(1)))
-					var tempDays = +(SheetData[sd+1]['gs$cell'].numericValue) -25568
-					var tempD =  new Date ((  tempDays *1000*60*60*24))
+					var tempHWNum = (+(SheetData[sd][0].substring(1)))
+					var tempD =  new Date (SheetData[sd][1])
 					var tempDate = tempD.getFullYear() + "-"+ ("00"+(tempD.getMonth()+1)).slice(-2)+ "-"+ ("00"+tempD.getDate()).slice(-2)
 					
 					if(document.getElementById('duedate'+tempHWNum))
@@ -156,7 +156,7 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 			}
 		}
 	};
-	xmlhttp.open("GET", "https://spreadsheets.google.com/feeds/cells/<?php echo $DocumentID;?>/<?php echo $ExportPageNumber;?>/public/values?alt=json", true);
+	xmlhttp.open("GET", "https://sheets.googleapis.com/v4/spreadsheets/<?php echo $DocumentID;?>/values/Export?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es", true);
 
 	xmlhttp.send();
 

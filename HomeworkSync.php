@@ -29,48 +29,32 @@ function SanitizeString($str)
 	return $str;
 }
 
-function TargetSpecificSheetTab($documentKey, $sheetname = "Export")
+function TargetSpecificSheetTab($documentIDCode, $sheetname = "Export")
 { 
- 
-	$pageNum = 1;
-	$foundpagenum = false;
-	do
-	{
-		$url = "https://spreadsheets.google.com/feeds/cells/". $documentKey ."/".$pageNum."/public/values?alt=json";
-		
-		if(@file_get_contents($url)!= false)
-		{
-			$url_json = json_decode(file_get_contents($url));
-			$url_json = json_decode(json_encode($url_json), True);
-			$data = $url_json;
+	return 		 "https://sheets.googleapis.com/v4/spreadsheets/".$documentIDCode . "/values/".$sheetname."?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es" ;
 
-			if($data['feed']['title']['$t'] == $sheetname)
-			{
-				$foundpagenum = true;
-			}
-		}
-		$pageNum++;
-	}
-	while ($pageNum < 25 && !$foundpagenum);
-	echo $url ;
-	return $url ;
 }
 
 function ScrubGoogleSheetJSON($url)
 {
  	$url_json = json_decode(file_get_contents($url));
 	$url_json = json_decode(json_encode($url_json), True);
- 	$data = $url_json["feed"]["entry"];
+ 	$data = $url_json["values"];
 	
-	 $newjsonstring= "";
-	for ($d=0; $d< count($data); $d++)
-	{
-		$newjsonstring .= '"';
-		$newjsonstring .= SanitizeString($data[$d]["title"]["\$t"]);
-		$newjsonstring .= '":"';
-		$newjsonstring .= SanitizeString($data[$d]["content"]["\$t"]);
-		$newjsonstring .= '"';
-		$newjsonstring .= ", ";
+	$newjsonstring= "";
+	$alphabet = str_split( "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+	for ($r=0; $r< count($data); $r++)
+	{	
+		for ($c=0; $c< count($data[$r]); $c++)
+		{
+			$newjsonstring .= '"';
+			$newjsonstring .= $alphabet[$c] . ($r+1);
+			$newjsonstring .= '":"';
+			$newjsonstring .= SanitizeString($data[$r][$c]);
+			$newjsonstring .= '"';
+			$newjsonstring .= ", ";
+		}
 	}
  
 	return       ("{".$newjsonstring.' "last":"last"}') ;
@@ -141,8 +125,6 @@ for ($m = 1; $m <=count($GSA); $m++ )
 {
 	$ActiveRow = $GSA[$m];
 
-	var_dump($ActiveRow); 
-
 	$SplitStart  = explode(".", $ActiveRow["Start Line"]);
 
 	$StartBook = $SplitStart[0];
@@ -205,38 +187,40 @@ else
 
 foreach ($TerminalLines as $linecode)
 {
-	if ($linecode[1] == null)
+	if ($linecode[0] != null)
 	{
-		$temp_author = "V";
-		$temp_line =  implode(' ', SQLQuarry('SELECT `word` FROM `#APAeneidText` WHERE `book` = '.$linecode[0].' and `lineNumber` = '.$linecode[2].' ORDER BY `id` ASC', true));
-	}
-	else
-	{
-		$temp_author = "C";
-		$temp_line = implode(' ', SQLQuarry('SELECT `word` FROM `#APDBGText` WHERE `book` = '.$linecode[0].' and `chapter` = '.$linecode[1].' and `lineNumber` = '.$linecode[2].' ORDER BY `id` ASC', true));
-	}
-	
-	if(strpos($temp_line, ". ") != false)
-	{
-		$periodsplits = explode(".", $temp_line);
-		$firstPart = $periodsplits[0];
-		$lastPart = $periodsplits[count($periodsplits)-1];
-		$WordsBefore = count(explode(" ", $firstPart));
-		$WordsAfter = count(explode(" ", $lastPart))-1;
-
-		if($linecode[1] == null)
+		if ($linecode[1] == null)
 		{
-			$Chaptacode = ' IS NULL ';
+			$temp_author = "V";
+			$temp_line =  implode(' ', SQLQuarry('SELECT `word` FROM `#APAeneidText` WHERE `book` = '.$linecode[0].' and `lineNumber` = '.$linecode[2].' ORDER BY `id` ASC', true));
 		}
 		else
 		{
-			$Chaptacode = 'AND `EndChapter` = '.$linecode[1].'';
+			$temp_author = "C";
+			$temp_line = implode(' ', SQLQuarry('SELECT `word` FROM `#APDBGText` WHERE `book` = '.$linecode[0].' and `chapter` = '.$linecode[1].' and `lineNumber` = '.$linecode[2].' ORDER BY `id` ASC', true));
 		}
-		$HWNum = SQLQ('SELECT `HW` FROM `#APHW` WHERE `EndBook` = '.$linecode[0].' '.$Chaptacode.' AND `EndLine` = '.$linecode[2].'');
-		SQLRun('UPDATE `#APHW` SET  `SubtractFromEnd`="'.$WordsAfter.'" WHERE `HW` = ' .$HWNum );
-		SQLRun('UPDATE `#APHW` SET  `AddToBeginning`="'.$WordsAfter.'" WHERE `HW` = ' . (1+$HWNum) );
-	}
+		
+		if(strpos($temp_line, ". ") != false)
+		{
+			$periodsplits = explode(".", $temp_line);
+			$firstPart = $periodsplits[0];
+			$lastPart = $periodsplits[count($periodsplits)-1];
+			$WordsBefore = count(explode(" ", $firstPart));
+			$WordsAfter = count(explode(" ", $lastPart))-1;
 
+			if($linecode[1] == null)
+			{
+				$Chaptacode = ' IS NULL ';
+			}
+			else
+			{
+				$Chaptacode = 'AND `EndChapter` = '.$linecode[1].'';
+			}
+			$HWNum = SQLQ('SELECT `HW` FROM `#APHW` WHERE `EndBook` = '.$linecode[0].' '.$Chaptacode.' AND `EndLine` = '.$linecode[2].'');
+			SQLRun('UPDATE `#APHW` SET  `SubtractFromEnd`="'.$WordsAfter.'" WHERE `HW` = ' .$HWNum );
+			SQLRun('UPDATE `#APHW` SET  `AddToBeginning`="'.$WordsAfter.'" WHERE `HW` = ' . (1+$HWNum) );
+		}
+	}
 
 }
 

@@ -11,7 +11,7 @@ $jwt::$leeway = 60;
 
 $id_token = $_POST["idtoken"]; 
 $sessID = $_POST["sessid"];
-$CLIENT_ID = "790205495686-ks9kmt2e4n6696khie0dhr796u88quer.apps.googleusercontent.com";
+$CLIENT_ID = "448443480105-5it7jncqi2b3t2g7br1ful9q1no188rt.apps.googleusercontent.com";
 $client = new Google_Client(['client_id' => $CLIENT_ID]); // Specify the CLIENT_ID of the app that accesses the backend
 $client -> setScopes('email');
 $payload = $client -> verifyIdToken($id_token);
@@ -34,7 +34,7 @@ if ($payload)
 		die("Connection failed: ".$conn -> connect_error);
 	}
 
-	if( $payload['email'] ===  'b.bakkala@amsacs.org') 
+	if( $payload['email'] ===  'bbakkala@amsacs.org') 
 	{
 		$SessId = SQLQ('SELECT `SessionID` FROM `_UserSessions` WHERE  `SessionID` = "'.$sessID.'" ');
 		// echo ('SELECT `SessionID` FROM `_UserSessions` WHERE  `email` = "'.$payload['email'].'" AND `SessionID` = "'.$payload['iat'].'"');

@@ -145,7 +145,7 @@ if($_SERVER['SCRIPT_NAME'] != "/Nexus/Mailer.php")
 		}
 		else
 		{
-			$scrubbedURL =  preg_replace("/"."&"."/", "𓄋"  ,  "http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
+			$scrubbedURL =  preg_replace("/"."&"."/", "𓄋"  ,  "https://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
 			header("Location: ". "https://".  $_SERVER['SERVER_NAME'] ."/AdminSignIn.php?endsess=true&redirect=". $scrubbedURL);
 		}
 		die();
