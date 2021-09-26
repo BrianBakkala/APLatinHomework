@@ -235,9 +235,9 @@ function GetHWLineIDs($HWNum, $hwdb, $title)
 		
 	}
 		
-	$StartId = ((int) SQLQ('SELECT MIN(`id`) FROM `'.$context::BookDB[$title].'` WHERE  `book` = '.$Assignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['AddToBeginning']) );
+	$StartId = ((int) SQLQ('SELECT MIN(`OrderOfText`) FROM `'.$context::BookDB[$title].'` WHERE  `book` = '.$Assignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['AddToBeginning']) );
 
-	$EndId = ( (int) SQLQ('SELECT MAX(`id`) FROM `'.$context::BookDB[$title].'` WHERE  `book` = '.$Assignment['EndBook'].' AND ' . $WhereClause2 . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['SubtractFromEnd']) );
+	$EndId = ( (int) SQLQ('SELECT MAX(`OrderOfText`) FROM `'.$context::BookDB[$title].'` WHERE  `book` = '.$Assignment['EndBook'].' AND ' . $WhereClause2 . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['SubtractFromEnd']) );
 
 	return array(
 		"StartID" => $StartId,
@@ -274,7 +274,7 @@ function GetHWAssignment($HWNum, $hwdb = null, $title = null)
 	$EndId = (int)  $tempids['EndID'];
 	$Assignment = $tempids['Assignment'];
  
-	$Lines = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$context::BookDB[$title].'` WHERE ( `book` = '.$tempids['StartBook'].' or  `book` = '.$tempids['EndBook'].') AND  `id` >= '. $StartId .' AND `id` <= '. $EndId .' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
+	$Lines = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$context::BookDB[$title].'` WHERE ( `book` = '.$tempids['StartBook'].' or  `book` = '.$tempids['EndBook'].') AND  `OrderOfText` >= '. $StartId .' AND `OrderOfText` <= '. $EndId .' ORDER BY `book`, `chapter`, `lineNumber`, `OrderOfText`');
 
 	$HWDefinitionIds = array_map(function($x){return $x['definitionId'];},$Lines);
 	$HWDefinitionIds2 = array_map(function($x){return $x['secondaryDefId'];},$Lines);
@@ -356,7 +356,7 @@ function FindHWByWordID($title = null, $wordid)
 		$tempStart = $temp_id_nums['StartID'];
 		$tempEnd = $temp_id_nums['EndID'];
 		
-		$lineIdsArray =  SQLQuarry('SELECT `id`  FROM `'.$context::BookDB[$title].'` WHERE ( `book` = '.$temp_id_nums['StartBook'].' or  `book` = '.$temp_id_nums['EndBook'].') AND  `id` >= '. $temp_id_nums['StartID'] .' AND `id` <= '. $temp_id_nums['EndID'] , true);
+		$lineIdsArray =  SQLQuarry('SELECT `id`  FROM `'.$context::BookDB[$title].'` WHERE ( `book` = '.$temp_id_nums['StartBook'].' or  `book` = '.$temp_id_nums['EndBook'].') AND  `OrderOfText` >= '. $temp_id_nums['StartID'] .' AND `OrderOfText` <= '. $temp_id_nums['EndID'] , true);
 		$lineIdsArray = array_map(function($x){return (int) $x;}, $lineIdsArray);
 
 		$a++;
@@ -588,7 +588,7 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	}
 	
 
-	$WordNotes = SQLQuarry(' SELECT `'.$context->GetNotesDB().'Locations`.`NoteId`, `AssociatedWordId`,   `'.$context->GetNotesDB().'Text`.`Text`, `BookTitle`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `'.$context->GetNotesDB().'Locations` INNER JOIN `'.$context->GetNotesDB().'Text` ON (`'.$context->GetNotesDB().'Text`.`NoteId` = `'.$context->GetNotesDB().'Locations`.`NoteId`) INNER JOIN (SELECT `id`, `book`,`chapter`, `word`,`lineNumber`   FROM `'.$context->GetTextDB().'`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND `BookTitle` = "'.$title.'" AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
+	$WordNotes = SQLQuarry(' SELECT `'.$context->GetNotesDB().'Locations`.`NoteId`, `AssociatedWordId`,   `'.$context->GetNotesDB().'Text`.`Text`, `BookTitle`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `'.$context->GetNotesDB().'Locations` INNER JOIN `'.$context->GetNotesDB().'Text` ON (`'.$context->GetNotesDB().'Text`.`NoteId` = `'.$context->GetNotesDB().'Locations`.`NoteId`) INNER JOIN (SELECT `id`,`OrderOfText`, `book`,`chapter`, `word`,`lineNumber`   FROM `'.$context->GetTextDB().'`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`OrderOfText` >= '.$hwstart.' AND `sub`.`OrderOfText` <= '.$hwend.') AND `BookTitle` = "'.$title.'" AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
 
 	
 	if(in_array($title, $context::Chapters))
