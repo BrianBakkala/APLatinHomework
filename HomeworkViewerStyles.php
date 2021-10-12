@@ -464,6 +464,42 @@ $context = new Context;
 	}
 
 
+	note
+	{
+		display:block;
+	}
+
+	
+	quote[expanded="true"]
+	{
+		display:block;
+		margin-bottom:1em;
+		border-top:1px solid gray;
+		border-bottom:1px solid gray;
+	}
+
+	quotetitle
+	{
+		font-weight:bold;
+		color:blue;
+		cursor:pointer;
+	}	
+
+	quoteline
+	{
+		
+		font-size:0;
+
+		transition: all .3s ease-in-out;
+	}
+
+	quote[expanded="true"] quoteline
+	{
+		display:block;
+		font-size:inherit;
+	
+	}
+
 
 
 	header, header table, header duedate

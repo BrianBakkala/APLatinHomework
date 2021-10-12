@@ -515,10 +515,17 @@ function GetFrequencyByTitle($definitionIdNumber, $title)
 	return ((int) $uses)  ;
 }
 
-function ParseNoteText($inputText, $showdevices)
+function ParseNoteText($inputText, $showdevices = true, $title = null)
 {
 	$context = new Context;
 	$outputText = $inputText;
+
+
+	if($title == null)
+	{
+		$title = $context->GetBookTitle();
+	}
+
 
 	$literaryDevices = SQLQuarry('SELECT `Device`, `Description` FROM `#APLiteraryDevices`', false, "Device");
 	$literaryDevices = array_map(function($x){		return $x['Description'];	}, ($literaryDevices)) ;
@@ -537,25 +544,36 @@ function ParseNoteText($inputText, $showdevices)
 	{
 		$outputText = preg_replace("/\*\*\*(".implode('|', array_keys($literaryDevices) ).")\*\*\*/", '<u>'.'\\1'.'</u>', $outputText);
 	}
+
 	$outputText = preg_replace("/\*\*(.*?)\*\*/","<b>\\1</b>",$outputText);
 	$outputText = preg_replace("/\*(.*?)\*/","<i>\\1</i>",$outputText);
+
+	$outputText = preg_replace_callback("/\|\|(.*?)\|\|/",
+	function($matches) use($context, $title){
+		$m = $matches[0];
+		$m = preg_replace("/^\|\|\[(.*)\]\|/","<quotetitle onclick = 'ToggleQuote(this)'>". "\\1" ."</quotetitle><quoteline>",$m);
+		$m = preg_replace("/\|\|/","</quoteline>",$m);
+		$m = preg_replace("/\|/","</quoteline><quoteline>",$m);
+		// echo "\n";		echo "\n";		var_dump($m);		echo "\n";		echo "\n";
+		// $m = preg_replace("/<quoteline><\/quoteline><quoteline>/","<quoteline>",$m);
+		// $m = preg_replace("/<\/quoteline><quoteline><\/quoteline>/","</quoteline>",$m);
+		// $m = preg_replace("/<quoteline>$/","</quoteline",$m);
+
+		return "<quote>". $m. "</quote>";
+		
+
+	}, $outputText);
+
+
+	
 	// $outputText = preg_replace_callback("/\<\<(\d*?)\>\>/","<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($context->GetBookTitle(), "\1")."&highlightedword="."\\1"."'>\\1</a>", $outputText);
 	$outputText = preg_replace_callback("/\<\<(\d*?)\>\>/",
-	function($matches) use($context){
+	function($matches) use($context, $title){
 		$m = $matches[0];
 		$m = preg_replace("/\<\<(\d*?)\>\>/","\\1",$m);
 
-		$hwnum_temp = FindHWByWordID($context->GetBookTitle(), $m);
-
-		if($hwnum_temp == $_GET['hw'])
-		{
-			return "<a href = '#".$m."' onclick = 'ScrollToWord(".$m.");  return false;'>".GetCitationByWordID($context->GetBookTitle(), $m)."</a>";
-
-		}
-		else
-		{
-			return "<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".$context->GetLevel()."&hw=".$hwnum_temp."&highlightedword=".$m."'>".GetCitationByWordID($context->GetBookTitle(), $m)."</a>";
-		}
+		return "<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".$context->GetLevel()."&title=".$title."&highlightedword=".$m."'>".GetCitationByWordID($title, $m)."</a>";
+		
 
 	}, $outputText);
 	return $outputText;
@@ -744,7 +762,6 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 		$outputText .= ParseNoteText($Cnote['Text'], $literaryDevices);
 		$outputText .= "</note> ";
 		// echo implode("|", $Cnote['comparableCitation']);
-		$outputText .= "<BR>";
 	}
 
 	return $outputText  ;
@@ -1004,3 +1021,18 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 	return $outputtext;
 }
 ?>
+
+<script>
+	function ToggleQuote(clickedElement)
+	{
+		var Pele = clickedElement.parentElement; 
+		if(Pele.getAttribute('expanded') != "true")
+		{
+			Pele.setAttribute('expanded', 'true')
+		}
+		else
+		{
+			Pele.setAttribute('expanded', 'false')
+		}
+	}
+</script>
