@@ -163,7 +163,9 @@ foreach($context::DictDB as $t => $d)
 				if($WordsOnLine[$w]['id'] == $temp_word_id )
 				{
 					$AttLine .= "<highlight wid = '".$WordsOnLine[$w]['id']."' style = 'cursor:pointer;''>";
-					$AttLine .= "<a target = '_blank' href = 'HomeworkViewer.php?level=".$context->GetLevel()."&hw=".FindHWByWordID($t, $WordsOnLine[$w]['id'])."&highlightedword=".$WordsOnLine[$w]['id']."'>";
+					$AttLine .= "<a target = '_blank' href = 'HomeworkViewer.php?level=".$context->GetLevel();
+					$AttLine .=  "&title=". $t;
+					$AttLine .= "&highlightedword=".$WordsOnLine[$w]['id']."'>";
 					$AttLine .= $WordsOnLine[$w]['word'];
 					$AttLine .= "</a>";
 					$AttLine .= "</highlight>";

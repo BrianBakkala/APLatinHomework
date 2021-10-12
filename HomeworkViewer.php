@@ -6,17 +6,34 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-
-
-
+ 
 $actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; 
 if(strpos($actual_link, "&amp;") !== false)
 {
-	echo $actual_link;
 	header('Location:'. str_replace("&amp;","&",$actual_link)  );
 }
 
+require_once ( 'ForwardHTTPS.php');
 require_once ( 'GenerateNotesandVocab.php');
+
+// if(!isset($_GET['highlightedword']))
+if(!isset($_GET['hw']) && isset($_GET['highlightedword']) && isset($_GET['title']))
+{
+	$temp_level = "AP";
+	if(isset($_GET['level']))
+	{
+		$temp_level = $_GET['level'];
+	}
+	
+	$turl = explode($actual_link, "?")[0];
+
+	$addon =  "hw=". FindHWByWordID($_GET['title'], $_GET['highlightedword']);
+	$addon .=  "&highlightedword=". $_GET['highlightedword'];
+
+	header('Location:'. str_replace("&amp;","&", ($turl . $addon))  );
+	
+}
+
 require_once ( 'FontStyles.php');
 require_once ( 'HomeworkViewerStyles.php');
 require_once ( 'SQLConnection.php');
@@ -25,6 +42,7 @@ require_once ( 'SQLConnection.php');
 
 
 $context = new Context;
+
 
 
 echo "<wrapper showmacrons='true'";
@@ -48,6 +66,17 @@ echo "GitHub";
 echo "</A>";
 echo "</span>";
 
+echo "<span aponly  class = 'menu-bar-option'>";
+echo "<A target = '_blank' href = 'https://quizlet.com/MrBakkala/folders/ap-latin-vocab/sets'>";
+echo "Quizlet";
+echo "</A>"; 
+echo "</span>";
+echo "</menubar>";
+
+echo "<span aponly class = 'menu-bar-option'>";
+echo "·";
+echo "</span>";
+
 
 echo "<span aponly class = 'menu-bar-option'>";
 echo "<A   href = 'https://aplatin.altervista.org/UnitsViewer.php'>";
@@ -64,8 +93,15 @@ echo "</span>";
 
 
 echo "<span aponly  class = 'menu-bar-option'>";
-echo "<A target = '_blank' href = 'https://quizlet.com/MrBakkala/folders/ap-latin-vocab/sets'>";
-echo "Quizlet";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/VocabList.php'>";
+echo "Vocabulary";
+echo "</A>"; 
+echo "</span>";
+echo "</menubar>";
+
+echo "<span aponly  class = 'menu-bar-option'>";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/LiteraryDevices.php'>";
+echo "Literary Devices";
 echo "</A>"; 
 echo "</span>";
 echo "</menubar>";
