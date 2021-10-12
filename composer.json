@@ -1,6 +1,18 @@
 {
     "require": {
-        "tecnickcom/tcpdf": "^6.3",
-        "google/apiclient": "2.0"
+        "google/apiclient": "^2.11"
+    },
+    "scripts": {
+        "pre-autoload-dump": "Google\\Task\\Composer::cleanup"
+    },
+    "extra": {
+        "google/apiclient-services": [
+            "Sheets",
+            "Docs",
+            "IdentityToolkit",
+            "Iam",
+            "IAMCredentials",
+            "Calendar"
+        ]
     }
 }

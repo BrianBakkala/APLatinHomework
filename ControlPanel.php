@@ -327,7 +327,7 @@ function SuggestHW(HWArray, LatestNumber)
 				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
 
 				SheetData = (JSON.parse(Response).values)
-				// console.log(SheetData)
+				console.log(SheetData)
 				
 				sd = 0;
 				nextten = 0;
@@ -385,7 +385,6 @@ function SuggestHW(HWArray, LatestNumber)
 			}
 		};
 		xmlhttp.open("GET", "https://sheets.googleapis.com/v4/spreadsheets/<?php echo $DocumentID;?>/values/Export?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es", true);
-		
 		xmlhttp.send();
 
 

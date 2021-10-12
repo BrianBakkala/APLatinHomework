@@ -22,6 +22,7 @@ function ArrayPartition(Array $list, $p) {
 }
 
 
+echo QuizletExport($dictionary, 10000000, 1,      30 ,        10000             );
 
 function QuizletExport($dictionary, $wordLimit = 10000, $parts = 1, $minNum = 0, $MaxNum = 10000, $ProperNouns = "exclude")
 {
@@ -188,5 +189,4 @@ function QuizletExport($dictionary, $wordLimit = 10000, $parts = 1, $minNum = 0,
 }
 
 
-echo QuizletExport($dictionary, 10000000, 20,      1 ,        1             );
 ?>
