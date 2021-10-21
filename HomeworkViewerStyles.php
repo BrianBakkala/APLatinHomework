@@ -473,7 +473,8 @@ $context = new Context;
 	quote[expanded="true"]
 	{
 		display:block;
-		margin-bottom:1em;
+		margin-top:.5em;
+		margin-bottom:.5em;
 		border-top:1px solid gray;
 		border-bottom:1px solid gray;
 	}

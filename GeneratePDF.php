@@ -3,7 +3,7 @@
 
 require_once ( 'GenerateNotesandVocab.php'); 
 
-
+//  composer require tecnickcom/tcpdf
 ob_start();
 
 require 'vendor/autoload.php';

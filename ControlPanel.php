@@ -84,6 +84,8 @@ hwdescription
 require_once ('GoogleClassroom/APLGSI.php');  
 require_once ( 'FontStyles.php');
 require_once ( 'GenerateNotesandVocab.php'); 
+require_once ( 'ForwardHTTPS.php');
+
 
 
 $context = new Context; 

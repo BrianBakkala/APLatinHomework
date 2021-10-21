@@ -3,6 +3,9 @@
 
 require_once('SQLConnection.php');
 require_once('GenerateNotesandVocab.php');
+require_once ( 'ForwardHTTPS.php');
+
+
 $context = new Context;
 // echo $_GET['line'];
 // echo $_GET['author'];
