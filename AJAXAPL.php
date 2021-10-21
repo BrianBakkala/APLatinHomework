@@ -15,7 +15,61 @@ $Conversion = [
 	"A" => "a", "B" => "b", "C" => "c", "D" => "d", "E" => "e", "F" => "f", "G" => "g", "H" => "h", "I" => "i", "J" => "j", "K" => "k", "L" => "l", "M" => "m", "N" => "n", "O" => "o", "P" => "p", "Q" => "q", "R" => "r", "S" => "s", "T" => "t", "U" => "u", "V" => "v", "W" => "w", "X" => "x", "Y" => "y", "Z" => "z"
 ];
 
+function GetForms($entry)
+{
+	$forms =  preg_split('/(\||,)/', $entry);;
+	$forms = array_map(function($x)
+	{
+		$p = strip_tags($x);
+		$p = preg_replace('/\*/', '', $p);
+		$p = StripMacrons(strtolower(trim($p)));
+		$p = ltrim($p, '-');
 
+		return $p;
+		
+	}, $forms);
+
+	return $forms;
+}
+
+function GetMatchingScore($filtertext, $entry)
+{
+	$forms =  GetForms($entry);
+	$formslengths = array_map(function($x) use($filtertext)
+	{
+		$searchtext = StripMacrons(strtolower($filtertext));
+		if(strpos($x, $searchtext) !== false)
+		{
+			return ( ((double) strlen($searchtext))  / ((double) strlen($x))  );
+		}
+		else
+		{
+			return 0;
+		}
+	},$forms);
+
+	// return  implode("/", $forms);
+	return  max($formslengths);
+}
+
+function GetPositionScore($filtertext, $entry)
+{
+	$forms =  GetForms($entry);
+	$formslengths = array_map(function($x) use($filtertext)
+	{
+		$searchtext = StripMacrons(strtolower($filtertext));
+		if(strpos($x, $searchtext) !== false)
+		{
+			return strpos($x, $searchtext);
+		}
+		else
+		{
+			return 1000;
+		}
+	},$forms);
+
+	return  min($formslengths);
+}
 
 //////////////////////////////////////
 
@@ -45,20 +99,21 @@ if (isset($_REQUEST["updatedefinition"]))
 
 if (isset($_REQUEST["filterdictionary"]))
 {
-	if(strlen($_REQUEST["filtertext"]) < 2)
+	$nomacronsfilterarray = preg_split('/(?!^)(?=.)/u', $_REQUEST["filtertext"]);
+	$nomacronsfiltertext = implode("",array_map(function($x)
+		{
+			global $Conversion;
+			return (isset($Conversion[$x])) ?  $Conversion[$x] : $x;
+		}, $nomacronsfilterarray)); 
+		
+	$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$context::LevelDictDB[$_REQUEST['level']] .'` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%" OR `definition` COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%") '); 
+
+	if(strlen($_REQUEST["filtertext"]) < 2 && count($Dictionary) >500)
 	{
 		$hint = "Too many results.";
 	}
 	else
 	{
-		$nomacronsfilterarray = preg_split('/(?!^)(?=.)/u', $_REQUEST["filtertext"]);
-		$nomacronsfiltertext = implode("",array_map(function($x)
-			{
-				global $Conversion;
-				return (isset($Conversion[$x])) ?  $Conversion[$x] : $x;
-			}, $nomacronsfilterarray)); 
-			
-		$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `'.$context::LevelDictDB[$_REQUEST['level']] .'` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%" OR `definition` COLLATE UTF8_GENERAL_CI LIKE "%'.$nomacronsfiltertext.'%") '); 
 		
 		if(count($Dictionary) > 0)
 		{
@@ -66,46 +121,63 @@ if (isset($_REQUEST["filterdictionary"]))
 			$Frequencies = GetFreqTable($DefIDs);
 		}
 
+		$matchScore = GetMatchingScore($nomacronsfiltertext, $word['entry']);
+		usort($Dictionary, function ($a, $b) use($nomacronsfiltertext) {
 
-		usort($Dictionary, function ($a, $b) {
-			global $Conversion;
+			$scoreA = GetMatchingScore($nomacronsfiltertext, $a['entry']);
+			$scoreB = GetMatchingScore($nomacronsfiltertext, $b['entry']);
+			$posA = GetPositionScore($nomacronsfiltertext, $a['entry']);
+			$posB = GetPositionScore($nomacronsfiltertext, $b['entry']);
 
-			$a = $a['entry'];
-			$b = $b['entry'];
-
-			$a = mb_ereg_replace("\W","",$a); 
-			$b = mb_ereg_replace("\W","",$b); 
-			
-			$a = preg_split('/(?!^)(?=.)/u', $a);
-			$a = array_map(function($x)
+			if($posA != $posB  )
 			{
-				global $Conversion;
-				return (isset($Conversion[$x])) ?  $Conversion[$x] : $x;
-			}, $a);
-			$a = implode("", $a);
-			
-			
-			$b = preg_split('/(?!^)(?=.)/u', $b);
-			$b = array_map(function($x)
-			{
-				global $Conversion;
-				return (isset($Conversion[$x])) ?  $Conversion[$x] : $x;
-			}, $b);
-			$b = implode("", $b);
-			
-			
-			if(strtolower($a) < strtolower($b))
-			{
-				return -1;
+				return $posA <=> $posB;
 			}
-			else if(strtolower($a) > strtolower($b))
+			else if ($scoreA !=  $scoreB  )
 			{
-				return 1;
+				return $scoreB <=> $scoreA;
 			}
 			else
 			{
-				return 0;
-			};
+				global $Conversion;
+	
+				$a = $a['entry'];
+				$b = $b['entry'];
+	
+				$a = mb_ereg_replace("\W","",$a); 
+				$b = mb_ereg_replace("\W","",$b); 
+				
+				$a = preg_split('/(?!^)(?=.)/u', $a);
+				$a = array_map(function($x)
+				{
+					global $Conversion;
+					return (isset($Conversion[$x])) ?  $Conversion[$x] : $x;
+				}, $a);
+				$a = implode("", $a);
+				
+				
+				$b = preg_split('/(?!^)(?=.)/u', $b);
+				$b = array_map(function($x)
+				{
+					global $Conversion;
+					return (isset($Conversion[$x])) ?  $Conversion[$x] : $x;
+				}, $b);
+				$b = implode("", $b);
+				
+				
+				if(strtolower($a) < strtolower($b))
+				{
+					return -1;
+				}
+				else if(strtolower($a) > strtolower($b))
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				};
+			}
 			
 		
 		});
@@ -202,6 +274,8 @@ if (isset($_REQUEST["filterdictionary"]))
 					$hint .= "<img  onclick = 'EditEntry(this)'  class = 'editbutton' src = 'Images/LHedit.png'>";
 					$hint .= "<img  onclick = 'GetWordInfo(this) '  class = 'InfoButton' src = 'Images/LHinfo.png'>";
 					$hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
+					$hint .= "<div  id = 'Matching Score'  style = 'display:none;' >".GetMatchingScore($nomacronsfiltertext, $word['entry'])."</div>";
+					$hint .= "<div  id = 'Position Score'  style = 'display:none;' >".GetPositionScore($nomacronsfiltertext, $word['entry'])."</div>";
 
 
 
