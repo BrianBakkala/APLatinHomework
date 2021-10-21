@@ -15,6 +15,8 @@ if(strpos($actual_link, "&amp;") !== false)
 
 require_once ( 'ForwardHTTPS.php');
 require_once ( 'GenerateNotesandVocab.php');
+require_once ( 'JSBackend.php');
+
 
 // if(!isset($_GET['highlightedword']))
 if(!isset($_GET['hw']) && isset($_GET['highlightedword']) && isset($_GET['title']))
