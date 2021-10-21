@@ -41,6 +41,15 @@
 
 require_once ( 'GenerateNotesandVocab.php');
 
+$context = new Context;
+
+if($context->GetTestStatus())
+{
+echo "<script>";
+echo "document.getElementsByTagName('html')[0].innerHTML = ('nope')";
+echo "</script>";
+}
+
 $Devices = SQLQuarry('SELECT `id`, `Device`, `Description` FROM `#APLiteraryDevices` ORDER BY `Device` ');
 
 echo "<p  style='text-align:left;'><a href='Dictionary.php'>← Dictionary</a></p>";

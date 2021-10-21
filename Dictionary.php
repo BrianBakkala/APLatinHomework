@@ -4,7 +4,12 @@
 	require_once ( 'GenerateNotesandVocab.php');
 	$context = new Context;
 	
-	
+	if($context->GetTestStatus())
+	{
+		echo "<script>";
+		echo "document.getElementsByTagName('html')[0].innerHTML = ('nope')";
+		echo "</script>";
+	}
 	?>
 
 <!-- 

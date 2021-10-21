@@ -46,7 +46,6 @@ require_once ( 'SQLConnection.php');
 $context = new Context;
 
 
-
 echo "<wrapper showmacrons='true'";
 
 if(!$context->GetTestStatus())
@@ -58,56 +57,59 @@ echo ">";
 echo "<assignment>";
 
 echo "<header >";
-echo "<menubar>";
-echo "<BR>";
 
 
-echo "<span class = 'menu-bar-option'>";
-echo "<A   href = 'https://github.com/BrianBakkala/APLatinHomework'>";
-echo "GitHub";
-echo "</A>";
-echo "</span>";
+if(!$context->GetTestStatus())
+{
 
-echo "<span aponly  class = 'menu-bar-option'>";
-echo "<A target = '_blank' href = 'https://quizlet.com/MrBakkala/folders/ap-latin-vocab/sets'>";
-echo "Quizlet";
-echo "</A>"; 
-echo "</span>";
-echo "</menubar>";
-
-echo "<span aponly class = 'menu-bar-option'>";
-echo "·";
-echo "</span>";
+	echo "<menubar>";
+	echo "<BR>";
 
 
-echo "<span aponly class = 'menu-bar-option'>";
-echo "<A   href = 'https://aplatin.altervista.org/UnitsViewer.php'>";
-echo "Units";
-echo "</A>";
-echo "</span>";
+	echo "<span class = 'menu-bar-option'>";
+	echo "<A   href = 'https://github.com/BrianBakkala/APLatinHomework'>";
+	echo "GitHub";
+	echo "</A>";
+	echo "</span>";
+
+	echo "<span aponly  class = 'menu-bar-option'>";
+	echo "<A target = '_blank' href = 'https://quizlet.com/MrBakkala/folders/ap-latin-vocab/sets'>";
+	echo "Quizlet";
+	echo "</A>"; 
+	echo "</span>";
+
+	echo "<span aponly class = 'menu-bar-option'>";
+	echo "·";
+	echo "</span>";
 
 
-echo "<span class = 'menu-bar-option'>";
-echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php?level=".$context->GetLevel()."'>";
-echo "Dictionary";
-echo "</A>";
-echo "</span>";
+	echo "<span aponly class = 'menu-bar-option'>";
+	echo "<A   href = 'https://aplatin.altervista.org/UnitsViewer.php'>";
+	echo "Units";
+	echo "</A>";
+	echo "</span>";
 
 
-echo "<span aponly  class = 'menu-bar-option'>";
-echo "<A target = '_blank' href = 'https://aplatin.altervista.org/VocabList.php'>";
-echo "Vocabulary";
-echo "</A>"; 
-echo "</span>";
-echo "</menubar>";
+	echo "<span class = 'menu-bar-option'>";
+	echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php?level=".$context->GetLevel()."'>";
+	echo "Dictionary";
+	echo "</A>";
+	echo "</span>";
 
-echo "<span aponly  class = 'menu-bar-option'>";
-echo "<A target = '_blank' href = 'https://aplatin.altervista.org/LiteraryDevices.php'>";
-echo "Literary Devices";
-echo "</A>"; 
-echo "</span>";
-echo "</menubar>";
 
+	echo "<span aponly  class = 'menu-bar-option'>";
+	echo "<A target = '_blank' href = 'https://aplatin.altervista.org/VocabList.php'>";
+	echo "Vocabulary";
+	echo "</A>"; 
+	echo "</span>";
+
+	echo "<span aponly  class = 'menu-bar-option'>";
+	echo "<A target = '_blank' href = 'https://aplatin.altervista.org/LiteraryDevices.php'>";
+	echo "Literary Devices";
+	echo "</A>"; 
+	echo "</span>";
+	echo "</menubar>";
+}
 
 echo "<assignmentdata>";
 

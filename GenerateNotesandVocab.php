@@ -941,55 +941,79 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 			$outputtext .= "</nomacrons>";
 
 				
+			$SpecificBannedTestWordIds = [
+
+				///Unit 1
+				143, //Parcas 1.22
+				609, //ora 1.95
+				618, //fortissime 1.96
+				634, //Aeacidae 1.99
+				647, //scuta 1.101
+				649, //galeas 1.101
+				1982, //Hesperiam 1.569
+					1984, //^^^ Saturnia 1.569
+				1277, //Acestes
+				1865, //Acestes
+				1918, //Acestes
+				1991, //Acestes
+			];
+
+			$WordisAvailable = ($context->GetTestStatus() && ((int) $Frequencies[$word['definitionId']]) <=5 && !in_array(+$word['id'], $SpecificBannedTestWordIds)  )  || !$context->GetTestStatus() ;
+
+			if($WordisAvailable )
+			{
+
 				$outputtext .= "<entry>";
 				$outputtext .= "<b>";
 				
-					$outputtext .= ConvertAsterisks($dictionary[$word['definitionId']]['entry']);
-
+				$outputtext .= ConvertAsterisks($dictionary[$word['definitionId']]['entry']);
+				
 				$outputtext .= "</b>";
 				$outputtext .= "</entry>";
-
+				
 				$outputtext .= "<definition>";
 				$outputtext .= "<i>";
-
-					$outputtext .= ConvertAsterisks($dictionary[$word['definitionId']]['definition']);
-
-
+				
+				$outputtext .= ConvertAsterisks($dictionary[$word['definitionId']]['definition']);
+				
+				
 				$outputtext .= "</i>";
 				$outputtext .= "</definition>";
 				
-
-			$outputtext .= "</baseword>";
-
-			if($word["secondaryDefId"] != -1)
-			{
-				$outputtext .= "<clitic>";
 				
+				$outputtext .= "</baseword>";
+			} 
+				if($word["secondaryDefId"] != -1)
+				{
+					$outputtext .= "<clitic>";
+					
 					$outputtext .= "<text>";
-						$outputtext .= $split2;
+					$outputtext .= $split2;
 					$outputtext .= "</text>";
 					$outputtext .= "<nomacrons>";
-						$outputtext .= StripMacrons($split2);
+					$outputtext .= StripMacrons($split2);
 					$outputtext .= "</nomacrons>";
-
-					$outputtext .= "<entry>";
-				$outputtext .= "<b>";
-					$outputtext .= ConvertAsterisks($dictionary[$word['secondaryDefId']]['entry']);
-				$outputtext .= "</b>";
-				$outputtext .= "</entry>";
-
-					$outputtext .= "<definition>";
-					$outputtext .= "<i>";
-
+					if($WordisAvailable )
+					{
+						$outputtext .= "<entry>";
+						$outputtext .= "<b>";
+						$outputtext .= ConvertAsterisks($dictionary[$word['secondaryDefId']]['entry']);
+						$outputtext .= "</b>";
+						$outputtext .= "</entry>";
+						
+						$outputtext .= "<definition>";
+						$outputtext .= "<i>";
+						
 						$tempdeftext = $dictionary[$word['secondaryDefId']]['definition'];	
 						$tempdeftext  = preg_replace("/\*(.*?)\*/","</i>\\1<i>", 	$tempdeftext);					
 						$outputtext .= ConvertAsterisks($tempdeftext);
-
-					$outputtext .= "</i>";
-					$outputtext .= "</definition>";
-
-				$outputtext .= "</clitic>";
-			}
+						
+						$outputtext .= "</i>";
+						$outputtext .= "</definition>";
+					}
+					$outputtext .= "</clitic>";
+				}
+		
 
 				$outputtext .= "<freq>"; 
 					
