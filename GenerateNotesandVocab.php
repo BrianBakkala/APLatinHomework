@@ -980,9 +980,9 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 				$outputtext .= "</i>";
 				$outputtext .= "</definition>";
 				
+			} 
 				
 				$outputtext .= "</baseword>";
-			} 
 				if($word["secondaryDefId"] != -1)
 				{
 					$outputtext .= "<clitic>";
