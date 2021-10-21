@@ -980,9 +980,9 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 				$outputtext .= "</i>";
 				$outputtext .= "</definition>";
 				
+			} 
 				
 				$outputtext .= "</baseword>";
-			} 
 				if($word["secondaryDefId"] != -1)
 				{
 					$outputtext .= "<clitic>";
@@ -1017,9 +1017,18 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 
 				$outputtext .= "<freq>"; 
 					
-					$outputtext .= "<a target = '_blank' href = 'WordViewer.php?level=".$context->GetLevel()."&wordid=". $word['definitionId'] . "'>";
-					$outputtext .= ((int) $Frequencies[$word['definitionId']]);
-					$outputtext .= "</a>";
+					if($WordisAvailable )
+					{
+						$outputtext .= "<a target = '_blank' href = ' ";
+						$outputtext .= " WordViewer.php?level=".$context->GetLevel()."&wordid=". $word['definitionId'] . "";
+						$outputtext .= "'>";
+						$outputtext .= ((int) $Frequencies[$word['definitionId']]);
+						$outputtext .= "</a>";
+					}
+					else
+					{
+						$outputtext .= ((int) $Frequencies[$word['definitionId']]);
+					}
 					
 				$outputtext .= "</freq>";
 		}
