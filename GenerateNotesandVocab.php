@@ -285,6 +285,7 @@ function GetHWAssignment($HWNum, $hwdb = null, $title = null)
 
 	return [
 		"Assignment" => $Assignment ,
+		"Title" => $context::BookDB[$title] ,
 		"Lines" => $Lines,
 		"StartID" => $StartId,
 		"EndID" => $EndId,
@@ -381,51 +382,111 @@ function GetCliticList($dictionary)
 	);
 }
 
-function GetFreqTable($defidsarray = null, $HWNum = null, $hwdb = null, $level = null)
+function GetHWsInUnits(...$units)
+{
+	$WhereClause = 'WHERE 0 ';
+	foreach($units as $unit)
+	{
+		$WhereClause .= ' OR  `Unit` = "'.$unit.'" ';
+
+	}
+	return SQLQuarry('SELECT `HW`  FROM `#APHW`  ' . $WhereClause, true);
+}
+
+function ConvertIntegerArrayToRanges($array, $last=array(), $done=array())
+{
+	if ($array == array()) {
+        return $done;
+    }
+
+    $h = $array[0]; 
+    $t = array_slice($array, 1);
+
+    if ($last == array()) {
+        $last = array($array[0], $array[0]);
+    }
+    if ($t[0] == 1 + $last[1]) {
+        return ConvertIntegerArrayToRanges($t, array($last[0], $h+1), $done);
+    }
+    $done[] = $last;
+    return ConvertIntegerArrayToRanges($t, array(), $done);
+}
+
+function GetFreqTable($defidsarray = null, $hwAssignmentsScope = array())
 {
 	$context = new Context;
 
-	if(!isset($HWNum))
+	
+	
+	if($defidsarray == null)
 	{
-		$HWNum = $_GET['hw'];
-	}
-
-	if(!isset($hwdb))
-	{
-		$hwdb = $context->GetHWDB();
-	}
-
-	if(!isset($level))
-	{
-		$level = $context->GetLevel();
-	}
-
-	if(!$defidsarray)
-	{
-		$temp_assignment = ( GetHWAssignment($HWNum, $hwdb)['Lines']);
+		$temp_assignment = ( GetHWAssignment($_GET['hw'], $context->GetHWDB())['Lines']);
 		$defidsarray = array_map( function($x){return $x['definitionId'];}, $temp_assignment);
 		$defidsarray = array_unique($defidsarray);
 	}
 
-	$CorrectDictionary = $context::LevelDictDB[$level];
+	$CorrectDictionary = $context::LevelDictDB[$context->GetLevel()];
 
 	
-	
-	$AllTextsClause_Array = [];
-	foreach($context::DictDB as $k=>$d)
+	if(count($hwAssignmentsScope) == 0)
 	{
-		if($d == $CorrectDictionary)
+		$AllTextsClause_Array = [];
+		foreach($context::DictDB as $k=>$d)
 		{
+			if($d == $CorrectDictionary)
+			{
+				$ProseException = "";
+				if(!in_array($k, $context::Poetry))
+				{
+					$ProseException = " NULL as ";
+				}
+				array_push($AllTextsClause_Array, "(SELECT `id`, `definitionId`, `secondaryDefId`, ".$ProseException." `Tmesis` FROM `".$context::BookDB[$k]."`)");
+			}
+		}
+
+
+
+	}
+	else
+	{
+		$AllTextsClause_Array = [];
+		
+		
+		foreach($hwAssignmentsScope as $hw)
+		{
+			$HWAss = GetHWAssignment($hw);
+			$IDRangesForAssignment = ConvertIntegerArrayToRanges(array_map(function($x){return (int) $x['id'];},$HWAss['Lines']));
+			// var_dump($IDRangesForAssignment);
+
+
+			$WhereClause0 = " WHERE 0 ";
+			foreach ($IDRangesForAssignment as $range)
+			{
+				$tempStart = $range[0];
+				$tempEnd = $range[1];
+				$WhereClause0 .= " OR (`id` >= ".$tempStart." AND `id` <= ".$tempEnd.") ";
+			}
+			// echo $WhereClause0 ;
+
 			$ProseException = "";
-			if(!in_array($k, $context::Poetry))
+			if(!in_array($HWAss['Title'], $context::Poetry))
 			{
 				$ProseException = " NULL as ";
 			}
-			array_push($AllTextsClause_Array, "(SELECT `id`, `definitionId`, `secondaryDefId`, ".$ProseException." `Tmesis` FROM `".$context::BookDB[$k]."`)");
+
+
+			array_push($AllTextsClause_Array, ("SELECT `id`, `definitionId`, `secondaryDefId`, ".$ProseException." `Tmesis` FROM `".$HWAss['Title']."` " .  $WhereClause0 ));
 		}
+		$AllTextsClause_Array =  array_unique($AllTextsClause_Array);
+
+
 	}
 
+
+
 	$AllTextsClause = "( ".implode(" UNION ALL ",$AllTextsClause_Array)." ) as `combined`";
+
+	// var_dump($AllTextsClause);
 	
 	$WhereClause = " WHERE 0 ";
 	foreach ($defidsarray as $defnumba)
@@ -606,7 +667,8 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	}
 	
 
-	$WordNotes = SQLQuarry(' SELECT `'.$context->GetNotesDB().'Locations`.`NoteId`, `AssociatedWordId`,   `'.$context->GetNotesDB().'Text`.`Text`, `BookTitle`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `'.$context->GetNotesDB().'Locations` INNER JOIN `'.$context->GetNotesDB().'Text` ON (`'.$context->GetNotesDB().'Text`.`NoteId` = `'.$context->GetNotesDB().'Locations`.`NoteId`) INNER JOIN (SELECT `id`,`OrderOfText`, `book`,`chapter`, `word`,`lineNumber`   FROM `'.$context->GetTextDB().'`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`OrderOfText` >= '.$hwstart.' AND `sub`.`OrderOfText` <= '.$hwend.') AND `BookTitle` = "'.$title.'" AND `AssociatedLineCitation` = "" ORDER BY `AssociatedWordId`');
+	$WordNotes = SQLQuarry(' SELECT `'.$context->GetNotesDB().'Locations`.`NoteId`,`OrderOfText`, `AssociatedWordId`, `AssociatedWordId` as `FirstWordId`,  `'.$context->GetNotesDB().'Text`.`Text`, `BookTitle`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `'.$context->GetNotesDB().'Locations` INNER JOIN `'.$context->GetNotesDB().'Text` ON (`'.$context->GetNotesDB().'Text`.`NoteId` = `'.$context->GetNotesDB().'Locations`.`NoteId`) INNER JOIN (SELECT `id`,`OrderOfText`, `book`,`chapter`, `word`,`lineNumber`   FROM `'.$context->GetTextDB().'`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`OrderOfText` >= '.$hwstart.' AND `sub`.`OrderOfText` <= '.$hwend.')  AND (`sub`.`book` = (SELECT `book` FROM `'.$context->GetTextDB().'` WHERE `id` = '.$hwstart.') OR `sub`.`book` = (SELECT `book` FROM `'.$context->GetTextDB().'` WHERE `id` = '.$hwend.') ) AND `BookTitle` = "'.$title.'" AND `AssociatedLineCitation` = "" ORDER BY `sub`.`OrderOfText`, `AssociatedWordId`');
+	
 
 	
 	if(in_array($title, $context::Chapters))
@@ -619,7 +681,8 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	}
 	
 
-	$LineNotes = SQLQuarry('SELECT `'.$context->GetNotesDB().'Locations`.`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `'.$context->GetNotesDB().'Text`.`Text`, `BookTitle`, `book`, `chapter`, `lineNumber` FROM `'.$context->GetNotesDB().'Locations` INNER JOIN `'.$context->GetNotesDB().'Text` ON (`'.$context->GetNotesDB().'Text`.`NoteId` = `'.$context->GetNotesDB().'Locations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `'.$context->GetTextDB().'`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND `BookTitle` = "'.$title.'" ORDER BY `AssociatedLineCitation`, `lineNumber`');
+	$LineNotes = SQLQuarry('SELECT `'.$context->GetNotesDB().'Locations`.`NoteId`,   `AssociatedWordId` as `FirstWordId`, `sub`.`id` as `AssociatedWordId`,  `AssociatedLineCitation`, `'.$context->GetNotesDB().'Text`.`Text`, `BookTitle`, `book`, `chapter`, `lineNumber` FROM `'.$context->GetNotesDB().'Locations` INNER JOIN `'.$context->GetNotesDB().'Text` ON (`'.$context->GetNotesDB().'Text`.`NoteId` = `'.$context->GetNotesDB().'Locations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `'.$context->GetTextDB().'`) as `sub` ON ( `AssociatedLineCitation` =  '.$ConcatText.'   ) WHERE (`sub`.`id` >= '.$hwstart.' AND `sub`.`id` <= '.$hwend.') AND (`sub`.`book` = (SELECT `book` FROM `'.$context->GetTextDB().'` WHERE `id` = '.$hwstart.') OR `sub`.`book` = (SELECT `book` FROM `'.$context->GetTextDB().'` WHERE `id` = '.$hwend.') ) AND `BookTitle` = "'.$title.'" ORDER BY `AssociatedLineCitation`, `lineNumber`');
+	
 	
 	$CondensedNotes = array();
 
@@ -650,24 +713,31 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 			$CondensedNotes[$note["NoteId"]]["WL"] = "Word";
 			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
 			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
-			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["AssociatedWordId"];
+			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["OrderOfText"];
 			$CondensedNotes[$note["NoteId"]]["phrase"] = $note["word"]; 
 			$CondensedNotes[$note["NoteId"]]["lines"] = array($templinecitation); 
 			$CondensedNotes[$note["NoteId"]]["comparableCitation"] = $note["AssociatedWordId"]; 
 		}
 		else
 		{
-			if(($CondensedNotes[$note["NoteId"]]["LastWordId"]+1) == $note["AssociatedWordId"])
+			if(($CondensedNotes[$note["NoteId"]]["LastWordId"]+0.5) == $note["OrderOfText"])
 			{
-				$CondensedNotes[$note["NoteId"]]["phrase"] .= " ". $note["word"]; 
+				$CondensedNotes[$note["NoteId"]]["phrase"] .= " ". $note["word"] ;
+				// $CondensedNotes[$note["NoteId"]]["phrase"] .=  "(".$note["OrderOfText"].")"; 
+			}
+			else if (($CondensedNotes[$note["NoteId"]]["LastWordId"]+1) == $note["OrderOfText"])
+			{
+				$CondensedNotes[$note["NoteId"]]["phrase"] .= " ". $note["word"] ;
+				// $CondensedNotes[$note["NoteId"]]["phrase"] .=  "(".$note["OrderOfText"].")";  
 			}
 			else
 			{
-				$CondensedNotes[$note["NoteId"]]["phrase"] .= " … ". $note["word"]; 
-			}
+				$CondensedNotes[$note["NoteId"]]["phrase"] .= " … ". $note["word"];
+				// $CondensedNotes[$note["NoteId"]]["phrase"] .=  "(".$note["OrderOfText"].")"; 
+			} 
 
 
-			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["AssociatedWordId"];
+			$CondensedNotes[$note["NoteId"]]["LastWordId"] = $note["OrderOfText"];
 			array_push($CondensedNotes[$note["NoteId"]]["AssociatedWordId"], $note["AssociatedWordId"]);
 
 			array_push($CondensedNotes[$note["NoteId"]]["lines"], $templinecitation); 
@@ -690,14 +760,17 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 
 		if(!isset($CondensedNotes[$note["NoteId"]]))
 		{
-			$CondensedNotes[$note["NoteId"]] = array("AssociatedWordId" => $templinecitation);
+			$CondensedNotes[$note["NoteId"]] = array("AssociatedWordId" => array($note["AssociatedWordId"]));
 			$CondensedNotes[$note["NoteId"]]["WL"] = "Line";
 			$CondensedNotes[$note["NoteId"]]["BookTitle"] = $note["BookTitle"];
 			$CondensedNotes[$note["NoteId"]]["Text"] = $note["Text"];
 			$CondensedNotes[$note["NoteId"]]["phrase"] = "";
 			$CondensedNotes[$note["NoteId"]]["NoteId"] = $note["NoteId"];
 			$CondensedNotes[$note["NoteId"]]["lines"] = array($templinecitation); 
-			$CondensedNotes[$note["NoteId"]]["comparableCitation"] = $note["AssociatedWordId"]; 
+			$CondensedNotes[$note["NoteId"]]["comparableCitation"] = $note["FirstWordId"]; 
+
+
+			// echo ($CondensedNotes[$note["NoteId"]]['AssociatedWordId']. " |");
 
 		}
 		else
@@ -706,6 +779,13 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 			{
 				array_push($CondensedNotes[$note["NoteId"]]["lines"], $templinecitation);
 			}
+
+			// var_dump($CondensedNotes[$note["NoteId"]] );
+			array_push($CondensedNotes[$note["NoteId"]]["AssociatedWordId"], $note["AssociatedWordId"]);
+			// echo ($note['AssociatedWordId']. " x");
+
+
+			
 			// $CondensedNotes[$note["NoteId"]]["lines"] = array_unique ($CondensedNotes[$note["NoteId"]]["lines"]); 
 			sort($CondensedNotes[$note["NoteId"]]["lines"]);
 		}
@@ -740,7 +820,9 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 	{
 		$outputText .= "<note ";
 		$outputText .= "noteid = '" . $Cnote["NoteId"] . "'";
-		$outputText .= "cc = '".$Cnote["comparableCitation"]."' associatedwords = '".( gettype($Cnote["AssociatedWordId"]) == "array" ? implode(",", $Cnote["AssociatedWordId"]): 0)."' >";
+		$outputText .= "cc = '".$Cnote["comparableCitation"]."' associatedwords = '".( gettype($Cnote["AssociatedWordId"]) == "array"
+		 ? implode(",", $Cnote["AssociatedWordId"]):
+		  0)."' >";
 		// var_dump($Cnote["lines"]);
 		$linestext = count($Cnote["lines"]) > 1 ? min($Cnote["lines"]) . "–" .  max($Cnote["lines"]) :   $Cnote["lines"][0];
 
@@ -956,6 +1038,10 @@ function DisplayLines($showvocab,  $assignment, $lines, $dictionary, $linespacin
 				1865, //Acestes
 				1918, //Acestes
 				1991, //Acestes
+
+
+
+				///Unit 2
 			];
 
 			$WordisAvailable = ($context->GetTestStatus() && ((int) $Frequencies[$word['definitionId']]) <=5 && !in_array(+$word['id'], $SpecificBannedTestWordIds)  )  || !$context->GetTestStatus() ;
