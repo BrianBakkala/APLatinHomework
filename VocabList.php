@@ -48,7 +48,7 @@ require_once ( 'FontStyles.php');
 		width:90%;
 	}
 
-	word:nth-child(4n)
+	word:nth-child(4n+1)
 	{
 		background-color: white;
 	}
@@ -57,10 +57,7 @@ require_once ( 'FontStyles.php');
 	{
 		border-bottom: 3px solid white;
 	}
-	
-	word[used-in-ap="true"] {
-		/* background-color:lightblue; */
-	}
+	 
 
 	definition,
 	.editDef {
@@ -203,6 +200,17 @@ require_once ( 'FontStyles.php');
 		opacity: 1;
 	}
 
+	unit{
+		
+		padding:10px;
+	}
+
+	units{
+
+		font-size:x-large;
+		display:block;
+	}
+
 </style>
 
 <script>
@@ -226,7 +234,6 @@ require_once ( 'SQLConnection.php');
 require_once ( 'GenerateNotesandVocab.php'); 
 
 
-
 $Conversion = [
 	"-" => "-",
 	
@@ -236,17 +243,28 @@ $Conversion = [
 	"A" => "a", "B" => "b", "C" => "c", "D" => "d", "E" => "e", "F" => "f", "G" => "g", "H" => "h", "I" => "i", "J" => "j", "K" => "k", "L" => "l", "M" => "m", "N" => "n", "O" => "o", "P" => "p", "Q" => "q", "R" => "r", "S" => "s", "T" => "t", "U" => "u", "V" => "v", "W" => "w", "X" => "x", "Y" => "y", "Z" => "z"
 ];
 
-
 $Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `#APDictionary` ');
 $words_ids  = array_map(function($x){return $x['id'];}, $Dictionary);
 $Frequencies = GetFreqTable($words_ids);
 
-foreach($Dictionary as $index=>$word)
+if(isset($_GET['unit']))
 {
-	$Dictionary[$index]['frequency'] = $Frequencies[$word['id']];
+	$unit = $_GET['unit'];
+	$Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `#APDictionary` ');
+	$Frequencies =  GetFreqTable($words_ids , GetHWsInUnits($unit));
 }
 
-
+foreach($Dictionary as $index=>$word)
+{
+	if(isset($_GET['unit']) && $Frequencies[$word['id']] == 0)
+	{
+		unset($Dictionary[$index]);
+	}
+	else
+	{
+		$Dictionary[$index]['frequency'] = $Frequencies[$word['id']];
+	}
+}
 
 usort($Dictionary, function ($a, $b) {
 	global $Conversion;
@@ -300,6 +318,29 @@ usort($Dictionary, function ($a, $b) {
 });
 
 echo "<p  style='text-align:left;'><a href='Dictionary.php'>← Dictionary</a></p>";
+echo "<units>";
+
+$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; 
+$actual_link = explode("?", $actual_link)[0];
+
+	echo "Units: ";
+	echo "<a href='".$actual_link   ."'>";
+		echo "<unit>";
+			echo "All";
+		echo "</unit>";
+	echo "</a>";
+	echo "|";
+	for($u=1; $u <=8; $u++)
+	{
+		// echo "<a href='".http_build_query(["unit"=> $u])  ."'>";
+		echo "<a href='".$actual_link ."?".http_build_query(["unit" => $u]) ."'>";
+
+			echo "<unit>";
+				echo $u;
+			echo "</unit>";
+		echo "</a>";
+	}
+echo "</units>";
 
 foreach($Dictionary as $word)
 {
