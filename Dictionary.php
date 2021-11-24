@@ -25,6 +25,7 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 
 	*[aponly]
 	{
+		font-size: inherit;
 		<?php
 		
 			if(!($context->GetLevel() == "AP"))
@@ -70,11 +71,7 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 	word:last-child
 	{
 		border-bottom: 3px solid white;
-	}
-	
-	word[used-in-ap="true"] {
-		/* background-color:lightblue; */
-	}
+	} 
 
 	definition,
 	.editDef {
