@@ -384,6 +384,9 @@ function SuggestHW(HWArray, LatestNumber)
 					}
 					sd++
 				}
+
+				document.getElementById('ssLink').innerText = 'Spreadsheet'
+				document.getElementById('ssLink').setAttribute('href', 'https://docs.google.com/spreadsheets/d/<?php echo $DocumentID;?>')
 			}
 		};
 		xmlhttp.open("GET", "https://sheets.googleapis.com/v4/spreadsheets/<?php echo $DocumentID;?>/values/Export?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es", true);
@@ -487,5 +490,6 @@ function CreateAPLatinHWAssignment(clickedElement)
 <BR>
 <BR>
 <span  style = 'padding:5px;' onclick = 'SignInWithCheck()' >Link with Google API</span> 
+<span  style = 'padding:5px;'  ><a target = '_blank' id = 'ssLink'></a></span> 
 
 <span  style = 'padding:5px;' onclick = 'signOut()'>Sign Out</span>
