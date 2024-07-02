@@ -1,8 +1,8 @@
 <?php
 
 require_once 'FontStyles.php';
-require_once 'GenerateNotesandVocab.php';
-require 'autoload.php'; // or 'vendor/autoload.php' if using Composer
+require_once 'SQLConnection.php';
+require_once 'globals.php';
 
 use app\Context;
 
@@ -14,18 +14,6 @@ if (Context::getTestStatus())
 }
 ?>
 
-<style>
-*[ap-only] {
-    font-size: inherit;
-
-    <?php if (!(Context::getLevel() == "AP"))
-{
-    echo "display:none;";
-}
-
-?>
-}
-</style>
 
 <!--
 
@@ -38,7 +26,7 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 <p ap-only style = 'text-align:left;'><A href = 'UnitsViewer.php'>← Units</A></p>
 
 <script src="js/global/utility.js<?php echo "?" . date("mds"); ?>" defer></script>
-<script src="js/dictionary.js<?php echo "?" . date("mds"); ?>" defer></script>
+<script src="js/dictionary.js<?php echo "?" . date("mds"); ?>"></script>
 <link rel="stylesheet" href="css/dictionary.css<?php echo "?" . date("mds"); ?>">
 
 
@@ -48,7 +36,7 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 <input placeholder = 'Search...' value = '<?php if (isset($_GET['word']))
 {
     echo $_GET['word'];
-}?>'   onkeyup = 'FilterDict(this.value);' type = "text" id = 'filterdict'><BR><BR>
+}?>'   onkeyup = 'filterDictionary(this.value);' type = "text" id = 'filterdict'><BR><BR>
 </form>
 <div style = 'display:none;' id = 'searchResult'></div>
 <dictionary id = 'dictionary'>

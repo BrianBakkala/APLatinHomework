@@ -52,15 +52,13 @@ function latinAJAX(destination, params, callbackFunction = null, method = "POST"
             }
         };
 
-        params['auth'] = REQUEST_AUTH;
-
         const XMLParams = new URLSearchParams(params);
-        const XMLURL = AJAXAPL.php + "?" + destination + '=true&' + (XMLParams.entries().next().value[0] + "=" + XMLParams.entries().next().value[1]);
+        const XMLURL = "AJAXAPL.php" + "?" + destination + '=true&' + (XMLParams.entries().next().value[0] + "=" + XMLParams.entries().next().value[1]);
 
         xmlhttp.open(method, XMLURL + "", true);
         xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         const ajaxTime = new Date().getTime();
-        xmlhttp.send(DOMPurify.sanitize(XMLParams.toString()));
+        xmlhttp.send(XMLParams.toString());
 
     });
 }

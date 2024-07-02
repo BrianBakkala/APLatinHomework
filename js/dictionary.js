@@ -1,12 +1,12 @@
 
-function FilterDict(filterText)
+function filterDictionary(filterText)
 {
 
 
 
 	return latinAJAX("filter-dictionary",
 		{
-			level: '<?php echo Context::getLevel(); ?>',
+			level: CONTEXT.level,
 			filter_text: filterText,
 		}
 
@@ -14,7 +14,7 @@ function FilterDict(filterText)
 		{
 			if (document.getElementById('filterdict').value == filterText)
 			{
-				document.getElementById('dictionary').innerHTML = Response;
+				document.getElementById('dictionary').innerHTML = r;
 				document.getElementById('searchResult').innerText = filterText;
 			}
 		}

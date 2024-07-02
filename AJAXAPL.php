@@ -1,7 +1,11 @@
 <?php
+require_once 'autoload.php';
+
+use app\Context;
 
 require_once 'SQLConnection.php';
 require_once 'GenerateNotesandVocab.php';
+require_once 'utility/debug.php';
 
 $hint = "";
 
@@ -87,27 +91,27 @@ if (isset($_REQUEST["update-definition"]))
 
     //SQLRun('UPDATE `~DeanReferrals` SET `DeanNotes`="'. $_REQUEST["deansnotes"] .'" WHERE `ReferralID` = "'. $_REQUEST["referralid"] .'"');
     //   echo ('UPDATE `#AP'.$_REQUEST["authortext"].'Text` SET `definitionId` = '. $_REQUEST["def1"] .' , `secondaryDefId` = '. $_REQUEST["def2"] .'  WHERE `id` = '. $_REQUEST["wordid"] .';');
-    latinQuery([Context::BOOK_DB[$_REQUEST["title"]], $_REQUEST["def1"], $_REQUEST["def2"], $_REQUEST["wordid"]], 'UPDATE ? SET `definitionId` = ? , `secondaryDefId` = ? WHERE `id` = ?;');
-    $hint = latinQuery([Context::LEVEL_DICT_DB[$_REQUEST['level']], $_REQUEST["def1"]], 'SELECT `definition` FROM ? WHERE `id` = ? ', true, false, true);
+    latinQuery([Context::getTextDB(), $_REQUEST["def1"], $_REQUEST["def2"], $_REQUEST["wordid"]], 'UPDATE ? SET `definitionId` = ? , `secondaryDefId` = ? WHERE `id` = ?;');
+    $hint = latinQuery([Context::getDict(), $_REQUEST["def1"]], 'SELECT `definition` FROM ? WHERE `id` = ? ', true, false, true);
     if ($_REQUEST["def2"] != -1)
     {
         $hint .= " | ";
-        $hint .= latinQuery([Context::DICT_DB[$_REQUEST["title"]], $_REQUEST["def2"]], 'SELECT `definition` FROM ? WHERE `id` = ? ', true, false, true);
+        $hint .= latinQuery([Context::getTextDB(), $_REQUEST["def2"]], 'SELECT `definition` FROM ? WHERE `id` = ? ', true, false, true);
     }
 }
 
 if (isset($_REQUEST["filter-dictionary"]))
 {
-    $nomacronsfilterarray = preg_split('/(?!^)(?=.)/u', $_REQUEST["filtertext"]);
+    $nomacronsfilterarray = preg_split('/(?!^)(?=.)/u', $_REQUEST["filter_text"]);
     $nomacronsfiltertext = implode("", array_map(function ($x)
     {
         global $Conversion;
         return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
     }, $nomacronsfilterarray));
 
-    $Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `' . Context::LEVEL_DICT_DB[$_REQUEST['level']] . '` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") COLLATE UTF8_GENERAL_CI LIKE "%' . $nomacronsfiltertext . '%" OR `definition` COLLATE UTF8_GENERAL_CI LIKE "%' . $nomacronsfiltertext . '%") ');
+    $Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `' . Context::getDict() . '` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") COLLATE UTF8_GENERAL_CI LIKE "%' . $nomacronsfiltertext . '%" OR `definition` COLLATE UTF8_GENERAL_CI LIKE "%' . $nomacronsfiltertext . '%") ');
 
-    if (strlen($_REQUEST["filtertext"]) < 2 && count($Dictionary) > 500)
+    if (strlen($_REQUEST["filter_text"]) < 2 && count($Dictionary) > 500)
     {
         $hint = "Too many results.";
     }
@@ -197,9 +201,9 @@ if (isset($_REQUEST["filter-dictionary"]))
 
             $searchablestring = implode("", $searchablestringChars);
 
-            // $hint.=preg_match('/'. $_REQUEST["filtertext"] . '/', $searchablestring ) ;
+            // $hint.=preg_match('/'. $_REQUEST["filter_text"] . '/', $searchablestring ) ;
 
-            $filterString = $_REQUEST["filtertext"];
+            $filterString = $_REQUEST["filter_text"];
             $filterString = preg_split('/(?!^)(?=.)/u', $filterString);
             $filterString = array_map(function ($x)
             {
@@ -213,9 +217,9 @@ if (isset($_REQUEST["filter-dictionary"]))
 
                 $hightlightablestring = $word['entry'] . "⸻" . $word['definition'];
 
-                if ($_REQUEST["filtertext"] !== "")
+                if ($_REQUEST["filter_text"] !== "")
                 {
-                    $filterRegex = $_REQUEST["filtertext"];
+                    $filterRegex = $_REQUEST["filter_text"];
                     $filterRegex = preg_split('/(?!^)(?=.)/u', $filterRegex);
                     $filterRegex = array_map(function ($x)
                     {
@@ -294,7 +298,7 @@ if (isset($_REQUEST["delete-dictionary-entry"]))
 
 if (isset($_REQUEST["update-dictionary"]))
 {
-    SQLRun('UPDATE `' . Context->getDict() . '` SET `entry` = "' . $_REQUEST["newentry"] . '", `definition` = "' . $_REQUEST["newdefinition"] . '"   WHERE `id` = ' . $_REQUEST["wordid"] . ';');
+    SQLRun('UPDATE `' . Context::getDict() . '` SET `entry` = "' . $_REQUEST["newentry"] . '", `definition` = "' . $_REQUEST["newdefinition"] . '"   WHERE `id` = ' . $_REQUEST["wordid"] . ';');
 
     $hint = '{"definition":"' . $_REQUEST["newdefinition"] . '", "entry":"' . $_REQUEST["newentry"] . '"}';
 }
@@ -302,7 +306,7 @@ if (isset($_REQUEST["update-dictionary"]))
 if (isset($_REQUEST["add-note"]))
 {
 
-    $NoteId = SQLRun('INSERT INTO `' . Context::LEVEL_NOTES_DB[$_REQUEST["level"]] . 'Text` (`Text`) VALUES ("' . addslashes($_REQUEST["notetext"]) . '");');
+    $NoteId = SQLRun('INSERT INTO `' . Context::getNotesDB() . 'Text` (`Text`) VALUES ("' . addslashes($_REQUEST["notetext"]) . '");');
 
     if ($_REQUEST["wordids"] != "")
     {
@@ -310,7 +314,7 @@ if (isset($_REQUEST["add-note"]))
         $WIDs = array_unique(array_filter($WIDs));
         foreach ($WIDs as $wid)
         {
-            SQLRun("INSERT INTO `" . Context::LEVEL_NOTES_DB[$_REQUEST["level"]] . "Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (" . $NoteId . ", " . $wid . ", '', '" . $_REQUEST["booktitle"] . "');");
+            SQLRun("INSERT INTO `" . Context::getNotesDB() . "Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (" . $NoteId . ", " . $wid . ", '', '" . $_REQUEST["booktitle"] . "');");
         }
     }
     else
@@ -322,7 +326,7 @@ if (isset($_REQUEST["add-note"]))
 
             $FirstID = SQLQ('SELECT MIN(`id`)  FROM `' . Context::BOOK_DB[$_REQUEST["booktitle"]] . '` WHERE CONCAT(`book`, ".", `lineNumber`) = "' . $lid . '" OR  CONCAT(`book`, ".", `chapter`, ".", `lineNumber`) = "' . $lid . '"');
 
-            SQLRun("INSERT INTO `" . Context::LEVEL_NOTES_DB[$_REQUEST["level"]] . "Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (" . $NoteId . ",  " . $FirstID . ", '" . $lid . "', '" . $_REQUEST["booktitle"] . "');");
+            SQLRun("INSERT INTO `" . Context::getNotesDB() . "Locations` (`NoteId`, `AssociatedWordId`, `AssociatedLineCitation`, `BookTitle`) VALUES (" . $NoteId . ",  " . $FirstID . ", '" . $lid . "', '" . $_REQUEST["booktitle"] . "');");
 
         }
 
@@ -344,6 +348,4 @@ if (isset($_REQUEST["endsession"]))
 
 /////////////////////////////
 
-$hint = trim($hint);
-
-echo $hint == "" ? "No results" : $hint;
+echoHint($hint);
