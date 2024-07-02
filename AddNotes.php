@@ -18,7 +18,7 @@ echo "<assignment>";
 if ($_GET['hw'] != "1")
 {
 
-    $PrevHW = SQLQ('SELECT MAX(`HW`) FROM `#APHW` WHERE `HW` < ' . $_GET['hw']);
+    $PrevHW = SQLQ('SELECT MAX(`HW`) FROM `ap_homework` WHERE `HW` < ' . $_GET['hw']);
     echo "<A href = 'AddNotes.php?level=" . Context::getLevel() . "&hw=" . $PrevHW . "'>";
     echo "<IMG id = 'leftarrow' SRC = 'Images/LHarrow.png'>";
     echo "</A>";
@@ -31,7 +31,7 @@ echo "<i>";
 echo Context::getEnglishTitle();
 echo "</i> ";
 
-echo ReadableFloat($HWAssignment['StartBook']);
+echo createReadableFloat($HWAssignment['StartBook']);
 echo ".";
 if ($HWAssignment['StartChapter'] != null)
 {
@@ -41,7 +41,7 @@ if ($HWAssignment['StartChapter'] != null)
 echo $HWAssignment['StartLine'];
 
 echo "–";
-echo ReadableFloat($HWAssignment['EndBook']);
+echo createReadableFloat($HWAssignment['EndBook']);
 echo ".";
 if ($HWAssignment['EndChapter'] != null)
 {
@@ -52,10 +52,10 @@ echo $HWAssignment['EndLine'];
 
 echo "</h1>";
 
-if ($_GET['hw'] != SQLQ('SELECT MAX(`HW`) FROM `#APHW` '))
+if ($_GET['hw'] != SQLQ('SELECT MAX(`HW`) FROM `ap_homework` '))
 {
 
-    $NextHW = SQLQ('SELECT Min(`HW`) FROM `#APHW` WHERE `HW` > ' . $_GET['hw']);
+    $NextHW = SQLQ('SELECT Min(`HW`) FROM `ap_homework` WHERE `HW` > ' . $_GET['hw']);
 
     echo "<A href = 'AddNotes.php?level=" . Context::getLevel() . "&hw=" . $NextHW . "'>";
     echo "<IMG id = 'rightarrow' SRC = 'Images/LHarrow.png'>";
@@ -103,9 +103,9 @@ else
 {
     $temp_start_line = $HWAssignment['StartLine'];
 }
-echo "<line citation = '" . ReadableFloat($HWAssignment['StartBook']) . "." . $ChapterCitationText . $temp_start_line . "' num = '" . $temp_start_line . "'>";
+echo "<line citation = '" . createReadableFloat($HWAssignment['StartBook']) . "." . $ChapterCitationText . $temp_start_line . "' num = '" . $temp_start_line . "'>";
 
-$CliticList = GetCliticList($TargetedDictionary);
+$CliticList = getCliticList($TargetedDictionary);
 
 foreach ($HWLines as $word)
 {
@@ -184,7 +184,7 @@ echo "<span style = 'cursor:pointer;' onclick = 'TypeLine(this)'>(+)</span></lin
 echo "</assignment>";
 
 echo "<notes style = 'background-color:white'>";
-echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, $BookTitle);
+echo displayNotesText($HWStartId, $HWEndId, $HWAssignment, $BookTitle);
 echo "</notes>";
 
 echo "<testmode>";
@@ -258,7 +258,7 @@ function AddNote()
 			}
 		};
 
-		XMLURL = "AJAXAPL.php?add-note=true&booktitle=<?php echo Context::getBookTitle(); ?>&level=<?php echo Context::getLevel(); ?>&notetext="+NoteText+"&wordids=" + NoteWords+"&linecitations=" + NoteLines;
+		XMLURL = "AJAXAPL.php?add-note=true&booktitle="+CONTEXT.title+"&level="+CONTEXT.level+"&notetext="+NoteText+"&wordids=" + NoteWords+"&linecitations=" + NoteLines;
 		xmlhttp.open("GET", XMLURL, true);
 		xmlhttp.send();
 		console.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/" + XMLURL);

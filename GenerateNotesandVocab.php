@@ -1,16 +1,19 @@
 
 <?php
 
+require_once 'autoload.php';
+
+use app\Context;
+
 require_once 'SQLConnection.php';
+require_once 'utility/debug.php';
 
 $DocumentID = "11j0cC45e8RBiHbt0FKzJ-gHUZ_fEpDQzVo-cEU5eYAU";
 $ExportPageNumber = 7;
 
-use Context;
-
 if (isset($_GET['hw']))
 {
-    $Data = GetHWAssignment($_GET['hw']);
+    $Data = getHomeworkAssignment($_GET['hw']);
     $HWAssignment = $Data['Assignment'];
     $HWLines = $Data['Lines'];
     $TargetedDictionary = $Data['Dictionary'];
@@ -20,7 +23,7 @@ if (isset($_GET['hw']))
 
 // echo ('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$BOOK_DB[$BookTitle].'` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
 
-function ReadableFloat($input)
+function createReadableFloat($input)
 {
     $input = $input . "";
     $input = rtrim($input, " 0");
@@ -28,11 +31,10 @@ function ReadableFloat($input)
     return $input;
 }
 
-function GetHWLineIDs($HWNum, $hwdb, $title)
+function getHomeworkLineIDs($HWNum, $hwdb, $title)
 {
-    $context = new Context;
 
-    $Assignment = SQLQuarry('SELECT `HW`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`, `BookTitle`, `AddToBeginning`, `SubtractFromEnd`  FROM `' . $hwdb . '` WHERE `HW` = ' . ((int) $HWNum))[0];
+    $Assignment = latinQuery([$HWNum], 'SELECT `HW`, `StartBook`, `StartChapter`, `StartLine`, `EndBook`, `EndChapter`, `EndLine`, `Author`, `BookTitle`, `AddToBeginning`, `SubtractFromEnd`  FROM `' . $hwdb . '` WHERE `HW` = ?')[0];
 
     if ($Assignment['StartChapter'] == null && $Assignment['EndChapter'] == null)
     {
@@ -56,9 +58,8 @@ function GetHWLineIDs($HWNum, $hwdb, $title)
 
     }
 
-    $StartId = ((int) SQLQ('SELECT MIN(`OrderOfText`) FROM `' . Context::BOOK_DB[$title] . '` WHERE  `book` = ' . $Assignment['StartBook'] . ' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['AddToBeginning']));
-
-    $EndId = ((int) SQLQ('SELECT MAX(`OrderOfText`) FROM `' . Context::BOOK_DB[$title] . '` WHERE  `book` = ' . $Assignment['EndBook'] . ' AND ' . $WhereClause2 . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`') - ((int) $Assignment['SubtractFromEnd']));
+    $StartId = ((int) latinQuery([$Assignment['StartBook']], 'SELECT MIN(`OrderOfText`) FROM `' . Context::getTextDB() . '` WHERE  `book` = ? AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`', true, false, true) - ((int) $Assignment['AddToBeginning']));
+    $EndId = ((int) latinQuery([$Assignment['EndBook']], 'SELECT MAX(`OrderOfText`) FROM `' . Context::getTextDB() . '` WHERE  `book` = ? AND ' . $WhereClause2 . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`', true, false, true) - ((int) $Assignment['SubtractFromEnd']));
 
     return array(
         "StartID" => $StartId,
@@ -70,9 +71,8 @@ function GetHWLineIDs($HWNum, $hwdb, $title)
 
 }
 
-function GetHWAssignment($HWNum, $hwdb = null, $title = null)
+function getHomeworkAssignment($HWNum, $hwdb = null, $title = null)
 {
-    $context = new Context;
 
     if (!isset($HWNum))
     {
@@ -86,15 +86,15 @@ function GetHWAssignment($HWNum, $hwdb = null, $title = null)
 
     if (!isset($title))
     {
-        $title = SQLQ('SELECT  `BookTitle` FROM `' . $hwdb . '` WHERE `HW` = ' . $HWNum);
+        $title = latinQuery([$HWNum], 'SELECT  `BookTitle` FROM `' . $hwdb . '` WHERE `HW` = ?', true, false, true);
     }
 
-    $tempids = GetHWLineIDs($HWNum, $hwdb, $title);
+    $tempids = getHomeworkLineIDs($HWNum, $hwdb, $title);
     $StartId = (int) $tempids['StartID'];
     $EndId = (int) $tempids['EndID'];
     $Assignment = $tempids['Assignment'];
 
-    $Lines = SQLQuarry('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `' . Context::BOOK_DB[$title] . '` WHERE ( `book` = ' . $tempids['StartBook'] . ' or  `book` = ' . $tempids['EndBook'] . ') AND  `OrderOfText` >= ' . $StartId . ' AND `OrderOfText` <= ' . $EndId . ' ORDER BY `book`, `chapter`, `lineNumber`, `OrderOfText`');
+    $Lines = latinQuery([$tempids['StartBook'], $tempids['EndBook'], $StartId, $EndId], 'SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `' . Context::BOOK_DB[$title] . '` WHERE ( `book` = ? or  `book` = ?) AND  `OrderOfText` >= ? AND `OrderOfText` <= ? ORDER BY `book`, `chapter`, `lineNumber`, `OrderOfText`');
 
     $HWDefinitionIds = array_map(function ($x)
     {
@@ -106,7 +106,7 @@ function GetHWAssignment($HWNum, $hwdb = null, $title = null)
     }, $Lines);
     $HWDefinitionIds = array_unique(array_merge($HWDefinitionIds, $HWDefinitionIds2));
 
-    $TD = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords`  FROM `' . Context::getDict() . '` WHERE `id` <> 0 and `id` <> -1 and ( `id` = ' . implode(" OR `id` = ", $HWDefinitionIds) . ')   ORDER BY replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "Ā", "A") , "Ē", "E") , "Ī", "I") , "Ō", "O") , "Ū", "U") , "-", ""), "—, ", "")  COLLATE utf8_general_ci   ', false, "id");
+    $TD = latinQuery([], 'SELECT `id`, `entry`, `definition`, `IsTwoWords`  FROM `' . Context::getDict() . '` WHERE `id` <> 0 and `id` <> -1 and ( `id` = ' . implode(" OR `id` = ", $HWDefinitionIds) . ')   ORDER BY replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace( replace(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "Ā", "A") , "Ē", "E") , "Ī", "I") , "Ō", "O") , "Ū", "U") , "-", ""), "—, ", "")  COLLATE utf8_general_ci   ', false, "id");
 
     return [
         "Assignment" => $Assignment,
@@ -119,7 +119,7 @@ function GetHWAssignment($HWNum, $hwdb = null, $title = null)
 
 }
 
-function ConvertAsterisks($input)
+function parseAsterisks($input)
 {
     $input = preg_replace("/\*\*\*\*(.*?)\*\*\*\*/", "<b>\\1</b>", $input);
     $input = preg_replace("/\*\*\*(.*?)\*\*\*/", "<i>\\1</i>", $input);
@@ -129,9 +129,8 @@ function ConvertAsterisks($input)
     return $input;
 }
 
-function GetCitationByWordID($title, $wordid)
+function getCitationByWordID($title, $wordid)
 {
-    $context = new Context;
 
     if ($title == null)
     {
@@ -141,7 +140,7 @@ function GetCitationByWordID($title, $wordid)
     $wordid = $wordid . "";
     $hwdb = Context::BOOK_DB[$title];
 
-    $tempdata = SQLQuarry('SELECT *   FROM `' . $hwdb . '` WHERE `id` = ' . $wordid)[0];
+    $tempdata = latinQuery([$wordid], 'SELECT *   FROM `' . $hwdb . '` WHERE `id` = ?')[0];
 
     $citationoutput = "";
     $citationoutput .= $tempdata['book'];
@@ -157,9 +156,8 @@ function GetCitationByWordID($title, $wordid)
 
 }
 
-function FindHWByWordID($title = null, $wordid)
+function findHomeworkByWordID($title = null, $wordid = 1)
 {
-    $context = new Context;
 
     if ($title == null)
     {
@@ -171,7 +169,7 @@ function FindHWByWordID($title = null, $wordid)
     $lev = array_flip(Context::LEVEL_DICT_DB)[Context::DICT_DB[$title]];
     $hwdb = Context::LEVEL_DB[$lev];
 
-    $HWnums = SQLQuarry('SELECT `HW` FROM `' . $hwdb . '` WHERE `BookTitle` = "' . $title . '"', true);
+    $HWnums = latinQuery([$title], 'SELECT `HW` FROM `' . $hwdb . '` WHERE `BookTitle` =  ?', true);
     $HWnums = array_map(function ($x)
     {
         return (int) $x;
@@ -180,11 +178,11 @@ function FindHWByWordID($title = null, $wordid)
     $a = 0;
     do
     {
-        $temp_id_nums = GetHWLineIDs($HWnums[$a], $hwdb, $title);
+        $temp_id_nums = getHomeworkLineIDs($HWnums[$a], $hwdb, $title);
         $tempStart = $temp_id_nums['StartID'];
         $tempEnd = $temp_id_nums['EndID'];
 
-        $lineIdsArray = SQLQuarry('SELECT `id`  FROM `' . Context::BOOK_DB[$title] . '` WHERE ( `book` = ' . $temp_id_nums['StartBook'] . ' or  `book` = ' . $temp_id_nums['EndBook'] . ') AND  `OrderOfText` >= ' . $temp_id_nums['StartID'] . ' AND `OrderOfText` <= ' . $temp_id_nums['EndID'], true);
+        $lineIdsArray = latinQuery([$temp_id_nums['StartBook'], $temp_id_nums['EndBook'], $temp_id_nums['StartID'], $temp_id_nums['EndID']], 'SELECT `id`  FROM `' . Context::BOOK_DB[$title] . '` WHERE ( `book` = ? or  `book` = ?) AND  `OrderOfText` >= ? AND `OrderOfText` <= ?', true);
         $lineIdsArray = array_map(function ($x)
         {
             return (int) $x;
@@ -197,32 +195,32 @@ function FindHWByWordID($title = null, $wordid)
     return $HWnums[$a - 1];
 }
 
-function GetCliticList($dictionary)
+function getCliticList($dictionary)
 {
-    $CliticList = array_filter($dictionary, function ($word)
+    $cliticList = array_filter($dictionary, function ($word)
     {
         return ($word['entry'][0] == "-");
     });
-    $CliticList = array_map(function ($word)
+    $cliticList = array_map(function ($word)
     {
         return $word['entry'];
-    }, $CliticList);
-    $CliticList = array_values(array_unique($CliticList));
+    }, $cliticList);
+    $cliticList = array_values(array_unique($cliticList));
 
     return array(
-        "normal" => $CliticList = array_values(array_unique($CliticList)),
+        "normal" => $cliticList = array_values(array_unique($cliticList)),
         "no_hyphens" => array_map(function ($val)
         {
             return ltrim($val, '-');
-        }, $CliticList),
+        }, $cliticList),
         "no_hyphens_with_dollar_signs" => array_map(function ($val)
         {
             return ltrim($val, '-') . "$";
-        }, $CliticList),
+        }, $cliticList),
     );
 }
 
-function GetHWsInUnits(...$units)
+function getHomeworkAssignmentsInUnits(...$units)
 {
     $WhereClause = 'WHERE 0 ';
     foreach ($units as $unit)
@@ -230,10 +228,10 @@ function GetHWsInUnits(...$units)
         $WhereClause .= ' OR  `Unit` = "' . $unit . '" ';
 
     }
-    return SQLQuarry('SELECT `HW`  FROM `#APHW`  ' . $WhereClause, true);
+    return latinQuery([], 'SELECT `HW`  FROM `ap_homework`  ' . $WhereClause, true);
 }
 
-function ConvertIntegerArrayToRanges($array, $last = array(), $done = array())
+function convertIntegerArrayToRanges($array, $last = array(), $done = array())
 {
     if ($array == array())
     {
@@ -249,19 +247,18 @@ function ConvertIntegerArrayToRanges($array, $last = array(), $done = array())
     }
     if ($t[0] == 1 + $last[1])
     {
-        return ConvertIntegerArrayToRanges($t, array($last[0], $h + 1), $done);
+        return convertIntegerArrayToRanges($t, array($last[0], $h + 1), $done);
     }
     $done[] = $last;
-    return ConvertIntegerArrayToRanges($t, array(), $done);
+    return convertIntegerArrayToRanges($t, array(), $done);
 }
 
-function GetFreqTable($defidsarray = null, $hwAssignmentsScope = array())
+function getFrequencyTable($defidsarray = null, $hwAssignmentsScope = array())
 {
-    $context = new Context;
 
     if ($defidsarray == null)
     {
-        $temp_assignment = (GetHWAssignment($_GET['hw'], Context::getHWDB())['Lines']);
+        $temp_assignment = (getHomeworkAssignment($_GET['hw'], Context::getHWDB())['Lines']);
         $defidsarray = array_map(function ($x)
         {
             return $x['definitionId'];
@@ -294,8 +291,8 @@ function GetFreqTable($defidsarray = null, $hwAssignmentsScope = array())
 
         foreach ($hwAssignmentsScope as $hw)
         {
-            $HWAss = GetHWAssignment($hw);
-            $IDRangesForAssignment = ConvertIntegerArrayToRanges(array_map(function ($x)
+            $HWAss = getHomeworkAssignment($hw);
+            $IDRangesForAssignment = convertIntegerArrayToRanges(array_map(function ($x)
             {
                 return (int) $x['id'];
             }, $HWAss['Lines']));
@@ -337,7 +334,7 @@ function GetFreqTable($defidsarray = null, $hwAssignmentsScope = array())
         $WhereClause2 .= "OR (`id` = " . $defnumba . ") ";
     }
 
-    $primaryuses = SQLQuarry(' SELECT `definitionId` , SUM(
+    $primaryuses = latinQuery([], ' SELECT `definitionId` , SUM(
 		CASE WHEN `id` IS NOT NULL
 			THEN CASE WHEN `Tmesis` <> 0 THEN 0.5
 			ELSE
@@ -350,7 +347,7 @@ function GetFreqTable($defidsarray = null, $hwAssignmentsScope = array())
 		)
 			as `frequency` FROM ' . $AllTextsClause . '  INNER JOIN (SELECT `id` as `did`,  `IsTwoWords` FROM `' . $CorrectDictionary . '`  ' . $WhereClause2 . ' ) as `dict` on (`dict`.`did` = `definitionId`)  ' . $WhereClause . '  GROUP BY  `definitionId`   ');
 
-    $secondarydefidsarray = SQLQuarry('SELECT `id` FROM `#APDictionary` WHERE `entry` LIKE "-%" ', true);
+    $secondarydefidsarray = latinQuery([], 'SELECT `id` FROM `#APDictionary` WHERE `entry` LIKE "-%" ', true);
 
     $WhereClause = " WHERE 0 ";
     foreach ($secondarydefidsarray as $sdefnumba)
@@ -358,7 +355,7 @@ function GetFreqTable($defidsarray = null, $hwAssignmentsScope = array())
         $WhereClause .= "OR (`secondaryDefId` = " . $sdefnumba . ") ";
     }
 
-    $secondaryuses = SQLQuarry(' SELECT `secondaryDefId` , COUNT(`id`) as `frequency` FROM ' . $AllTextsClause . '  ' . $WhereClause . '  GROUP BY  `secondaryDefId`   ');
+    $secondaryuses = latinQuery([], ' SELECT `secondaryDefId` , COUNT(`id`) as `frequency` FROM ' . $AllTextsClause . '  ' . $WhereClause . '  GROUP BY  `secondaryDefId`   ');
     $uses = array_merge($primaryuses, $secondaryuses);
 
     $freqs = [];
@@ -378,10 +375,8 @@ function GetFreqTable($defidsarray = null, $hwAssignmentsScope = array())
 
 }
 
-function GetFrequencyByLevel($definitionIdNumber, $level = "AP")
+function getFrequencyByLevel($definitionIdNumber, $level = "AP")
 {
-
-    $context = new Context;
 
     $usecount = 0;
 
@@ -389,22 +384,21 @@ function GetFrequencyByLevel($definitionIdNumber, $level = "AP")
     {
         if ($d == Context::getDict())
         {
-            $usecount += GetFrequencyByTitle($definitionIdNumber, $t);
+            $usecount += getFrequencyByTitle($definitionIdNumber, $t);
         }
     }
     return $usecount;
 }
 
-function GetFrequencyByTitle($definitionIdNumber, $title)
+function getFrequencyByTitle($definitionIdNumber, $title)
 {
-    $context = new Context;
 
-    $TwoWordCheck = SQLQ('SELECT `IsTwoWords` FROM `' . Context::DICT_DB[$title] . '` WHERE `id` = ' . $definitionIdNumber);
-    $uses = SQLQ('SELECT COUNT(`id`) FROM `' . Context::BOOK_DB[$title] . '` WHERE `definitionId` = ' . $definitionIdNumber . ' OR `secondaryDefId` = ' . $definitionIdNumber);
+    $TwoWordCheck = latinQuery([$definitionIdNumber], 'SELECT `IsTwoWords` FROM `' . Context::getDict() . '` WHERE `id` = ?');
+    $uses = latinQuery([$definitionIdNumber, $definitionIdNumber], 'SELECT COUNT(`id`) FROM `' . Context::getTextDB($title) . '` WHERE `definitionId` = ? OR `secondaryDefId` = ?', true, false, true);
 
     if ($title == "Aeneid")
     {
-        $Tmesis = SQLQ('SELECT COUNT(`id`) FROM `' . Context::BOOK_DB[$title] . '` WHERE (`definitionId` = ' . $definitionIdNumber . ' OR `secondaryDefId` = ' . $definitionIdNumber . ') and `Tmesis` = 1 ');
+        $Tmesis = latinQuery([$definitionIdNumber, $definitionIdNumber], 'SELECT COUNT(`id`) FROM `' . Context::getTextDB($title) . '` WHERE (`definitionId` = ? OR `secondaryDefId` = ?) and `Tmesis` = 1 ', true, false, true);
         $uses = (($uses - ($Tmesis / 2)));
     }
 
@@ -413,9 +407,9 @@ function GetFrequencyByTitle($definitionIdNumber, $title)
     return ((int) $uses);
 }
 
-function ParseNoteText($inputText, $showdevices = true, $title = null)
+function parseNoteText($inputText, $showdevices = true, $title = null)
 {
-    $context = new Context;
+
     $outputText = $inputText;
 
     if ($title == null)
@@ -423,7 +417,7 @@ function ParseNoteText($inputText, $showdevices = true, $title = null)
         $title = Context::getBookTitle();
     }
 
-    $literaryDevices = SQLQuarry('SELECT `Device`, `Description` FROM `#APLiteraryDevices`', false, "Device");
+    $literaryDevices = latinQuery([], 'SELECT `Device`, `Description` FROM `#APLiteraryDevices`', false, "Device");
     $literaryDevices = array_map(function ($x)
     {
         return $x['Description'];
@@ -448,7 +442,7 @@ function ParseNoteText($inputText, $showdevices = true, $title = null)
     $outputText = preg_replace("/\*(.*?)\*/", "<i>\\1</i>", $outputText);
 
     $outputText = preg_replace_callback("/\|\|(.*?)\|\|/",
-        function ($matches) use ($context, $title)
+        function ($matches) use ($title)
         {
             $m = $matches[0];
             $m = preg_replace("/^\|\|\[(.*)\]\|/", "<quotetitle onclick = 'ToggleQuote(this)'>" . "\\1" . "</quotetitle><quoteline>", $m);
@@ -463,37 +457,37 @@ function ParseNoteText($inputText, $showdevices = true, $title = null)
 
         }, $outputText);
 
-    // $outputText = preg_replace_callback("/\<\<(\d*?)\>\>/","<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".Context::getLevel()."&hw=".FindHWByWordID(Context::getBookTitle(), "\1")."&highlightedword="."\\1"."'>\\1</a>", $outputText);
+    // $outputText = preg_replace_callback("/\<\<(\d*?)\>\>/","<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".Context::getLevel()."&hw=".findHomeworkByWordID(Context::getBookTitle(), "\1")."&highlightedword="."\\1"."'>\\1</a>", $outputText);
     $outputText = preg_replace_callback("/\<\<(\d*?)\>\>/",
-        function ($matches) use ($context, $title)
+        function ($matches) use ($title)
         {
             $m = $matches[0];
             $m = preg_replace("/\<\<(\d*?)\>\>/", "\\1", $m);
 
-            return "<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=" . Context::getLevel() . "&title=" . $title . "&highlightedword=" . $m . "'>" . GetCitationByWordID($title, $m) . "</a>";
+            return "<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=" . Context::getLevel() . "&title=" . $title . "&highlightedword=" . $m . "'>" . getCitationByWordID($title, $m) . "</a>";
 
         }, $outputText);
     return $outputText;
 }
 
-function StripMacrons($inputText)
+function stripMacrons($inputText)
 {
-    $StripMacronsArray = [
+    $stripMacronsArray = [
         "ǖ" => "u", "ü" => "u", "ï" => "i",
         "ā" => "a", "ē" => "e", "ī" => "i", "ō" => "o", "ū" => "u", "ӯ" => "y",
         "Ā" => "A", "Ē" => "E", "Ī" => "I", "Ō" => "O", "Ū" => "U", "Ȳ" => "Y",
     ];
 
     $nomacronsarray = preg_split('/(?!^)(?=.)/u', $inputText);
-    $nomacronstext = implode("", array_map(function ($x) use ($StripMacronsArray)
+    $nomacronstext = implode("", array_map(function ($x) use ($stripMacronsArray)
     {
-        return (isset($StripMacronsArray[$x])) ? $StripMacronsArray[$x] : $x;
+        return (isset($stripMacronsArray[$x])) ? $stripMacronsArray[$x] : $x;
     }, $nomacronsarray));
 
     return $nomacronstext;
 }
 
-function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevices = true)
+function displayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevices = true)
 {
 
     if ($title == "")
@@ -501,7 +495,15 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
         $title = Context::getBookTitle();
     }
 
-    $WordNotes = SQLQuarry(' SELECT `' . Context::getNotesDB() . 'Locations`.`NoteId`,`OrderOfText`, `AssociatedWordId`, `AssociatedWordId` as `FirstWordId`,  `' . Context::getNotesDB() . 'Text`.`Text`, `BookTitle`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `' . Context::getNotesDB() . 'Locations` INNER JOIN `' . Context::getNotesDB() . 'Text` ON (`' . Context::getNotesDB() . 'Text`.`NoteId` = `' . Context::getNotesDB() . 'Locations`.`NoteId`) INNER JOIN (SELECT `id`,`OrderOfText`, `book`,`chapter`, `word`,`lineNumber`   FROM `' . Context::getTextDB() . '`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`OrderOfText` >= ' . $hwstart . ' AND `sub`.`OrderOfText` <= ' . $hwend . ')  AND (`sub`.`book` = (SELECT `book` FROM `' . Context::getTextDB() . '` WHERE `id` = ' . $hwstart . ') OR `sub`.`book` = (SELECT `book` FROM `' . Context::getTextDB() . '` WHERE `id` = ' . $hwend . ') ) AND `BookTitle` = "' . $title . '" AND `AssociatedLineCitation` = "" ORDER BY `sub`.`OrderOfText`, `AssociatedWordId`');
+    $WordNotes = latinQuery([
+
+        $hwstart,
+        $hwend,
+        $title,
+
+    ],
+
+        ' SELECT `' . Context::getNotesDB() . 'Locations`.`NoteId`,`OrderOfText`, `AssociatedWordId`, `AssociatedWordId` as `FirstWordId`,  `' . Context::getNotesDB() . 'Text`.`Text`, `BookTitle`, `sub`.`word`,`sub`.`book`,`sub`.`chapter`, `sub`.`lineNumber` FROM `' . Context::getNotesDB() . 'Locations` INNER JOIN `' . Context::getNotesDB() . 'Text` ON (`' . Context::getNotesDB() . 'Text`.`NoteId` = `' . Context::getNotesDB() . 'Locations`.`NoteId`) INNER JOIN (SELECT `id`,`OrderOfText`, `book`,`chapter`, `word`,`lineNumber`   FROM `' . Context::getTextDB() . '`) as `sub` ON (`sub`.`id` = `AssociatedWordId` )  WHERE (`sub`.`OrderOfText` >= ' . $hwstart . ' AND `sub`.`OrderOfText` <= ' . $hwend . ')  AND (`sub`.`book` = (SELECT `book` FROM `' . Context::getTextDB() . '` WHERE `id` = ?) OR `sub`.`book` = (SELECT `book` FROM `' . Context::getTextDB() . '` WHERE `id` = ?) ) AND `BookTitle` = ? AND `AssociatedLineCitation` = "" ORDER BY `sub`.`OrderOfText`, `AssociatedWordId`');
 
     if (in_array($title, Context::HAS_CHAPTERS))
     {
@@ -512,12 +514,9 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
         $ConcatText = "CONCAT(`sub`.`book`, '.', `sub`.`lineNumber`)";
     }
 
-    $LineNotes = SQLQuarry('SELECT `' . Context::getNotesDB() . 'Locations`.`NoteId`,   `AssociatedWordId` as `FirstWordId`, `sub`.`id` as `AssociatedWordId`,  `AssociatedLineCitation`, `' . Context::getNotesDB() . 'Text`.`Text`, `BookTitle`, `book`, `chapter`, `lineNumber` FROM `' . Context::getNotesDB() . 'Locations` INNER JOIN `' . Context::getNotesDB() . 'Text` ON (`' . Context::getNotesDB() . 'Text`.`NoteId` = `' . Context::getNotesDB() . 'Locations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `' . Context::getTextDB() . '`) as `sub` ON ( `AssociatedLineCitation` =  ' . $ConcatText . '   ) WHERE (`sub`.`id` >= ' . $hwstart . ' AND `sub`.`id` <= ' . $hwend . ') AND (`sub`.`book` = (SELECT `book` FROM `' . Context::getTextDB() . '` WHERE `id` = ' . $hwstart . ') OR `sub`.`book` = (SELECT `book` FROM `' . Context::getTextDB() . '` WHERE `id` = ' . $hwend . ') ) AND `BookTitle` = "' . $title . '" ORDER BY `AssociatedLineCitation`, `lineNumber`');
+    $LineNotes = latinQuery([], 'SELECT `' . Context::getNotesDB() . 'Locations`.`NoteId`,   `AssociatedWordId` as `FirstWordId`, `sub`.`id` as `AssociatedWordId`,  `AssociatedLineCitation`, `' . Context::getNotesDB() . 'Text`.`Text`, `BookTitle`, `book`, `chapter`, `lineNumber` FROM `' . Context::getNotesDB() . 'Locations` INNER JOIN `' . Context::getNotesDB() . 'Text` ON (`' . Context::getNotesDB() . 'Text`.`NoteId` = `' . Context::getNotesDB() . 'Locations`.`NoteId`) LEFT JOIN (SELECT `id`, `book`, `chapter`, `lineNumber` FROM `' . Context::getTextDB() . '`) as `sub` ON ( `AssociatedLineCitation` =  ' . $ConcatText . '   ) WHERE (`sub`.`id` >= ' . $hwstart . ' AND `sub`.`id` <= ' . $hwend . ') AND (`sub`.`book` = (SELECT `book` FROM `' . Context::getTextDB() . '` WHERE `id` = ' . $hwstart . ') OR `sub`.`book` = (SELECT `book` FROM `' . Context::getTextDB() . '` WHERE `id` = ' . $hwend . ') ) AND `BookTitle` = "' . $title . '" ORDER BY `AssociatedLineCitation`, `lineNumber`');
 
     $CondensedNotes = array();
-
-    // print_r($WordNotes);
-    // print_r($LineNotes);
 
     foreach ($WordNotes as $note)
     {
@@ -667,7 +666,7 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
         $outputText .= "<B>" . $filternote;
         $outputText .= $Cnote['phrase'] == "" ? "" : ":";
         $outputText .= " </B>";
-        $outputText .= ParseNoteText($Cnote['Text'], $literaryDevices);
+        $outputText .= parseNoteText($Cnote['Text'], $literaryDevices);
         $outputText .= "</note> ";
         // echo implode("|", $Cnote['comparableCitation']);
     }
@@ -676,12 +675,12 @@ function DisplayNotesText($hwstart, $hwend, $hwassignment, $title, $literaryDevi
 
 }
 
-function DisplayVocabText($dictionary, $condensed = false)
+function displayVocabText($dictionary, $condensed = false)
 {
     $outputtext = "";
     foreach ($dictionary as $entry)
     {
-        $freq = GetFrequencyByLevel($entry['id']);
+        $freq = getFrequencyByLevel($entry['id']);
 
         if ($condensed == true && $freq <= 10)
         {
@@ -737,14 +736,13 @@ function DisplayVocabText($dictionary, $condensed = false)
     return $outputtext;
 }
 
-//DisplayLines(true, $HWAssignment, $HWLines, $TargetedDictionary, $BookTitle)
-function DisplayLines($showvocab, $assignment, $lines, $dictionary, $linespacing = 2)
+//displayLines(true, $HWAssignment, $HWLines, $TargetedDictionary, $BookTitle)
+function displayLines($showVocab, $assignment, $lines, $dictionary, $linespacing = 2)
 {
-    $context = new Context;
 
-    $Frequencies = GetFreqTable();
+    $frequencyTable = getFrequencyTable();
 
-    $outputtext = "";
+    $outputText = "";
 
     $ChapterCitationText = "";
     if ($assignment['StartChapter'] != null)
@@ -761,14 +759,14 @@ function DisplayLines($showvocab, $assignment, $lines, $dictionary, $linespacing
         $temp_start_line = $assignment['StartLine'];
     }
 
-    if ($showvocab == true)
+    if ($showVocab == true)
     {
-        $outputtext .= "<line citation = '" . ReadableFloat($assignment['StartBook']) . "." . $ChapterCitationText . $temp_start_line . "' num = '" . $temp_start_line . "'>";
+        $outputText .= "<line citation = '" . createReadableFloat($assignment['StartBook']) . "." . $ChapterCitationText . $temp_start_line . "' num = '" . $temp_start_line . "'>";
     }
 
     $CurrentLine = null;
 
-    $CliticList = GetCliticList($dictionary);
+    $cliticList = getCliticList($dictionary);
 
     foreach ($lines as $word)
     {
@@ -779,173 +777,149 @@ function DisplayLines($showvocab, $assignment, $lines, $dictionary, $linespacing
             {
                 $ChapterCitationText = $word['chapter'] . ".";
             }
-            if ($showvocab == true)
+            if ($showVocab == true)
             {
-                $outputtext .= "</line>";
+                $outputText .= "</line>";
             }
-            if ($showvocab != true)
+            if ($showVocab != true)
             {
                 for ($i = 0; $i < $linespacing; $i++)
                 {
-                    $outputtext .= "<BR>";
+                    $outputText .= "<BR>";
                 }
             }
-            if ($showvocab == true)
+            if ($showVocab == true)
             {
-                $outputtext .= "<line   citation = '" . ReadableFloat($word['book']) . "." . $ChapterCitationText . $word['lineNumber'] . "'    num = '" . $word['lineNumber'] . "'>";
+                $outputText .= "<line   citation = '" . createReadableFloat($word['book']) . "." . $ChapterCitationText . $word['lineNumber'] . "'    num = '" . $word['lineNumber'] . "'>";
             }
         }
         $CurrentLine = $word['lineNumber'];
 
-        $Noclitics = $word['word'];
-        $Noclitics = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]", "", $Noclitics);
-        $Clitic = "";
-        $split1 = $word['word'];
+        $outputText .= displayWord($word, $showVocab, $assignment, $dictionary, $linespacing, $cliticList, $frequencyTable);
+    }
 
-        if ($word["secondaryDefId"] != -1)
+    if ($showVocab == true)
+    {
+        $outputText .= "</line>";
+    }
+
+    return $outputText;
+}
+
+function displayWord($word, $showVocab, $assignment, $dictionary, $linespacing, $cliticList, $frequencyTable)
+{
+    $outputText = "";
+
+    $Noclitics = $word['word'];
+    $Noclitics = mb_ereg_replace("[^A-Za-zāēīōūӯӯĀĒĪŌŪȲ]", "", $Noclitics);
+    $Clitic = "";
+    $split1 = $word['word'];
+
+    if ($word["secondaryDefId"] != -1)
+    {
+
+        preg_match('/(' . implode("|", $cliticList['no_hyphens_with_dollar_signs']) . ')/', $Noclitics, $clitics);
+        $Clitic = $clitics[0];
+
+        $Noclitics = mb_ereg_replace('(' . implode("|", $cliticList['no_hyphens_with_dollar_signs']) . ')', "", $Noclitics);
+
+        $SplitPos = preg_match('/(' . implode("|", $cliticList['no_hyphens']) . ')[.!;,\)]?$/', $word['word'], $position, PREG_OFFSET_CAPTURE);
+        $split1 = substr($word['word'], 0, $position[0][1]);
+        $split2 = substr($word['word'], $position[0][1]);
+    }
+
+    if ($showVocab == true)
+    {
+        $outputText .= "<word  baseword = '" . $Noclitics . "' clitic = '" . $Clitic . "' defintionid = '" . $word['definitionId'] . "' wordid = '" . $word['id'] . "' id = '" . $word['id'] . "' frequency = '" . getFrequencyByLevel($word['definitionId'], Context::getLevel()) . "' reveal = ";
+
+        if (isset($_GET['highlightedword']) && (((int) $_GET['highlightedword']) == ((int) $word['id'])))
         {
-
-            preg_match('/(' . implode("|", $CliticList['no_hyphens_with_dollar_signs']) . ')/', $Noclitics, $clitics);
-            $Clitic = $clitics[0];
-
-            $Noclitics = mb_ereg_replace('(' . implode("|", $CliticList['no_hyphens_with_dollar_signs']) . ')', "", $Noclitics);
-
-            $SplitPos = preg_match('/(' . implode("|", $CliticList['no_hyphens']) . ')[.!;,\)]?$/', $word['word'], $position, PREG_OFFSET_CAPTURE);
-            $split1 = substr($word['word'], 0, $position[0][1]);
-            $split2 = substr($word['word'], $position[0][1]);
-        }
-
-        if ($showvocab == true)
-        {
-            $outputtext .= "<word  baseword = '" . $Noclitics . "' clitic = '" . $Clitic . "' defintionid = '" . $word['definitionId'] . "' wordid = '" . $word['id'] . "' id = '" . $word['id'] . "' frequency = '" . GetFrequencyByLevel($word['definitionId'], Context::getLevel()) . "' reveal = ";
-
-            if (isset($_GET['highlightedword']) && (((int) $_GET['highlightedword']) == ((int) $word['id'])))
-            {
-                $outputtext .= "'true'";
-            }
-            else
-            {
-                $outputtext .= "'false'";
-            }
-
-            $outputtext .= " >";
-
-            $outputtext .= "<baseword>";
-
-            $outputtext .= "<text>";
-            $outputtext .= $split1;
-            $outputtext .= "</text>";
-            $outputtext .= "<nomacrons>";
-            $outputtext .= StripMacrons($split1);
-            $outputtext .= "</nomacrons>";
-
-            $SpecificBannedTestWordIds = [
-
-                ///Unit 1
-                143, //Parcas 1.22
-                609, //ora 1.95
-                618, //fortissime 1.96
-                634, //Aeacidae 1.99
-                647, //scuta 1.101
-                649, //galeas 1.101
-                1982, //Hesperiam 1.569
-                1984, //^^^ Saturnia 1.569
-                1277, //Acestes
-                1865, //Acestes
-                1918, //Acestes
-                1991, //Acestes
-
-                ///Unit 2
-            ];
-
-            $WordisAvailable = (Context::getTestStatus() && ((int) $Frequencies[$word['definitionId']]) <= 5 && !in_array(+$word['id'], $SpecificBannedTestWordIds)) || !Context::getTestStatus();
-
-            if ($WordisAvailable)
-            {
-
-                $outputtext .= "<entry>";
-                $outputtext .= "<b>";
-
-                $outputtext .= ConvertAsterisks($dictionary[$word['definitionId']]['entry']);
-
-                $outputtext .= "</b>";
-                $outputtext .= "</entry>";
-
-                $outputtext .= "<definition>";
-                $outputtext .= "<i>";
-
-                $outputtext .= ConvertAsterisks($dictionary[$word['definitionId']]['definition']);
-
-                $outputtext .= "</i>";
-                $outputtext .= "</definition>";
-
-            }
-
-            $outputtext .= "</baseword>";
-            if ($word["secondaryDefId"] != -1)
-            {
-                $outputtext .= "<clitic>";
-
-                $outputtext .= "<text>";
-                $outputtext .= $split2;
-                $outputtext .= "</text>";
-                $outputtext .= "<nomacrons>";
-                $outputtext .= StripMacrons($split2);
-                $outputtext .= "</nomacrons>";
-                if ($WordisAvailable)
-                {
-                    $outputtext .= "<entry>";
-                    $outputtext .= "<b>";
-                    $outputtext .= ConvertAsterisks($dictionary[$word['secondaryDefId']]['entry']);
-                    $outputtext .= "</b>";
-                    $outputtext .= "</entry>";
-
-                    $outputtext .= "<definition>";
-                    $outputtext .= "<i>";
-
-                    $tempdeftext = $dictionary[$word['secondaryDefId']]['definition'];
-                    $tempdeftext = preg_replace("/\*(.*?)\*/", "</i>\\1<i>", $tempdeftext);
-                    $outputtext .= ConvertAsterisks($tempdeftext);
-
-                    $outputtext .= "</i>";
-                    $outputtext .= "</definition>";
-                }
-                $outputtext .= "</clitic>";
-            }
-
-            $outputtext .= "<freq>";
-
-            if ($WordisAvailable)
-            {
-                $outputtext .= "<a target = '_blank' href = ' ";
-                $outputtext .= " WordInfo.php?level=" . Context::getLevel() . "&wordid=" . $word['definitionId'] . "";
-                $outputtext .= "'>";
-                $outputtext .= ((int) $Frequencies[$word['definitionId']]);
-                $outputtext .= "</a>";
-            }
-            else
-            {
-                $outputtext .= ((int) $Frequencies[$word['definitionId']]);
-            }
-
-            $outputtext .= "</freq>";
+            $outputText .= "'true'";
         }
         else
         {
-            $outputtext .= $split1;
-            if ($word["secondaryDefId"] != -1)
-            {
-                $outputtext .= $split2;
-            }
-            $outputtext .= " ";
+            $outputText .= "'false'";
         }
 
-        $outputtext .= "</word>";
+        $outputText .= " >";
+
+        $outputText .= "<baseword>";
+
+        $outputText .= "<text>";
+        $outputText .= $split1;
+        $outputText .= "</text>";
+        $outputText .= "<nomacrons>";
+        $outputText .= stripMacrons($split1);
+        $outputText .= "</nomacrons>";
+
+        $outputText .= "<entry>";
+        $outputText .= "<b>";
+
+        $outputText .= parseAsterisks($dictionary[$word['definitionId']]['entry']);
+
+        $outputText .= "</b>";
+        $outputText .= "</entry>";
+
+        $outputText .= "<definition>";
+        $outputText .= "<i>";
+
+        $outputText .= parseAsterisks($dictionary[$word['definitionId']]['definition']);
+
+        $outputText .= "</i>";
+        $outputText .= "</definition>";
+
+        $outputText .= "</baseword>";
+        if ($word["secondaryDefId"] != -1)
+        {
+            $outputText .= "<clitic>";
+
+            $outputText .= "<text>";
+            $outputText .= $split2;
+            $outputText .= "</text>";
+            $outputText .= "<nomacrons>";
+            $outputText .= stripMacrons($split2);
+            $outputText .= "</nomacrons>";
+
+            $outputText .= "<entry>";
+            $outputText .= "<b>";
+            $outputText .= parseAsterisks($dictionary[$word['secondaryDefId']]['entry']);
+            $outputText .= "</b>";
+            $outputText .= "</entry>";
+
+            $outputText .= "<definition>";
+            $outputText .= "<i>";
+
+            $tempdeftext = $dictionary[$word['secondaryDefId']]['definition'];
+            $tempdeftext = preg_replace("/\*(.*?)\*/", "</i>\\1<i>", $tempdeftext);
+            $outputText .= parseAsterisks($tempdeftext);
+
+            $outputText .= "</i>";
+            $outputText .= "</definition>";
+
+            $outputText .= "</clitic>";
+        }
+
+        $outputText .= "<freq>";
+
+        $outputText .= "<a target = '_blank' href = ' ";
+        $outputText .= " WordInfo.php?level=" . Context::getLevel() . "&wordid=" . $word['definitionId'] . "";
+        $outputText .= "'>";
+        $outputText .= ((int) $frequencyTable[$word['definitionId']]);
+        $outputText .= "</a>";
+
+        $outputText .= "</freq>";
     }
-    if ($showvocab == true)
+    else
     {
-        $outputtext .= "</line>";
+        $outputText .= $split1;
+        if ($word["secondaryDefId"] != -1)
+        {
+            $outputText .= $split2;
+        }
+        $outputText .= " ";
     }
 
-    return $outputtext;
+    $outputText .= "</word>";
+
+    return $outputText;
 }

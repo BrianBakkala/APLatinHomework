@@ -26,7 +26,7 @@ echo QuizletExport($dictionary, 10000000, 1,      30 ,        10000             
 
 function QuizletExport($dictionary, $wordLimit = 10000, $parts = 1, $minNum = 0, $MaxNum = 10000, $ProperNouns = "exclude")
 {
-	
+
 	if ($ProperNouns == "include")
 	{
 		$PNClause = "";
@@ -44,7 +44,7 @@ function QuizletExport($dictionary, $wordLimit = 10000, $parts = 1, $minNum = 0,
 
 	foreach ($dictionary as &$entry)
 	{
-		$entry["freq"] = GetFrequencyByLevel($entry["id"]);
+		$entry["freq"] = getFrequencyByLevel($entry["id"]);
 	}
 
 	usort($dictionary, function ($a, $b) {
@@ -52,9 +52,9 @@ function QuizletExport($dictionary, $wordLimit = 10000, $parts = 1, $minNum = 0,
 		$a = $a['freq'];
 		$b = $b['freq'];
 
-		
+
 		return $b <=> $a;
-		
+
 
 	});
 
@@ -62,31 +62,31 @@ function QuizletExport($dictionary, $wordLimit = 10000, $parts = 1, $minNum = 0,
 	$dictionary = array_filter($dictionary, function ($entry) use($minNum) {
 
 		return $entry['freq'] >= $minNum;
-	
+
 	});
 
 	$dictionary = array_filter($dictionary, function ($entry) use($MaxNum) {
 
 		return $entry['freq'] <= $MaxNum;
-	
+
 	});
-	
-	$dictionary = array_slice($dictionary, 0, $wordLimit); 
+
+	$dictionary = array_slice($dictionary, 0, $wordLimit);
 
 	usort($dictionary, function ($a, $b) {
-	
-		$a = StripMacrons($a['entry']);
-		$b = StripMacrons($b['entry']);
-	
+
+		$a = stripMacrons($a['entry']);
+		$b = stripMacrons($b['entry']);
+
 		$a = preg_replace("/[, —-]/","", $a);
 		$b = preg_replace("/[, —-]/","", $b);
-		
+
 		$a = strtolower($a);
 		$b = strtolower($b);
-				
+
 		return $a <=> $b;
-		
-	
+
+
 	});
 
 
@@ -151,7 +151,7 @@ function QuizletExport($dictionary, $wordLimit = 10000, $parts = 1, $minNum = 0,
 			else if($minNum != $MaxNum)
 			{
 				$returnable .= " between ".$minNum." and ".$MaxNum;
-			}	
+			}
 			else
 			{
 				$returnable .= " ".$MaxNum;
@@ -162,7 +162,7 @@ function QuizletExport($dictionary, $wordLimit = 10000, $parts = 1, $minNum = 0,
 				$returnable .= "s";
 			}
 			$returnable .= " in the AP Latin curriculum</textarea>";
-		
+
 
 
 			$returnable .= "<BR>";
@@ -171,7 +171,7 @@ function QuizletExport($dictionary, $wordLimit = 10000, $parts = 1, $minNum = 0,
 
 			$returnable .= "<BR>(".count($split_dictionary[$p]);
 			$returnable .= " words)";
-		
+
 		$returnable .= "</td>";
 
 		if($p%3==0 && $p!=0)

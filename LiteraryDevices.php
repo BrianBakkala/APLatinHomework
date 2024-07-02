@@ -54,20 +54,20 @@ $Devices = SQLQuarry('SELECT `id`, `Device`, `Description` FROM `#APLiteraryDevi
 
 echo "<p  style='text-align:left;'><a href='Dictionary.php'>← Dictionary</a></p>";
 
-foreach ($Devices as $d)
+foreach ($Devices as $dictionary)
 {
     echo "<device>";
 
     echo "<div class = 'deviceName'>";
-    echo $d['Device'];
+    echo $dictionary['Device'];
     echo "</div>";
     echo "<div class = 'deviceDefinition'>";
-    echo ParseNoteText($d['Description'], false);
+    echo parseNoteText($dictionary['Description'], false);
     echo "</div>";
 
     echo "<div class = 'deviceUses'>";
 
-    $Uses = SQLQuarry('SELECT MIN(`#APNotesLocations`.`AssociatedWordId`) as `WordId`, `BookTitle` FROM `#APNotesText` INNER JOIN `#APNotesLocations` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId` ) WHERE `Text` LIKE "%***' . $d['Device'] . '***%" GROUP BY `#APNotesLocations`.`NoteId`');
+    $Uses = SQLQuarry('SELECT MIN(`#APNotesLocations`.`AssociatedWordId`) as `WordId`, `BookTitle` FROM `#APNotesText` INNER JOIN `#APNotesLocations` ON (`#APNotesText`.`NoteId` = `#APNotesLocations`.`NoteId` ) WHERE `Text` LIKE "%***' . $dictionary['Device'] . '***%" GROUP BY `#APNotesLocations`.`NoteId`');
 
     foreach ($Uses as $ind => $u)
     {
@@ -76,7 +76,7 @@ foreach ($Devices as $d)
             echo ", ";
         }
 
-        echo ParseNoteText("<<" . $u['WordId'] . ">>", false, $u['BookTitle']);
+        echo parseNoteText("<<" . $u['WordId'] . ">>", false, $u['BookTitle']);
     }
 
     echo "</div>";

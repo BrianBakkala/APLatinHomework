@@ -25,7 +25,7 @@ function GetForms($entry)
     {
         $p = strip_tags($x);
         $p = preg_replace('/\*/', '', $p);
-        $p = StripMacrons(strtolower(trim($p)));
+        $p = stripMacrons(strtolower(trim($p)));
         $p = ltrim($p, '-');
 
         return $p;
@@ -40,7 +40,7 @@ function GetMatchingScore($filtertext, $entry)
     $forms = GetForms($entry);
     $formslengths = array_map(function ($x) use ($filtertext)
     {
-        $searchtext = StripMacrons(strtolower($filtertext));
+        $searchtext = stripMacrons(strtolower($filtertext));
         if (strpos($x, $searchtext) !== false)
         {
             return (((double) strlen($searchtext)) / ((double) strlen($x)));
@@ -60,7 +60,7 @@ function GetPositionScore($filtertext, $entry)
     $forms = GetForms($entry);
     $formslengths = array_map(function ($x) use ($filtertext)
     {
-        $searchtext = StripMacrons(strtolower($filtertext));
+        $searchtext = stripMacrons(strtolower($filtertext));
         if (strpos($x, $searchtext) !== false)
         {
             return strpos($x, $searchtext);
@@ -124,7 +124,7 @@ if (isset($_REQUEST["filter-dictionary"]))
             {
                 return $x['id'];
             }, $Dictionary);
-            $Frequencies = GetFreqTable($DefIDs);
+            $Frequencies = getFrequencyTable($DefIDs);
         }
 
         $matchScore = GetMatchingScore($nomacronsfiltertext, $word['entry']);
@@ -260,7 +260,7 @@ if (isset($_REQUEST["filter-dictionary"]))
                 $hint .= "<b>";
 
                 $entrytext = explode("⸻", $hightlightablestring)[0];
-                $hint .= ConvertAsterisks($entrytext);
+                $hint .= parseAsterisks($entrytext);
 
                 $hint .= "</b>";
                 $hint .= "</entry>";
@@ -268,7 +268,7 @@ if (isset($_REQUEST["filter-dictionary"]))
                 $hint .= "<i>";
 
                 $deftext = explode("⸻", $hightlightablestring)[1];
-                $hint .= ConvertAsterisks($deftext);
+                $hint .= parseAsterisks($deftext);
 
                 $hint .= "</i>";
                 $hint .= "</definition>";

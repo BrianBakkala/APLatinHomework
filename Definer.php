@@ -146,7 +146,7 @@ $DictionaryJSON = json_encode($DictionaryJSONText);
 
 echo "<line num = " . $LineStart . ">";
 
-$CliticList = GetCliticList($Dictionary);
+$CliticList = getCliticList($Dictionary);
 
 foreach ($Text as $word)
 {
@@ -380,7 +380,7 @@ function SaveDefintionToWord(dropdownSelected)
 		}
 	};
 
-	XMLURL = "AJAXAPL.php?update-definition=true&title=<?php echo Context::getBookTitle(); ?>&level=<?php echo Context::getLevel(); ?>&wordid=" +  WordId + "&def1=" + DefId1 + "&def2=" + DefId2  ;
+	XMLURL = "AJAXAPL.php?update-definition=true&title="+CONTEXT.title+"&level="+CONTEXT.level+"&wordid=" +  WordId + "&def1=" + DefId1 + "&def2=" + DefId2  ;
 	xmlhttp.open("GET", XMLURL, true);
 	xmlhttp.send();
 	// cnsole.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/"  + XMLURL);

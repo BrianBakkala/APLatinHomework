@@ -1,8 +1,8 @@
 <?php
 
-require_once 'GenerateNotesandVocab.php';
+require_once 'autoload.php';
 
-$context = new Context;
+use app\Context;
 
 $CSSColors =
 
@@ -121,30 +121,6 @@ $CSSColors =
 
 	<style>
 
-	*[ap-only]
-	{
-		<?php
-
-if (!(Context::getLevel() == "AP"))
-{
-    echo "display:none;";
-}
-
-?>
-	}
-
-
-	*[nolatin3]
-	{
-		<?php
-
-if (Context::getLevel() == "3")
-{
-    echo "display:none;";
-}
-
-?>
-	}
 
 	html {
 		-webkit-tap-highlight-color:  rgba(255, 255, 255, 0);

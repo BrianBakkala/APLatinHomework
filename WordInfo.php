@@ -95,9 +95,15 @@ speaker {
 
 <?php
 
+require_once 'autoload.php';
+
+use app\Context;
+
 require_once 'SQLConnection.php';
 require_once 'GenerateNotesandVocab.php';
-$context = new Context;
+
+require_once 'SQLConnection.php';
+require_once 'utility/debug.php';
 
 if (isset($_GET['wordid']))
 {
@@ -109,22 +115,22 @@ echo "<BR>";
 
 echo "<entryheader>";
 echo "<b>";
-echo ConvertAsterisks($word['entry']);
+echo parseAsterisks($word['entry']);
 echo "</b>";
 echo "</entryheader>";
 
 echo "<definitionheader>";
 echo "<i>";
-echo ConvertAsterisks($word['definition']);
+echo parseAsterisks($word['definition']);
 echo "</i>";
 echo "</definitionheader>";
 echo "<BR><BR>";
 
-foreach (Context::DICT_DB as $t => $d)
+foreach (Context::DICT_DB as $title => $dictionary)
 {
-    if ($d == Context::getDict())
+    if ($dictionary == Context::getDict())
     {
-        if (in_array($t, Context::HAS_IDENTIFIED_SPEAKERS))
+        if (in_array($title, Context::HAS_IDENTIFIED_SPEAKERS))
         {
             $SpeakerClause = ", `Speaker`";
         }
@@ -133,7 +139,7 @@ foreach (Context::DICT_DB as $t => $d)
             $SpeakerClause = "";
         }
 
-        $uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word`   ' . $SpeakerClause . ' FROM `' . Context::BOOK_DB[$t] . '` WHERE `definitionId` = ' . $word['id'] . '   OR  `secondaryDefId` = ' . $word['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
+        $uses = SQLQuarry('SELECT `id`, `book`, `chapter`, `lineNumber`, `word`   ' . $SpeakerClause . ' FROM `' . Context::BOOK_DB[$title] . '` WHERE `definitionId` = ' . $word['id'] . '   OR  `secondaryDefId` = ' . $word['id'] . '  ORDER BY `book`, `chapter`, `lineNumber`, `id` ');
 
         $UseString = "";
 
@@ -143,7 +149,7 @@ foreach (Context::DICT_DB as $t => $d)
             $PrevLineNumber = 0;
             $NextLineNumber = 0;
 
-            $WordsOnLine = SQLQuarry(' SELECT   `word`, `id`  FROM `' . Context::BOOK_DB[$t] . '`  WHERE `lineNumber` = ' . $uses[$u]['lineNumber'] . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . ' ORDER BY `OrderOfText` ASC  ', false, "id");
+            $WordsOnLine = SQLQuarry(' SELECT   `word`, `id`  FROM `' . Context::BOOK_DB[$title] . '`  WHERE `lineNumber` = ' . $uses[$u]['lineNumber'] . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . ' ORDER BY `OrderOfText` ASC  ', false, "id");
 
             $temp_word_id = $uses[$u]['id'];
             $WordsOnLine = array_values($WordsOnLine);
@@ -159,7 +165,7 @@ foreach (Context::DICT_DB as $t => $d)
                 {
                     $AttLine .= "<highlight wid = '" . $WordsOnLine[$w]['id'] . "' style = 'cursor:pointer;''>";
                     $AttLine .= "<a target = '_blank' href = 'HomeworkViewer.php?level=" . Context::getLevel();
-                    $AttLine .= "&title=" . $t;
+                    $AttLine .= "&title=" . $title;
                     $AttLine .= "&highlightedword=" . $WordsOnLine[$w]['id'] . "'>";
                     $AttLine .= $WordsOnLine[$w]['word'];
                     $AttLine .= "</a>";
@@ -171,20 +177,20 @@ foreach (Context::DICT_DB as $t => $d)
                 }
             }
 
-            if (SQLQ(' SELECT  `id` FROM `' . Context::BOOK_DB[$t] . '`  WHERE `lineNumber` = ' . ($TheLineNumber - 1) . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . '   '))
+            if (SQLQ(' SELECT  `id` FROM `' . Context::BOOK_DB[$title] . '`  WHERE `lineNumber` = ' . ($TheLineNumber - 1) . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . '   '))
             {
                 $PrevLineNumber = ($TheLineNumber - 1);
-                $AttPrevLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `' . Context::BOOK_DB[$t] . '`  WHERE `lineNumber` = ' . $PrevLineNumber . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . '   ');
+                $AttPrevLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `' . Context::BOOK_DB[$title] . '`  WHERE `lineNumber` = ' . $PrevLineNumber . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . '   ');
             }
             else
             {
                 $AttPrevLine = "";
             }
 
-            if (SQLQ(' SELECT  `id` FROM `' . Context::BOOK_DB[$t] . '`  WHERE `lineNumber` = ' . ($TheLineNumber + 1) . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . '   '))
+            if (SQLQ(' SELECT  `id` FROM `' . Context::BOOK_DB[$title] . '`  WHERE `lineNumber` = ' . ($TheLineNumber + 1) . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . '   '))
             {
                 $NextLineNumber = ($TheLineNumber + 1);
-                $AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `' . Context::BOOK_DB[$t] . '`  WHERE `lineNumber` = ' . $NextLineNumber . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . '   ');
+                $AttNextLine = SQLQ(' SELECT  GROUP_CONCAT(`word` ORDER BY `id` ASC SEPARATOR " ") FROM `' . Context::BOOK_DB[$title] . '`  WHERE `lineNumber` = ' . $NextLineNumber . ' and `chapter` ' . ($uses[$u]['chapter'] == "" ? "IS NULL" : "=") . " " . $uses[$u]['chapter'] . ' and `book` = ' . $uses[$u]['book'] . '   ');
             }
             else
             {
@@ -237,7 +243,7 @@ foreach (Context::DICT_DB as $t => $d)
 
         }
 
-        echo "<h1><i>" . Context::ENGLISH_BOOK_TITLE[$t] . "</i>: " . GetFrequencyByTitle($_GET['wordid'], $t) . "</h1>";
+        echo "<h1><i>" . Context::getEnglishTitle($title) . "</i>: " . getFrequencyByTitle($_GET['wordid'], $title) . "</h1>";
         echo "<attestations>";
         echo $UseString;
         echo "</attestations>";

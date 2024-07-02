@@ -27,7 +27,7 @@ if (!isset($_GET['hw']) && isset($_GET['highlightedword']) && isset($_GET['title
 
     $turl = explode($actual_link, "?")[0];
 
-    $addon = "hw=" . FindHWByWordID($_GET['title'], $_GET['highlightedword']);
+    $addon = "hw=" . findHomeworkByWordID($_GET['title'], $_GET['highlightedword']);
     $addon .= "&highlightedword=" . $_GET['highlightedword'];
 
     header('Location:' . str_replace("&amp;", "&", ($turl . $addon)));
@@ -38,7 +38,12 @@ require_once 'FontStyles.php';
 require_once 'HomeworkViewerStyles.php';
 require_once 'SQLConnection.php';
 
-$context = new Context;
+require_once 'autoload.php';
+
+use app\Context;
+
+require_once 'SQLConnection.php';
+require_once 'utility/debug.php';
 
 echo "<wrapper showmacrons='true'";
 
@@ -125,7 +130,7 @@ echo "<i>";
 echo Context::getLatinTitle();
 echo "</i> ";
 
-echo ReadableFloat($HWAssignment['StartBook']);
+echo createReadableFloat($HWAssignment['StartBook']);
 echo ".";
 if ($HWAssignment['StartChapter'] != null)
 {
@@ -135,7 +140,7 @@ if ($HWAssignment['StartChapter'] != null)
 echo $HWAssignment['StartLine'];
 
 echo "–";
-echo ReadableFloat($HWAssignment['EndBook']);
+echo createReadableFloat($HWAssignment['EndBook']);
 echo ".";
 if ($HWAssignment['EndChapter'] != null)
 {
@@ -216,7 +221,7 @@ echo "Macrons: <b>on</b>";
 echo "</a>";
 echo "</span>";
 
-echo "<select nolatin3 onchange= 'SetDifficulty(this.value)'>";
+echo "<select no-latin-3 onchange= 'SetDifficulty(this.value)'>";
 
 echo "<option value='0' selected disabled hidden> ";
 echo "Difficulty";
@@ -270,14 +275,14 @@ echo "</header>";
 
 echo "<BR>";
 
-echo DisplayLines(true, $HWAssignment, $HWLines, $TargetedDictionary);
+echo displayLines(true, $HWAssignment, $HWLines, $TargetedDictionary);
 echo "</assignment>";
 
 if (!Context::getTestStatus())
 {
     echo "<notes>";
     echo "<BR>";
-    echo DisplayNotesText($HWStartId, $HWEndId, $HWAssignment, Context::getBookTitle());
+    echo displayNotesText($HWStartId, $HWEndId, $HWAssignment, Context::getBookTitle());
     echo "<BR><BR><BR><BR><BR><BR><BR><BR>";
     echo "</notes>";
 }

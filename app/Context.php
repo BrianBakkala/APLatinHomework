@@ -39,7 +39,7 @@ class Context
     ];
 
     const LEVEL_DB = [
-        "AP" => "#APHW",
+        "AP" => "ap_homework",
         "4" => "^Latin4HW",
         "3" => "~Latin3HW",
     ];
@@ -107,12 +107,17 @@ class Context
 
     public static function getDict()
     {
+
         return self::LEVEL_DICT_DB[self::getLevel()];
     }
 
-    public static function getTextDB()
+    public static function getTextDB($title = null)
     {
-        return self::BOOK_DB[self::getBookTitle()];
+        if ($title == null)
+        {
+            $title = self::getBookTitle();
+        }
+        return self::BOOK_DB[$title];
     }
 
     public static function getLatinTitle()
@@ -125,9 +130,13 @@ class Context
         return self::BOOK_AUTHOR[self::getBookTitle()];
     }
 
-    public static function getEnglishTitle()
+    public static function getEnglishTitle($title = null)
     {
-        return self::ENGLISH_BOOK_TITLE[self::getBookTitle()];
+        if ($title == null)
+        {
+            $title = self::getBookTitle();
+        }
+        return self::ENGLISH_BOOK_TITLE[$title];
     }
 
     public static function getTestStatus()

@@ -10,8 +10,9 @@ function filterDictionary(filterText)
 			filter_text: filterText,
 		}
 
-		, function (r, t)
+		, function ({ r, t })
 		{
+			console.log(r);
 			if (document.getElementById('filterdict').value == filterText)
 			{
 				document.getElementById('dictionary').innerHTML = r;
@@ -30,7 +31,7 @@ function GetWordInfo(clickedElement)
 		WordElement = WordElement.parentElement;
 	}
 
-	window.open('WordInfo.php?level=<?php echo Context::getLevel(); ?>&wordid=' + WordElement.getAttribute('wordid'), '_blank');
+	window.open('WordInfo.php?level=' + CONTEXT.level + '&wordid=' + WordElement.getAttribute('wordid'), '_blank');
 }
 
 function ConvertAntiAsterisks(input)
@@ -196,7 +197,7 @@ function SaveEntry(WordElement)
 				}
 			};
 
-			XMLURL = "AJAXAPL.php?update-dictionary=true&level=<?php echo Context::getLevel(); ?>&wordid=" + WordId + "&newdefinition=" + NewDef + "&newentry=" + NewEntry;
+			XMLURL = "AJAXAPL.php?update-dictionary=true&level=" + CONTEXT.level + "&wordid=" + WordId + "&newdefinition=" + NewDef + "&newentry=" + NewEntry;
 			xmlhttp.open("GET", XMLURL, true);
 			xmlhttp.send();
 			console.log(NewDef);
@@ -229,7 +230,7 @@ function DeleteEntry(clickedElement)
 			}
 		};
 
-		XMLURL = "AJAXAPL.php?delete-dictionary-entry=true&level=<?php echo Context::getLevel(); ?>&wordid=" + WordId;
+		XMLURL = "AJAXAPL.php?delete-dictionary-entry=true&level=" + CONTEXT.level + "&wordid=" + WordId;
 		xmlhttp.open("GET", XMLURL, true);
 		xmlhttp.send();
 		console.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/" + XMLURL);

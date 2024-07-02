@@ -11,6 +11,7 @@ require_once 'utility/debug.php';
     const CONTEXT =
     {
         level: JSON.parse(`<?php echo json_encode(Context::getLevel()) ?>`),
+        title: JSON.parse(`<?php echo json_encode(Context::getBookTitle()) ?>`),
     }
 
 </script>
@@ -26,4 +27,21 @@ require_once 'utility/debug.php';
 
 ?>
 }
+
+
+
+*[no-latin-3]
+	{
+		<?php
+
+if (Context::getLevel() == "3")
+{
+    echo "display:none;";
+}
+
+?>
+	}
+
+
+
 </style>

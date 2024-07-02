@@ -160,7 +160,6 @@ function sqlBatchRunAsync($sql_queries_array)
     }
 }
 
-
 function flattenArray($array, $unique = true)
 {
     $return = array();
@@ -338,10 +337,7 @@ function combineLikeUpdateQueries($queryArray)
     return array_values(array_unique(array_filter([ ...$updateQueries, ...$nonUpdateQueries])));
 }
 
-
-
 // =----LEGACY-----=
-
 
 function SQLRun($sql_code)
 {

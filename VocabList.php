@@ -7,7 +7,9 @@
 
 require_once 'FontStyles.php';
 require_once 'GenerateNotesandVocab.php';
-$context = new Context;
+require_once 'autoload.php';
+
+use app\Context;
 
 if (Context::getTestStatus())
 {
@@ -247,13 +249,13 @@ $words_ids = array_map(function ($x)
 {
     return $x['id'];
 }, $Dictionary);
-$Frequencies = GetFreqTable($words_ids);
+$Frequencies = getFrequencyTable($words_ids);
 
 if (isset($_GET['unit']))
 {
     $unit = $_GET['unit'];
     $Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `#APDictionary` ');
-    $Frequencies = GetFreqTable($words_ids, GetHWsInUnits($unit));
+    $Frequencies = getFrequencyTable($words_ids, getHomeworkAssignmentsInUnits($unit));
 }
 
 foreach ($Dictionary as $index => $word)
@@ -359,14 +361,14 @@ foreach ($Dictionary as $word)
         echo "<entry>";
         echo "<b>";
 
-        echo ConvertAsterisks($word['entry']);
+        echo parseAsterisks($word['entry']);
 
         echo "</b>";
         echo "</entry>";
         echo "<definition> ";
         echo "<i>";
 
-        echo ConvertAsterisks($word['definition']);
+        echo parseAsterisks($word['definition']);
 
         echo "</i>";
         echo "</definition>";
