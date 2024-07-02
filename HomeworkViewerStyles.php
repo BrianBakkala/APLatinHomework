@@ -1,160 +1,155 @@
 <?php
 
-require_once ( 'GenerateNotesandVocab.php');
+require_once 'GenerateNotesandVocab.php';
 
 $context = new Context;
 
-	$CSSColors = 
-	
-	[
-		"Aeneid" =>
-		[
-			'BackgroundColor' => "FFF1AC",
-			'HeaderColor' => "FFE667",
-			'WordHighlightColor' => "FFE24F",
-			'HeaderTextColor' => "black",
-			'TextColor' => "black"
-		],
-	
-	"DBG" =>
-		[
-			'BackgroundColor' => "D3E5FF",
-			'HeaderColor' => "abcdff",
-			'WordHighlightColor' => "94beff",
-			'HeaderTextColor' => "black",
-			'TextColor' => "black"			
-		],
-	
-	"InCatilinam" =>
-		// [
-		// 	'BackgroundColor' => "#EEEEEE",
-		// 	'HeaderColor' => "BB9813",
-		// 	'WordHighlightColor' => "black",
-		// 	'HeaderTextColor' => "gold",
-		// 	'TextColor' => "BBBB13"
-		// ] 
-		[
-			'BackgroundColor' => "c5ffbf",
-			'HeaderColor' => "8cff80",
-			'WordHighlightColor' => "1aff00",
-			'HeaderTextColor' => "black",
-			'TextColor' => "black"
-		],
-	"PlinyEpistulae" => 
-		[
-			'BackgroundColor' => "c5ffbf",
-			'HeaderColor' => "8cff80",
-			'WordHighlightColor' => "1aff00",
-			'HeaderTextColor' => "black",
-			'TextColor' => "black"
-		],
-	"AUC" => 
-		[
-			'BackgroundColor' => "ffe3fe",
-			'HeaderColor' => "b4aee8",
-			'WordHighlightColor' => "c28bc8",
-			'HeaderTextColor' => "black",
-			'TextColor' => "black"
-		],
-		
-	"Catullus" =>
+$CSSColors =
 
-		[
-			'BackgroundColor' => "#BEE7E8",
-			'HeaderColor' => "#A0D2DB",
-			'WordHighlightColor' => "#89f5d6",
-			'HeaderTextColor' => "black",
-			'TextColor' => "black"
-		] //Isabel/Vedant
+    [
+    "Aeneid" =>
+    [
+        'BackgroundColor' => "FFF1AC",
+        'HeaderColor' => "FFE667",
+        'WordHighlightColor' => "FFE24F",
+        'HeaderTextColor' => "black",
+        'TextColor' => "black",
+    ],
 
-		// [
-		// 	'BackgroundColor' => "black",
-		// 	'HeaderColor' => "black",
-		// 	'WordHighlightColor' => "black",
-		// 	'HeaderTextColor' => "black",
-		// 	'TextColor' => "black"
-		// ] //Dalton
+    "DBG" =>
+    [
+        'BackgroundColor' => "D3E5FF",
+        'HeaderColor' => "abcdff",
+        'WordHighlightColor' => "94beff",
+        'HeaderTextColor' => "black",
+        'TextColor' => "black",
+    ],
 
-		// [
-		// 	'BackgroundColor' => "red",
-		// 	'HeaderColor' => "darkred",
-		// 	'WordHighlightColor' => "gold",
-		// 	'HeaderTextColor' => "yellow",
-		// 	'TextColor' => "yellow"
-		// ] //McDonalds
+    "InCatilinam" =>
+    // [
+    //     'BackgroundColor' => "#EEEEEE",
+    //     'HeaderColor' => "BB9813",
+    //     'WordHighlightColor' => "black",
+    //     'HeaderTextColor' => "gold",
+    //     'TextColor' => "BBBB13"
+    // ]
+    [
+        'BackgroundColor' => "c5ffbf",
+        'HeaderColor' => "8cff80",
+        'WordHighlightColor' => "1aff00",
+        'HeaderTextColor' => "black",
+        'TextColor' => "black",
+    ],
+    "PlinyEpistulae" =>
+    [
+        'BackgroundColor' => "c5ffbf",
+        'HeaderColor' => "8cff80",
+        'WordHighlightColor' => "1aff00",
+        'HeaderTextColor' => "black",
+        'TextColor' => "black",
+    ],
+    "AUC" =>
+    [
+        'BackgroundColor' => "ffe3fe",
+        'HeaderColor' => "b4aee8",
+        'WordHighlightColor' => "c28bc8",
+        'HeaderTextColor' => "black",
+        'TextColor' => "black",
+    ],
 
-		// 		[
-		// 	'BackgroundColor' => "white",
-		// 	'HeaderColor' => "white",
-		// 	'WordHighlightColor' => "black",
-		// 	'HeaderTextColor' => "cornsilk",
-		// 	'TextColor' => "cornsilk"
-		// ] 
+    "Catullus" =>
 
-		// [
-		// 	'BackgroundColor' => "#572600",
-		// 	'HeaderColor' => "black",
-		// 	'WordHighlightColor' => "gray",
-		// 	'HeaderTextColor' => "white",
-		// 	'TextColor' => "white"
-		// ] //Dalton 2.0
+    [
+        'BackgroundColor' => "#BEE7E8",
+        'HeaderColor' => "#A0D2DB",
+        'WordHighlightColor' => "#89f5d6",
+        'HeaderTextColor' => "black",
+        'TextColor' => "black",
+    ], //Isabel/Vedant
 
-		// [
-		// 	'BackgroundColor' => "#D3E5FF",
-		// 	'HeaderColor' => "lightblue",
-		// 	'WordHighlightColor' => "#4ee6bb",
-		// 	'HeaderTextColor' => "white",
-		// 	'TextColor' => "black"
-		// ]
+    // [
+    //     'BackgroundColor' => "black",
+    //     'HeaderColor' => "black",
+    //     'WordHighlightColor' => "black",
+    //     'HeaderTextColor' => "black",
+    //     'TextColor' => "black"
+    // ] //Dalton
 
-		// [
-		// 	'BackgroundColor' => "#c3dde3",
-		// 	'HeaderColor' => "#167eaf",
-		// 	'WordHighlightColor' => "#e1b783",
-		// 	'HeaderTextColor' => "black",
-		// 	'TextColor' => "black"
-		// ] //Willem
-	]
+    // [
+    //     'BackgroundColor' => "red",
+    //     'HeaderColor' => "darkred",
+    //     'WordHighlightColor' => "gold",
+    //     'HeaderTextColor' => "yellow",
+    //     'TextColor' => "yellow"
+    // ] //McDonalds
 
-	
+    //         [
+    //     'BackgroundColor' => "white",
+    //     'HeaderColor' => "white",
+    //     'WordHighlightColor' => "black",
+    //     'HeaderTextColor' => "cornsilk",
+    //     'TextColor' => "cornsilk"
+    // ]
 
+    // [
+    //     'BackgroundColor' => "#572600",
+    //     'HeaderColor' => "black",
+    //     'WordHighlightColor' => "gray",
+    //     'HeaderTextColor' => "white",
+    //     'TextColor' => "white"
+    // ] //Dalton 2.0
 
+    // [
+    //     'BackgroundColor' => "#D3E5FF",
+    //     'HeaderColor' => "lightblue",
+    //     'WordHighlightColor' => "#4ee6bb",
+    //     'HeaderTextColor' => "white",
+    //     'TextColor' => "black"
+    // ]
 
-	
+    // [
+    //     'BackgroundColor' => "#c3dde3",
+    //     'HeaderColor' => "#167eaf",
+    //     'WordHighlightColor' => "#e1b783",
+    //     'HeaderTextColor' => "black",
+    //     'TextColor' => "black"
+    // ] //Willem
+];
+
 ?>
 
-	
+
 	<style>
-	
-	*[aponly]
+
+	*[ap-only]
 	{
 		<?php
-		
-			if(!($context->GetLevel() == "AP"))
-			{
-				echo "display:none;";
-			}
-		
-		?>
+
+if (!(Context::getLevel() == "AP"))
+{
+    echo "display:none;";
+}
+
+?>
 	}
 
-		
+
 	*[nolatin3]
 	{
 		<?php
-		
-			if($context->GetLevel() == "3")
-			{
-				echo "display:none;";
-			}
-		
-		?>
+
+if (Context::getLevel() == "3")
+{
+    echo "display:none;";
+}
+
+?>
 	}
 
 	html {
-		-webkit-tap-highlight-color:  rgba(255, 255, 255, 0); 
+		-webkit-tap-highlight-color:  rgba(255, 255, 255, 0);
 		margin:-8px;
-		background-color:<?php echo $CSSColors[$context->GetBookTitle()]['BackgroundColor']; ?>;
+		background-color:<?php echo $CSSColors[Context::getBookTitle()]['BackgroundColor']; ?>;
 		overflow-x:hidden;
 		scroll-behavior: smooth;
 	}
@@ -181,11 +176,11 @@ $context = new Context;
 		padding: 8px;
 		color:gray;
 		font-family:Cinzel;
-		
+
 	}
 
 	word {
-		color:<?php echo $CSSColors[$context->GetBookTitle()]['TextColor']; ?>;
+		color:<?php echo $CSSColors[Context::getBookTitle()]['TextColor']; ?>;
 		cursor: pointer;
 		display: inline-block;
 		padding: 6.5px;
@@ -195,7 +190,7 @@ $context = new Context;
 
 	word:hover {
 		border-radius: 8px;
-		background-color: <?php echo $CSSColors[$context->GetBookTitle()]['WordHighlightColor'];?>;
+		background-color: <?php echo $CSSColors[Context::getBookTitle()]['WordHighlightColor']; ?>;
 	}
 
 	text, nomacrons {
@@ -219,7 +214,7 @@ $context = new Context;
 
 	entry,
 	definition {
-		-webkit-transition: .25s all ease-in-out; 
+		-webkit-transition: .25s all ease-in-out;
 		transition: .25s all ease-in-out;
 		/*transition-delay: .5s*/
 		font-size: 0;
@@ -252,7 +247,7 @@ $context = new Context;
 		border-left: 2px solid darkgray;
 	}
 
-	
+
 	word[preview="true"] baseword,
 	word[preview="true"] clitic
 	{
@@ -292,10 +287,10 @@ $context = new Context;
 
 	note
 	{
-		color:<?php echo $CSSColors[$context->GetBookTitle()]['TextColor']; ?>;
+		color:<?php echo $CSSColors[Context::getBookTitle()]['TextColor']; ?>;
 		font-size:14pt;
 		opacity:1;
-		-webkit-transition: .7s all ease-in-out; 
+		-webkit-transition: .7s all ease-in-out;
 		transition: .7s all ease-in-out;
 	}
 
@@ -303,7 +298,7 @@ $context = new Context;
 	{
 		opacity:0.1;
 	}
-	
+
 	freq {
 		color: rgba(0, 0, 0, 0);
 		display: block;
@@ -319,8 +314,8 @@ $context = new Context;
 	}
 
 	freq a:hover {
-		background-color: <?php echo $CSSColors[$context->GetBookTitle()]['BackgroundColor']; ?>;
- 
+		background-color: <?php echo $CSSColors[Context::getBookTitle()]['BackgroundColor']; ?>;
+
 	}
 
 
@@ -339,12 +334,12 @@ $context = new Context;
 		padding-right:1em;
 		margin-top: 1.25em;
 		<?php
-			if($CSSColors[$context->GetBookTitle()]['HeaderTextColor'] == "white")
-			{
-				echo "filter:invert(100);";
-			}
-		?>
-		
+if ($CSSColors[Context::getBookTitle()]['HeaderTextColor'] == "white")
+{
+    echo "filter:invert(100);";
+}
+?>
+
 	}
 
 	#leftarrow {
@@ -361,7 +356,7 @@ $context = new Context;
 	}
 
 	notes
-	{	
+	{
 		line-height: 1.6;
 		z-index: 1000;
 		position: fixed;
@@ -379,7 +374,7 @@ $context = new Context;
 	}
 
 	wrapper[shownotes="true"] notes
-	{		
+	{
 		width: var(--notes-width);
 	}
 
@@ -423,7 +418,7 @@ $context = new Context;
 		padding: 10px 10px;
 	}
 
-	.literarydevice 
+	.literarydevice
 	{
 		position: relative;
 		display: inline-block;
@@ -441,8 +436,8 @@ $context = new Context;
 		color: #fff;
 		text-align: center;
 		border-radius: 6px;
-		
-		
+
+
 		/* Position the literarydevice */
 		position: absolute;
 		z-index: 1;
@@ -460,7 +455,7 @@ $context = new Context;
 	{
 		z-index:100;
 		font-family:Cinzel;
-		
+
 	}
 
 
@@ -469,7 +464,7 @@ $context = new Context;
 		display:block;
 	}
 
-	
+
 	quote[expanded="true"]
 	{
 		display:block;
@@ -484,11 +479,11 @@ $context = new Context;
 		font-weight:bold;
 		color:blue;
 		cursor:pointer;
-	}	
+	}
 
 	quoteline
 	{
-		
+
 		font-size:0;
 
 		transition: all .3s ease-in-out;
@@ -498,7 +493,7 @@ $context = new Context;
 	{
 		display:block;
 		font-size:inherit;
-	
+
 	}
 
 
@@ -506,18 +501,18 @@ $context = new Context;
 	header, header table, header duedate
 	{  margin-left: auto;
 		margin-right: auto;
-		color:<?php echo $CSSColors[$context->GetBookTitle()]['HeaderTextColor']; ?>;
+		color:<?php echo $CSSColors[Context::getBookTitle()]['HeaderTextColor']; ?>;
 		text-align:center;
-		background-color:<?php echo $CSSColors[$context->GetBookTitle()]['HeaderColor']; ?>;
-		position: relative; 
+		background-color:<?php echo $CSSColors[Context::getBookTitle()]['HeaderColor']; ?>;
+		position: relative;
 	}
-	
+
 	.menu-bar-option
 	{
 		font-weight:bold;
 		text-transform: uppercase;
 	}
-	
+
 	header
 	{
 		position: -webkit-sticky;
@@ -526,7 +521,7 @@ $context = new Context;
 		z-index:1;
 	}
 
-	submenu:nth-of-type(1) 
+	submenu:nth-of-type(1)
 	{
 		padding-top:15px;
 	}
@@ -539,7 +534,7 @@ $context = new Context;
 
 	select,	.menu-bar-option, .submenu-item
 	{
-		font-family: "Mulish", serif; 
+		font-family: "Mulish", serif;
 		margin-left: 15px;
 		margin-right: 15px;
 	}
@@ -547,9 +542,9 @@ $context = new Context;
 
 	.menu-bar-option a, .submenu-item a
 	{
-		color:<?php echo $CSSColors[$context->GetBookTitle()]['HeaderTextColor']; ?>;
+		color:<?php echo $CSSColors[Context::getBookTitle()]['HeaderTextColor']; ?>;
 		text-decoration:none;
-		
+
 	}
 
 </style>

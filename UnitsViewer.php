@@ -23,35 +23,11 @@ phpversion();
 		font-family: "Palatino Linotype";
 	}
 
-	homework[passed="false"]
+	homework 
 	{
 		padding:18 20 18 20px;
 		margin:5px;
-	}
-	homework[passed="true"]
-	{
-		padding:5px;
-		margin:5px;
-	}
- 
-	homework[passed="true"] {
-		 opacity:.4;
-		 } 
-	 homework[passed="true"] .fontL, .dueDate {
-		 font-size:small;
-		 }
-
-	homework[passed="true"] .fontS {
-	font-size:small;
-	}
-
-	homework[passed="false"] .fontS {
-	font-size:medium;
-	}
-	homework[passed="false"] .fontL, homework[passed="false"] .dueDate {
-	font-size:large;
-	}
-
+	} 
 
 	 homework[author="C"]:hover, homework[author="V"]:hover { background-color:darkgray;}
 

@@ -81,15 +81,15 @@ hwdescription
 <body onload = 'GoogleCheck(); GetRotationDaysJSON(); InitializeCalendarGAPI();'>
 <?php>
 
-require_once ('GoogleClassroom/APLGSI.php');  
+require_once ('GoogleClassroom/APLGSI.php');
 require_once ( 'FontStyles.php');
-require_once ( 'GenerateNotesandVocab.php'); 
+require_once ( 'GenerateNotesandVocab.php');
 require_once ( 'ForwardHTTPS.php');
 
 
 
-$context = new Context; 
-$levArray = array_keys($context::LevelDictDB);
+$context = new Context;
+$levArray = array_keys(Context::LEVEL_DICT_DB);
 
 $statuses = SQLQuarry('SELECT * FROM `Control Panel` ')[0];
 
@@ -107,7 +107,7 @@ foreach($levArray as $level)
 		$checkedclause = "";
 		$activatedclause = "false";
 	}
-	echo "<div  onclick = 'ToggleTestMode(this)' class = 'testModeCheckers' activated = '".$activatedclause."'>"; 
+	echo "<div  onclick = 'toggle-test-mode(this)' class = 'testModeCheckers' activated = '".$activatedclause."'>";
 	echo "<input ".$checkedclause." class = 'cb' type = 'checkbox' level = '".$level."' id = 'testModeCheckbox".$level."'>";
 	echo "<span class = 'classtitle'  >";
 	echo "Test Mode - ".$level."";
@@ -120,7 +120,7 @@ foreach($levArray as $level)
 }
 echo "</div>";
 
-//  $context->GetTestStatus())
+//  Context::getTestStatus())
 
 
 
@@ -138,9 +138,9 @@ const SCOPES = (["https://www.googleapis.com/auth/calendar.events", "https://www
 
 const GoogleClassroomCourseName = "AP Latin-G12";
 
-function ToggleTestMode(clickedElement)
+function toggle-test-mode(clickedElement)
 {
-	
+
 	checkElement =  clickedElement.getElementsByClassName('cb')[0]
 	checkElement.checked = !checkElement.checked
 
@@ -158,7 +158,7 @@ function ToggleTestMode(clickedElement)
 		}
 	};
 
-	XMLURL = "AJAXAPL.php?toggletestmode=true&newval="+newval+"&level="+Level;
+	XMLURL = "AJAXAPL.php?toggle-test-mode=true&newval="+newval+"&level="+Level;
 	xmlhttp.open("GET", XMLURL, true);
 	xmlhttp.send();
 	// cnsole.log(window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/" + XMLURL);
@@ -194,7 +194,7 @@ function InitializeCalendarGAPI()
 			clientId: CLIENT_ID,
 			discoveryDocs: DISCOVERY_DOCS,
 			scope: SCOPES
-			
+
 		}).then(function()
 		{
 			// PullGoogleClassroomCalendars();
@@ -218,7 +218,7 @@ function SignInWithCheck()
 	.then(
 		function()
 		{
-			InitializeCalendarGAPI() 
+			InitializeCalendarGAPI()
 		}
 	);
 }
@@ -285,11 +285,11 @@ function GetClasswork(idNum)
 				return Math.sign(a-b);
 
 			});
-			
+
 			rez= rez.slice(Math.max(rez.length - 3, 0))
-			
+
 			DisplayCurrentHW(rez)
-			
+
 			}
 		)
 
@@ -303,9 +303,9 @@ function DisplayCurrentHW(HWArray)
 		HWNumsArray.push(+(HWArray[a].title.substring(2)))
 
 		tempHW = document.createElement('hw');
-		tempHW.innerHTML = "<hwtitle>" + HWArray[a]['title'] + "</hwtitle>" 
-		tempHW.innerHTML += "<hwduedate>" + HWArray[a]['dueDate']['month'] + "/" + HWArray[a]['dueDate']['day'] + "/" + HWArray[a]['dueDate']['year'] +  "</hwduedate>" 
-		tempHW.innerHTML += "<hwdescription>" + HWArray[a]['description'].substring(0, HWArray[a]['description'].indexOf("\n"))+ "</hwdescription>" 
+		tempHW.innerHTML = "<hwtitle>" + HWArray[a]['title'] + "</hwtitle>"
+		tempHW.innerHTML += "<hwduedate>" + HWArray[a]['dueDate']['month'] + "/" + HWArray[a]['dueDate']['day'] + "/" + HWArray[a]['dueDate']['year'] +  "</hwduedate>"
+		tempHW.innerHTML += "<hwdescription>" + HWArray[a]['description'].substring(0, HWArray[a]['description'].indexOf("\n"))+ "</hwdescription>"
 		document.getElementById('hwAssigned').appendChild(tempHW)
 	}
 	var LatestNumber = HWNumsArray.pop()
@@ -330,16 +330,16 @@ function SuggestHW(HWArray, LatestNumber)
 
 				SheetData = (JSON.parse(Response).values)
 				console.log(SheetData)
-				
+
 				sd = 0;
 				nextten = 0;
-				
+
 				var tempRDJSON = JSON.parse(document.getElementById('RotationDaysJSON').innerText)
 
-				
+
 				while ( sd < SheetData.length && nextten <10 )
 				{
-					// console.log(SheetData[sd])	
+					// console.log(SheetData[sd])
 					if( +(SheetData[sd][0].substring(1)) > LatestNumber && +(SheetData[sd][0].substring(1)) > 0 )
 					{
 						var tempHWNum = (+(SheetData[sd][0].substring(1)))
@@ -374,9 +374,9 @@ function SuggestHW(HWArray, LatestNumber)
 						tempHW.setAttribute('hwnum', tempHWNum)
 						tempHW.setAttribute('unit', tempUnit)
 						tempHW.setAttribute('rd', tempRD)
-						tempHW.innerHTML = "<hwtitle>HW" + (+tempHWNum) + " [Unit "+tempUnit+"] </hwtitle>" 
-						tempHW.innerHTML += "<hwduedate>" + tempDoW +", " + tempD.toLocaleDateString(undefined) + "</hwduedate>" 
-						tempHW.innerHTML += "<hwdescription>" + tempHWCitation + "</hwdescription>" 
+						tempHW.innerHTML = "<hwtitle>HW" + (+tempHWNum) + " [Unit "+tempUnit+"] </hwtitle>"
+						tempHW.innerHTML += "<hwduedate>" + tempDoW +", " + tempD.toLocaleDateString(undefined) + "</hwduedate>"
+						tempHW.innerHTML += "<hwdescription>" + tempHWCitation + "</hwdescription>"
 						document.getElementById('hwAssigned').appendChild(tempHW)
 						nextten++
 
@@ -386,10 +386,10 @@ function SuggestHW(HWArray, LatestNumber)
 				}
 
 				document.getElementById('ssLink').innerText = 'Spreadsheet'
-				document.getElementById('ssLink').setAttribute('href', 'https://docs.google.com/spreadsheets/d/<?php echo $DocumentID;?>')
+				document.getElementById('ssLink').setAttribute('href', 'https://docs.google.com/spreadsheets/d/<?php echo $DocumentID; ?>')
 			}
 		};
-		xmlhttp.open("GET", "https://sheets.googleapis.com/v4/spreadsheets/<?php echo $DocumentID;?>/values/Export?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es", true);
+		xmlhttp.open("GET", "https://sheets.googleapis.com/v4/spreadsheets/<?php echo $DocumentID; ?>/values/Export?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es", true);
 		xmlhttp.send();
 
 
@@ -398,15 +398,15 @@ function SuggestHW(HWArray, LatestNumber)
 function GetTopics(ClassId)
 {
 	gapi.client.classroom.courses.topics.list({courseId:ClassId})
-	.then( function(r) { 
-		
+	.then( function(r) {
+
 		teTOPICS = (r.result.topic)
 		TOPICS = {};
 
 		for (t=0; t< teTOPICS.length; t++)
 		{
 			TOPICS[+(teTOPICS[t].name.substring(teTOPICS[t].name.indexOf(" "), teTOPICS[t].name.lastIndexOf(" ")))] = teTOPICS[t].topicId
-		}		
+		}
 	});
 }
 
@@ -419,15 +419,15 @@ function CreateAPLatinHWAssignment(clickedElement)
 	var united = clickedElement.getAttribute('unit')
 
 	var dateobj = (new Date(dateee + " " + timeee + ""))
-	
+
 	var description = citeit+`
 	https://aplatin.altervista.org/HomeworkViewer.php?hw=`+numbah+`
-	https://docs.google.com/spreadsheets/d/<?php echo $DocumentID;?>`
+	https://docs.google.com/spreadsheets/d/<?php echo $DocumentID; ?>`
 
 	//Test Class Id =========    "46640113054"
 
 	gapi.client.classroom.courses.courseWork.create({
-		
+
 		//AP
 		courseId:COURSEID,
 		topicId:TOPICS[united],
@@ -454,7 +454,7 @@ function CreateAPLatinHWAssignment(clickedElement)
 		maxPoints:100
 
 		}).then(function(r)
-		
+
 		{
 			if(r.status == 200)
 			{
@@ -489,7 +489,7 @@ function CreateAPLatinHWAssignment(clickedElement)
 <BR>
 <BR>
 <BR>
-<span  style = 'padding:5px;' onclick = 'SignInWithCheck()' >Link with Google API</span> 
-<span  style = 'padding:5px;'  ><a target = '_blank' id = 'ssLink'></a></span> 
+<span  style = 'padding:5px;' onclick = 'SignInWithCheck()' >Link with Google API</span>
+<span  style = 'padding:5px;'  ><a target = '_blank' id = 'ssLink'></a></span>
 
 <span  style = 'padding:5px;' onclick = 'signOut()'>Sign Out</span>

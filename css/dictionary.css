@@ -1,0 +1,181 @@
+
+html {
+    text-align: center;
+    background-color: lightgray;
+}
+
+#filterdict {
+    font-size: 3em;
+    font-family: inherit;
+    text-align: center;
+    padding: 10px;
+}
+
+highlight {
+    /* background-color: cornsilk; */
+    color: #cc2929;
+}
+
+word {
+    display: block;
+    text-align: left;
+    font-size: x-large;
+    border-left: 3px solid white;
+    border-right: 3px solid white;
+    padding-bottom: 2px;
+    cursor: default;
+    width: 70%;
+}
+
+word:nth-child(odd) {
+    background-color: white;
+}
+
+word:last-child {
+    border-bottom: 3px solid white;
+}
+
+definition,
+.editDef {
+    font-family: inherit;
+    font-size: inherit;
+    padding-left: 5px;
+}
+
+.editDef {
+    font-style: italic;
+}
+
+.editEntry {
+    font-weight: bold;
+}
+
+entry,
+.editEntry {
+    font-family: inherit;
+    font-size: inherit;
+    padding-left: 5px;
+}
+
+.editDef,
+.editEntry {
+    padding: 10px;
+    background-color: lightyellow;
+}
+
+.deletebutton,
+.editbutton {
+    display: none;
+}
+
+.editbutton,
+.infobutton,
+.deletebutton {
+    position: relative;
+    height: 24px;
+    top: 4px;
+    opacity: 0;
+}
+
+word:hover .editbutton,
+word:hover .infobutton {
+    cursor: pointer;
+    padding-left: 18px;
+    opacity: 1;
+}
+
+word:hover .deletebutton {
+    padding-left: 10px;
+    cursor: pointer;
+    opacity: 1;
+}
+
+.savebutton {
+    cursor: pointer;
+    position: relative;
+    height: 38px;
+    top: 10px;
+    padding-left: 10px;
+}
+
+.spinner {
+    display: inline-block;
+    position: relative;
+    top: 1px;
+    left: 1px;
+    border: 3px solid rgba(0, 0, 0, 0);
+    border-radius: 50%;
+    border-top: 3px solid black;
+    width: 13px;
+    height: 15px;
+    -webkit-animation: spin .75s linear infinite;
+    animation: spin .75s linear infinite;
+}
+
+.spinnerbig {
+    display: inline-block;
+    position: relative;
+    top: 1px;
+    left: 1px;
+    border: 10px solid rgba(0, 0, 0, 0);
+    border-radius: 100%;
+    border-top: 10px solid black;
+    width: 5em;
+    height: 5em;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+
+attestation {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+/* Tooltip text */
+attestation attline {
+    visibility: hidden;
+    white-space: nowrap;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    padding: 5px;
+    border-radius: 6px;
+
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+attestation:hover attline {
+    visibility: visible;
+    opacity: 1;
+}
