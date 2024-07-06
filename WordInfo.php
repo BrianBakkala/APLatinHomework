@@ -166,7 +166,7 @@ foreach (Context::DICT_DB as $title => $dictionary)
                     $AttLine .= "<highlight wid = '" . $WordsOnLine[$w]['id'] . "' style = 'cursor:pointer;''>";
                     $AttLine .= "<a target = '_blank' href = 'HomeworkViewer.php?level=" . Context::getLevel();
                     $AttLine .= "&title=" . $title;
-                    $AttLine .= "&highlightedword=" . $WordsOnLine[$w]['id'] . "'>";
+                    $AttLine .= "&highlighted_word=" . $WordsOnLine[$w]['id'] . "'>";
                     $AttLine .= $WordsOnLine[$w]['word'];
                     $AttLine .= "</a>";
                     $AttLine .= "</highlight>";

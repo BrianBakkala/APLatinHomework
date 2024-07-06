@@ -1,10 +1,7 @@
 
 function filterDictionary(filterText)
 {
-
-
-
-	return latinAJAX("filter-dictionary",
+	return ajaxAjacis("filter-dictionary",
 		{
 			level: CONTEXT.level,
 			filter_text: filterText,

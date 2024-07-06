@@ -88,7 +88,7 @@ require_once ( 'ForwardHTTPS.php');
 
 
 
-$context = new Context;
+use app\Context;
 $levArray = array_keys(Context::LEVEL_DICT_DB);
 
 $statuses = SQLQuarry('SELECT * FROM `Control Panel` ')[0];

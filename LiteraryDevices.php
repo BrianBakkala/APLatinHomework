@@ -41,7 +41,7 @@
 
 require_once 'GenerateNotesandVocab.php';
 
-$context = new Context;
+use app\Context;
 
 if (Context::getTestStatus())
 {

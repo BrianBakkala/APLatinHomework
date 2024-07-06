@@ -8,9 +8,6 @@ use app\Context;
 require_once 'SQLConnection.php';
 require_once 'utility/debug.php';
 
-$DocumentID = "11j0cC45e8RBiHbt0FKzJ-gHUZ_fEpDQzVo-cEU5eYAU";
-$ExportPageNumber = 7;
-
 if (isset($_GET['hw']))
 {
     $Data = getHomeworkAssignment($_GET['hw']);
@@ -58,8 +55,8 @@ function getHomeworkLineIDs($HWNum, $hwdb, $title)
 
     }
 
-    $StartId = ((int) latinQuery([$Assignment['StartBook']], 'SELECT MIN(`OrderOfText`) FROM `' . Context::getTextDB() . '` WHERE  `book` = ? AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`', true, false, true) - ((int) $Assignment['AddToBeginning']));
-    $EndId = ((int) latinQuery([$Assignment['EndBook']], 'SELECT MAX(`OrderOfText`) FROM `' . Context::getTextDB() . '` WHERE  `book` = ? AND ' . $WhereClause2 . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`', true, false, true) - ((int) $Assignment['SubtractFromEnd']));
+    $StartId = ((int) latinQuery([$Assignment['StartBook']], 'SELECT MIN(`OrderOfText`) FROM `' . Context::getTextDB($title) . '` WHERE  `book` = ? AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`', true, false, true) - ((int) $Assignment['AddToBeginning']));
+    $EndId = ((int) latinQuery([$Assignment['EndBook']], 'SELECT MAX(`OrderOfText`) FROM `' . Context::getTextDB($title) . '` WHERE  `book` = ? AND ' . $WhereClause2 . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`', true, false, true) - ((int) $Assignment['SubtractFromEnd']));
 
     return array(
         "StartID" => $StartId,
@@ -457,14 +454,14 @@ function parseNoteText($inputText, $showdevices = true, $title = null)
 
         }, $outputText);
 
-    // $outputText = preg_replace_callback("/\<\<(\d*?)\>\>/","<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".Context::getLevel()."&hw=".findHomeworkByWordID(Context::getBookTitle(), "\1")."&highlightedword="."\\1"."'>\\1</a>", $outputText);
+    // $outputText = preg_replace_callback("/\<\<(\d*?)\>\>/","<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=".Context::getLevel()."&hw=".findHomeworkByWordID(Context::getBookTitle(), "\1")."&highlighted_word="."\\1"."'>\\1</a>", $outputText);
     $outputText = preg_replace_callback("/\<\<(\d*?)\>\>/",
         function ($matches) use ($title)
         {
             $m = $matches[0];
             $m = preg_replace("/\<\<(\d*?)\>\>/", "\\1", $m);
 
-            return "<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=" . Context::getLevel() . "&title=" . $title . "&highlightedword=" . $m . "'>" . getCitationByWordID($title, $m) . "</a>";
+            return "<a target = '_blank' href = 'http://aplatin.altervista.org/HomeworkViewer.php?level=" . Context::getLevel() . "&title=" . $title . "&highlighted_word=" . $m . "'>" . getCitationByWordID($title, $m) . "</a>";
 
         }, $outputText);
     return $outputText;
@@ -830,15 +827,11 @@ function displayWord($word, $showVocab, $assignment, $dictionary, $linespacing, 
 
     if ($showVocab == true)
     {
-        $outputText .= "<word  baseword = '" . $Noclitics . "' clitic = '" . $Clitic . "' defintionid = '" . $word['definitionId'] . "' wordid = '" . $word['id'] . "' id = '" . $word['id'] . "' frequency = '" . getFrequencyByLevel($word['definitionId'], Context::getLevel()) . "' reveal = ";
+        $outputText .= "<word  baseword = '" . $Noclitics . "' clitic = '" . $Clitic . "' defintionid = '" . $word['definitionId'] . "' wordid = '" . $word['id'] . "' id = '" . $word['id'] . "' frequency = '" . getFrequencyByLevel($word['definitionId'], Context::getLevel()) . "'  ";
 
-        if (isset($_GET['highlightedword']) && (((int) $_GET['highlightedword']) == ((int) $word['id'])))
+        if (isset($_GET['highlighted_word']) && (((int) $_GET['highlighted_word']) == ((int) $word['id'])))
         {
-            $outputText .= "'true'";
-        }
-        else
-        {
-            $outputText .= "'false'";
+            $outputText .= " reveal ";
         }
 
         $outputText .= " >";

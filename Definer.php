@@ -63,7 +63,7 @@ require_once 'SQLConnection.php';
 require_once 'GoogleClassroom/APLGSI.php';
 require_once 'GenerateNotesandVocab.php';
 
-$context = new Context;
+use app\Context;
 
 if (isset($_GET['author']))
 {

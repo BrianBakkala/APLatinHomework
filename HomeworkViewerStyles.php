@@ -205,20 +205,20 @@ $CSSColors =
 
 
 
-	word[reveal="true"] entry,
+	word[reveal] entry,
 	word[preview="true"] entry
 	{
 		border-top: 1px solid lightgray;
 	}
 
 
-	word[reveal="true"] baseword,
-	word[reveal="true"] clitic
+	word[reveal] baseword,
+	word[reveal] clitic
 	{
 		border-right: 2px solid darkgray;
 	}
 
-	word[reveal="true"] baseword
+	word[reveal] baseword
 	{
 		border-left: 2px solid darkgray;
 	}
@@ -236,26 +236,26 @@ $CSSColors =
 	}
 
 
-	word[reveal="true"] entry,
+	word[reveal] entry,
 	word[preview="true"] entry,
-	word[reveal="true"] definition,
+	word[reveal] definition,
 	word[preview="true"] definition
 	{
 		font-size: 18pt;
 
 	}
 
-	word[reveal="true"] baseword,
+	word[reveal] baseword,
 	word[preview="true"] baseword,
-	word[reveal="true"] clitic,
+	word[reveal] clitic,
 	word[preview="true"] clitic
 	{
 		padding: 5px;
 	}
 
-	word[reveal="true"]:not([clitic=""]) clitic text::before,
+	word[reveal]:not([clitic=""]) clitic text::before,
 	word[preview="true"]:not([clitic=""]) clitic text::before,
-	word[reveal="true"]:not([clitic=""]) clitic nomacrons::before,
+	word[reveal]:not([clitic=""]) clitic nomacrons::before,
 	word[preview="true"]:not([clitic=""]) clitic nomacrons::before
 	{
 		content: "-";

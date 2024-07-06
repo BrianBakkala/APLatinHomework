@@ -25,9 +25,9 @@ SELECT * FROM `#APDictionary` LEFT JOIN `#APAeneidText` on (`#APAeneidText`.`def
 
 <p ap-only style = 'text-align:left;'><A href = 'UnitsViewer.php'>← Units</A></p>
 
-<script src="js/global/utility.js<?php echo "?" . date("mds"); ?>" defer></script>
-<script src="js/dictionary.js<?php echo "?" . date("mds"); ?>"></script>
-<link rel="stylesheet" href="css/dictionary.css<?php echo "?" . date("mds"); ?>">
+<script src="js/global/utility.js<?php echo "?" . date("md"); ?>" defer></script>
+<script src="js/dictionary.js<?php echo "?" . date("md"); ?>"></script>
+<link rel="stylesheet" href="css/dictionary.css<?php echo "?" . date("md"); ?>">
 
 
 <CENTER><BR><BR>

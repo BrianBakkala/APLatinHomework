@@ -171,14 +171,18 @@ class Context
 
         if (isset($_GET['title']))
         {
-            $bt = $_GET['title'];
+            $bookTitle = $_GET['title'];
         }
         else if (isset($_GET['hw']))
         {
-            $bt = SQLQ('SELECT `BookTitle` FROM `' . self::LEVEL_DB[self::getLevel()] . '` WHERE `HW` = ' . $_GET['hw']);
+            $bookTitle = SQLQ('SELECT `BookTitle` FROM `' . self::LEVEL_DB[self::getLevel()] . '` WHERE `HW` = ' . $_GET['hw']);
+        }
+        else
+        {
+            $bookTitle = "Aeneid";
         }
 
-        return $bt;
+        return $bookTitle;
     }
 
 }

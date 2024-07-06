@@ -1,21 +1,22 @@
-<TITLE>AP Latin HW</TITLE>
 <?php
 
+require_once 'autoload.php';
+require_once 'FontStyles.php';
 require_once 'SQLConnection.php';
-require_once 'GenerateNotesandVocab.php';
-require_once 'ForwardHTTPS.php';
+require_once 'globals.php';
 
-$context = new Context;
-// echo $_GET['line'];
-// echo $_GET['author'];
+use app\Context;
+ 
+
+
 
 $Book3 = "Catullus";
-$NextLine3 = SQLQuarry('SELECT  min(id)  FROM `' . Context::BOOK_DB[$Book3] . '` WHERE `definitionId` = 0', true)[0];
-$NextLine3 = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `' . Context::BOOK_DB[$Book3] . '` WHERE `id` = ' . $NextLine3)[0];
+$NextLine3Id = latinQuery([], 'SELECT  min(id)  FROM `' . Context::BOOK_DB[$Book3] . '` WHERE `definitionId` = 0', true)[0] ?? latinQuery([], 'SELECT  max(id)  FROM `' . Context::BOOK_DB[$Book3] . '`', true)[0];
+$NextLine3 = latinQuery([$NextLine3Id], 'SELECT `book`, `chapter`, `lineNumber` FROM `' . Context::BOOK_DB[$Book3] . '` WHERE `id` = ?')[0];
 
 $Book4 = "AUC";
-$NextLine4 = SQLQuarry('SELECT  min(id)  FROM `' . Context::BOOK_DB[$Book4] . '` WHERE `definitionId` = 0', true)[0];
-$NextLine4 = SQLQuarry('SELECT `book`, `chapter`, `lineNumber` FROM `' . Context::BOOK_DB[$Book4] . '` WHERE `id` = ' . $NextLine4)[0];
+$NextLine4Id = latinQuery([], 'SELECT  min(id)  FROM `' . Context::BOOK_DB[$Book4] . '` WHERE `definitionId` = 0', true)[0] ?? latinQuery([], 'SELECT  max(id)  FROM `' . Context::BOOK_DB[$Book4] . '`', true)[0];
+$NextLine4 = latinQuery([$NextLine4Id], 'SELECT `book`, `chapter`, `lineNumber` FROM `' . Context::BOOK_DB[$Book4] . '` WHERE `id` = ?')[0];
 
 ?>
 <!-- <a href = 'TextParser.php'>Text Parser</a><BR> -->

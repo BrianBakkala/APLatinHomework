@@ -2,49 +2,62 @@
 <TITLE>AP Latin Units</TITLE>
 <?php
 
+require_once 'globals.php';
 require_once 'GenerateNotesandVocab.php';
 require_once 'HomeworkViewerStyles.php';
 
-phpversion();
 ?>
 
 
-
-
-
-
-
 <style>
-	html {
-		text-align: center;
-		font-family: "Palatino Linotype";
-	}
 
-	homework
+	homework[author="C"]
 	{
-		padding:18 20 18 20px;
-		margin:5px;
+		background-color:<?php echo $CSSColors["DBG"]['BackgroundColor']; ?>;
 	}
 
-	 homework[author="C"]:hover, homework[author="V"]:hover { background-color:darkgray;}
-
-	 homework[author="C"]
-	 {
-		  background-color:<?php echo $CSSColors["DBG"]['BackgroundColor']; ?>;
-	 }
-
-	 homework[author="V"]
-	 {
-		  background-color:<?php echo $CSSColors["Aeneid"]['BackgroundColor']; ?>;
-	 }
-a:link { color: #000000; text-decoration: none}
-a:visited { color: #000000; text-decoration: none}
-a:hover{ color: #ffffff; text-decoration: underline}
-a:active { color: #000000; text-decoration: none}
+	homework[author="V"]
+	{
+		background-color:<?php echo $CSSColors["Aeneid"]['BackgroundColor']; ?>;
+	}
 
 </style>
 
+<script src="js/global/utility.js<?php echo "?" . date("mds"); ?>" defer></script>
+<link rel="stylesheet" href="css/units-viewer.css<?php echo "?" . date("mds"); ?>">
 
+<script>
+
+function getDates()
+{
+
+	ajaxAjacis(DOCUMENT.url, {}		,
+	function ({ r, t })
+		{
+ 			const data = r.values
+
+			for(const row of r.values)
+			{
+				if((row[0]).startsWith("V") || (row[0]).startsWith("C")  )
+			 	{
+					const hwNumber = parseInt(row[0].slice(1));
+					const tempDate = new Date (row[1]);
+					const formattedDate = tempDate.toLocaleString('en-US', { weekday: 'long', year: '2-digit', month: 'long', day: 'numeric' }).slice(0, -4)
+
+					document.querySelector('homework[hw-id="'+hwNumber+'"] .due-date').innerText =formattedDate
+				}
+
+			}
+		},
+
+		"GET"
+	);
+}
+
+
+</script>
+
+<body onload = 'getDates()'>
 
 <?php
 
@@ -67,7 +80,9 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 
     for ($hw = 0; $hw < $HWsCount; $hw++)
     {
+
         $assignment_temp = getHomeworkAssignment($HWs[$hw]["HW"], "ap_homework");
+
         $HWLines_temp = $assignment_temp['Lines'];
         $LineCount_temp = count(array_unique(array_map(function ($x)
         {
@@ -76,11 +91,11 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 
         $citation = $HWs[$hw]["Author"] == "C" ? $HWs[$hw]["StartBook"] . "." . $HWs[$hw]["StartChapter"] . "." . $HWs[$hw]["StartLine"] . " - " . $HWs[$hw]["EndBook"] . "." . $HWs[$hw]["EndChapter"] . "." . $HWs[$hw]["EndLine"] : $HWs[$hw]["StartBook"] . "." . $HWs[$hw]["StartLine"] . " - " . $HWs[$hw]["EndBook"] . "." . $HWs[$hw]["EndLine"];
         echo "<a    href = 'http://aplatin.altervista.org/HomeworkViewer.php?hw=" . $HWs[$hw]["HW"] . "'>";
-        echo "<homework id = 'hw" . $HWs[$hw]["HW"] . "' author = '" . $HWs[$hw]["Author"] . "' citation = '" . $citation . "' title = '" . $HWs[$hw]["BookTitle"] . "' style = '   border:1px solid gray; display:inline-block;'>";
+        echo "<homework id = 'hw" . $HWs[$hw]["HW"] . "' hw-id = '" . $HWs[$hw]["HW"] . "' author = '" . $HWs[$hw]["Author"] . "' citation = '" . $citation . "' title = '" . $HWs[$hw]["BookTitle"] . "' style = '   border:1px solid gray; display:inline-block;'>";
         echo "<span class = 'fontL' ><B>HW" . $HWs[$hw]["HW"] . "</B></span> ";
         echo "<span class = 'fontL' >(" . $LineCount_temp . ")</span><BR>";
         echo "<span  class = 'fontS'  ><i>" . $HWs[$hw]["BookTitle"] . "</i> " . $citation . "</span><BR>";
-        echo "<span class = 'dueDate' id = 'duedate" . $HWs[$hw]["HW"] . "' class = 'fontS' >&nbsp</span>";
+        echo "<span class = 'due-date' id = 'duedate_" . $HWs[$hw]["HW"] . "' class = 'fontS' >&nbsp</span>";
         echo "</homework>";
         echo "</a>";
     }
@@ -95,40 +110,3 @@ for ($u = 1; $u <= $UnitsCount; $u++)
 ?>
 
 
-<script>
-
-	var xmlhttp = new XMLHttpRequest();
-	xmlhttp.onreadystatechange = function()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
-			SheetData = (JSON.parse(Response).values)
-			console.log(SheetData)
-
-			sd = 1;
-
-			while ( sd < SheetData.length )
-			{
-				if((SheetData[sd][0]).startsWith("V") || (SheetData[sd][0]).startsWith("C")  )
-				{
-					var tempHWNum = (+(SheetData[sd][0].substring(1)))
-					var tempD =  new Date (SheetData[sd][1])
-					var tempDate = tempD.getFullYear() + "-"+ ("00"+(tempD.getMonth()+1)).slice(-2)+ "-"+ ("00"+tempD.getDate()).slice(-2)
-
-					if(document.getElementById('duedate'+tempHWNum))
-					{
-						document.getElementById('duedate'+tempHWNum).innerText = tempD.toLocaleString('en-US', { weekday: 'long', year: '2-digit', month: 'long', day: 'numeric' }).slice(0, -4)
-						document.getElementById('hw'+tempHWNum).setAttribute('passed',  ((tempD - new Date()) < 0))
-					}
-
-				}
-				sd++
-			}
-		}
-	};
-	xmlhttp.open("GET", "https://sheets.googleapis.com/v4/spreadsheets/<?php echo $DocumentID; ?>/values/Export?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es", true);
-
-	xmlhttp.send();
-
-</script>

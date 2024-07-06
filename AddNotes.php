@@ -4,12 +4,11 @@
 
 require_once 'GoogleClassroom/APLGSI.php';
 
-require_once 'JSBackend.php';
 require_once 'GenerateNotesandVocab.php';
 require_once 'FontStyles.php';
 require_once 'HomeworkViewerStyles.php';
 require_once 'SQLConnection.php';
-$context = new Context;
+use app\Context;
 
 echo "<wrapper shownotes = 'true'>";
 
@@ -198,7 +197,7 @@ echo "</wrapper>";
 
 
 
-
+<script src="js/homework-viewer.js<?php echo "?" . date("md"); ?>"></script>
 <script>
 
 // alert(navigator.msMaxTouchPoints)

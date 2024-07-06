@@ -14,10 +14,10 @@ if (strpos($actual_link, "&amp;") !== false)
 
 require_once 'ForwardHTTPS.php';
 require_once 'GenerateNotesandVocab.php';
-require_once 'JSBackend.php';
+require_once 'globals.php';
 
-// if(!isset($_GET['highlightedword']))
-if (!isset($_GET['hw']) && isset($_GET['highlightedword']) && isset($_GET['title']))
+// if(!isset($_GET['highlighted_word']))
+if (!isset($_GET['hw']) && isset($_GET['highlighted_word']) && isset($_GET['title']))
 {
     $temp_level = "AP";
     if (isset($_GET['level']))
@@ -27,8 +27,8 @@ if (!isset($_GET['hw']) && isset($_GET['highlightedword']) && isset($_GET['title
 
     $turl = explode($actual_link, "?")[0];
 
-    $addon = "hw=" . findHomeworkByWordID($_GET['title'], $_GET['highlightedword']);
-    $addon .= "&highlightedword=" . $_GET['highlightedword'];
+    $addon = "hw=" . findHomeworkByWordID($_GET['title'], $_GET['highlighted_word']);
+    $addon .= "&highlighted_word=" . $_GET['highlighted_word'];
 
     header('Location:' . str_replace("&amp;", "&", ($turl . $addon)));
 
@@ -221,7 +221,7 @@ echo "Macrons: <b>on</b>";
 echo "</a>";
 echo "</span>";
 
-echo "<select no-latin-3 onchange= 'SetDifficulty(this.value)'>";
+echo "<select no-latin-3 onchange= 'setDifficulty(this.value)'>";
 
 echo "<option value='0' selected disabled hidden> ";
 echo "Difficulty";
@@ -291,258 +291,22 @@ echo "</wrapper>";
 
 ?>
 
-<body onload = "GetHWDueDate(); CheckSSE(); InitializeWords(); SetupNoteHighlights(); <?php
-if (isset($_GET['highlightedword']))
+<script>
+    const ASSIGNMENT_ID = JSON.parse(`<?php echo json_encode($_GET['hw']) ?>`);
+    const HIGHLIGHTED_WORD = JSON.parse(`<?php echo json_encode($_GET['highlighted_word'] ?? 0) ?>`);
+</script>
+
+<script src="js/global/utility.js<?php echo "?" . date("md"); ?>" defer></script>
+<script src="js/homework-viewer.js<?php echo "?" . date("mdHms"); ?>"></script>
+<script async defer src="https://apis.google.com/js/api.js"></script>
+
+<body onload = "getHomeworkDueDate();  InitializeWords(); SetupNoteHighlights(); <?php
+if (isset($_GET['highlighted_word']))
 {
-    echo "	ScrollToWord('" . $_GET['highlightedword'] . "')";
+    echo "	ScrollToWord('" . $_GET['highlighted_word'] . "')";
 }
 ?>">
 
 
-
-
-
-<script>
-
-function InitializeWords()
-{
-	words = document.getElementsByTagName('word')
-
-	for (i = 0; i < words.length; i++)
-	{
-		words[i].onclick = function()
-		{
-			this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
-		}
-		// words[i].onmouseover = function()
-		// {
-		// 	this.setAttribute("preview", ("true"))
-		// }
-		// words[i].onmouseout = function()
-		// {
-		// 	this.setAttribute("preview", ("false"))
-		// }
-
-		words[i].ontouchstart = function()
-		{
-			this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
-
-			for (i = 0; i < words.length; i++)
-			{
-				words[i].onclick = function() {}
-				words[i].onmouseover = function() {}
-				words[i].onmouseout = function() {}
-
-				words[i].ontouchstart = function()
-				{
-					this.setAttribute("reveal", (this.getAttribute("reveal") == "true" ? "false" : "true"))
-				}
-
-			}
-
-		}
-	}
-}
-function ToggleNotes(element)
-{
-	const CurrentStatus = (document.getElementsByTagName("wrapper")[0].getAttribute("shownotes") == "true")
-	const NewStatus = !CurrentStatus
-
-	document.getElementsByTagName("wrapper")[0].setAttribute("shownotes", NewStatus.toString() )
-
-	element.innerHTML = "Notes: <b>"+(NewStatus? "on" : "off")+"</b>"
-
-}
-
-function ToggleMacrons(element)
-{
-	const CurrentStatus = (document.getElementsByTagName("wrapper")[0].getAttribute("showmacrons") == "true")
-	const NewStatus = !CurrentStatus
-
-	document.getElementsByTagName("wrapper")[0].setAttribute("showmacrons", NewStatus.toString() )
-
-	console.log(element)
-	element.innerHTML = "Macrons: <b>"+(NewStatus? "on" : "off")+"</b>"
-
-}
-
-function CheckSSE()
-{
-	//non-IE/Edge Functionality
-	if (typeof(EventSource) !== "undefined")
-	{
-		var Level = "<?php echo Context::getLevel(); ?>";
-		var source = new EventSource("TestModeSSE.php?level="+Level+"&timestampupdate=true");
-		Recheck = null;
-		const StatusOnLoad = "<?php echo (Context::getTestStatus()) ? "1" : "0"; ?>";
-
-		source.onmessage = function(event)
-		{
-			SSEResponse = JSON.parse(event.data.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, ''))
-			if(Recheck == null)
-			{
-				Recheck = SSEResponse[0]["TestMode"+Level]
-			}
-
-			if (SSEResponse[0]["TestMode"+Level] != Recheck || StatusOnLoad != Recheck )
-			{
-				document.getElementsByTagName('html')[0].innerHTML = "";
-				source.onmessage = function(event){}
-				source.close();
-				location.reload();
-			}
-		};
-	}
-
-
-}
-
-function ScrollToWord(wordId)
-{
-
-	if(document.getElementById(""+wordId))
-	{
-		const yOffset = -200;
-		newY = document.getElementById(""+wordId).getBoundingClientRect().top + window.pageYOffset + yOffset;
-		window.scrollTo({top: newY, behavior: 'smooth'});
-		document.getElementById(""+wordId).setAttribute('reveal', "true")
-		history.pushState({state:wordId}, "State 1", "#"+wordId);
-		history.pushState({state:wordId}, "State 2", window.location.href.split("#")[0]);
-	}
-
-
-}
-function ScrollToNote(noteId)
-{
-	boundingele = document.getElementsByTagName('notes')[0];
-	correctNote = [...document.getElementsByTagName('note')].filter(x=> x.getAttribute('noteid') == (""+noteId))[0]
-
-	if(correctNote)
-	{
-		if((correctNote.getBoundingClientRect().top < 0 || correctNote.getBoundingClientRect().top > (window.innerHeight-50)))
-		{
-			const yOffset = -100;
-			newY = correctNote.getBoundingClientRect().top + boundingele.scrollTop + yOffset;
-
-			boundingele.scrollTo({top: newY, behavior: 'smooth'});
-		}
-	}
-
-}
-
-function SetDifficulty(occurenceThreshold)
-{
-	words = document.getElementsByTagName('assignment')[0].getElementsByTagName('word')
-	for (w=0; w<words.length; w++)
-	{
-		if((+words[w].getAttribute('frequency')) <= (+occurenceThreshold))
-		{
-			words[w].setAttribute('reveal', 'true')
-		}
-		else
-		{
-			words[w].setAttribute('reveal', 'false')
-		}
-	}
-}
-
-function GetHWDueDate()
-{
-		var xmlhttp = new XMLHttpRequest();
-		xmlhttp.onreadystatechange = function()
-		{
-			if (this.readyState == 4 && this.status == 200)
-			{
-				Response = this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, '')
-				SheetData = (JSON.parse(Response).values)
-
-				sd = 0;
-				HWFound = false;
-
-				while ( sd < SheetData.length && !HWFound  )
-				{
-					console.log(SheetData[sd])
-
-					if(( (SheetData[sd][0]).startsWith("C") || (SheetData[sd][0]).startsWith("V")) && SheetData[sd][0].endsWith("<?php echo $_GET['hw']; ?>"))
-					{
-
-						console.log((SheetData[sd][0]))
-						console.log((SheetData[sd][1]))
-						DueDate = (SheetData[sd][1])
-						HWFound = true;
-
-						document.getElementById('dueDate').innerText = "" + DueDate + ""
-						document.getElementById('dueDate').style.color = '<?php $context = new Context;
-echo $CSSColors[Context::getBookTitle()]['HeaderTextColor'];?>'
-					}
-					sd++
-				}
-			}
-		};
-		xmlhttp.open("GET", "https://sheets.googleapis.com/v4/spreadsheets/<?php echo $DocumentID; ?>/values/Export?alt=json&key=AIzaSyCN9ZxUhMb9zQW7rK4ZSaP1S4NJ7EKc_es", true);
-
-		xmlhttp.send();
-
-
-}
-
-function ResetNoteHighlights()
-{
-	noteElements = document.getElementsByTagName('note')
-
-	for (var n= 0; n<noteElements.length; n++)
-	{
-		noteElements[n].removeAttribute('highlighted')
-	}
-
-}
-
-function HighlightNotes(hoveredElement)
-{
-	var ThereIsAHighlightedWord = false
-
-	noteElements = document.getElementsByTagName('note')
-
-	for (var n= 0; n<noteElements.length; n++)
-	{
-		if(noteElements[n].getAttribute('associatedwords').split(",").indexOf(hoveredElement.getAttribute('wordid') ) != -1)
-		{
-			noteElements[n].setAttribute('highlighted', "true")
-			ScrollToNote((+noteElements[n].getAttribute('noteid')))
-			ThereIsAHighlightedWord = true;
-		}
-		else
-		{
-			noteElements[n].setAttribute('highlighted', "false")
-		}
-	}
-
-	if(!ThereIsAHighlightedWord)
-	{
-		ResetNoteHighlights()
-	}
-}
-
-function SetupNoteHighlights()
-{
-	wordElements = document.getElementsByTagName('word')
-
-	for (var w= 0; w<wordElements.length; w++)
-	{
-		wordElements[w].onmouseover = function()
-		{
-			HighlightNotes(this)
-		};
-
-		wordElements[w].onmouseout = function()
-		{
-			ResetNoteHighlights()
-		};
-	}
-
-}
-
-</script>
-<script async defer src="https://apis.google.com/js/api.js"></script>
 
 <BR><BR><BR><BR><BR><BR><BR><BR>
