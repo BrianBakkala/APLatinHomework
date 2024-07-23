@@ -218,12 +218,11 @@ foreach (Context::DICT_DB as $title => $dictionary)
             $UseString .= "." . $TheLineNumber;
             $UseString .= "</attcitation>";
             $UseString .= $AttLine;
-            if (!Context::getTestStatus())
-            {
-                $UseString .= "<speaker>";
-                $UseString .= $uses[$u]['Speaker'];
-                $UseString .= "</speaker>";
-            }
+
+            $UseString .= "<speaker>";
+            $UseString .= $uses[$u]['Speaker'];
+            $UseString .= "</speaker>";
+
             $UseString .= "<BR>";
             $UseString .= "</attline>";
 

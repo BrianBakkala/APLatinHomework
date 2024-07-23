@@ -119,10 +119,7 @@ foreach($levArray as $level)
 	echo "</div>";
 }
 echo "</div>";
-
-//  Context::getTestStatus())
-
-
+ 
 
 
 

@@ -39,57 +39,15 @@ function InitializeWords()
 		};
 	}
 }
-function ToggleNotes(element)
+function toggleNotes(element)
 {
-	const CurrentStatus = (document.getElementsByTagName("wrapper")[0].getAttribute("shownotes") == "true");
-	const NewStatus = !CurrentStatus;
-
-	document.getElementsByTagName("wrapper")[0].setAttribute("shownotes", NewStatus.toString());
-
-	element.innerHTML = "Notes: <b>" + (NewStatus ? "on" : "off") + "</b>";
+	document.querySelector('wrapper').toggleAttribute('show-notes');
 
 }
 
-function ToggleMacrons(element)
+function toggleMacrons(element)
 {
-	const CurrentStatus = (document.getElementsByTagName("wrapper")[0].getAttribute("showmacrons") == "true");
-	const NewStatus = !CurrentStatus;
-
-	document.getElementsByTagName("wrapper")[0].setAttribute("showmacrons", NewStatus.toString());
-
-	console.log(element);
-	element.innerHTML = "Macrons: <b>" + (NewStatus ? "on" : "off") + "</b>";
-
-}
-
-function CheckSSE()
-{
-	//non-IE/Edge Functionality
-	if (typeof (EventSource) !== "undefined")
-	{
-		var Level = CONTEXT.level;
-		var source = new EventSource("TestModeSSE.php?level=" + Level + "&timestampupdate=true");
-		Recheck = null;
-		const StatusOnLoad = (CONTEXT.test_status ? "1" : "0");
-
-		source.onmessage = function (event)
-		{
-			SSEResponse = JSON.parse(event.data.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, ''));
-			if (Recheck == null)
-			{
-				Recheck = SSEResponse[0]["TestMode" + Level];
-			}
-
-			if (SSEResponse[0]["TestMode" + Level] != Recheck || StatusOnLoad != Recheck)
-			{
-				document.getElementsByTagName('html')[0].innerHTML = "";
-				source.onmessage = function (event) { };
-				source.close();
-				// location.reload();
-			}
-		};
-	}
-
+	document.querySelector('wrapper').toggleAttribute('show-macrons');
 
 }
 

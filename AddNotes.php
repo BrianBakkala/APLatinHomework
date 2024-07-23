@@ -10,7 +10,7 @@ require_once 'HomeworkViewerStyles.php';
 require_once 'SQLConnection.php';
 use app\Context;
 
-echo "<wrapper shownotes = 'true'>";
+echo "<wrapper show-notes  >";
 
 echo "<assignment>";
 

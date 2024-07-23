@@ -6,12 +6,7 @@ require_once 'globals.php';
 
 use app\Context;
 
-if (Context::getTestStatus())
-{
-    echo "<script>";
-    echo "document.getElementsByTagName('html')[0].innerHTML = ('nope')";
-    echo "</script>";
-}
+ 
 ?>
 
 

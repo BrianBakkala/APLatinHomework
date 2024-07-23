@@ -1,25 +1,16 @@
-<TITLE>Latin Homework Viewer</TITLE>
-
 <?php
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-if (strpos($actual_link, "&amp;") !== false)
-{
-    header('Location:' . str_replace("&amp;", "&", $actual_link));
-}
-
-require_once 'ForwardHTTPS.php';
 require_once 'GenerateNotesandVocab.php';
+require_once 'ForwardHTTPS.php';
+
 require_once 'globals.php';
- 
 require_once 'FontStyles.php';
 require_once 'HomeworkViewerStyles.php';
 require_once 'SQLConnection.php';
-
 require_once 'autoload.php';
 
 use app\Context;
@@ -27,65 +18,70 @@ use app\Context;
 require_once 'SQLConnection.php';
 require_once 'utility/debug.php';
 
-echo "<wrapper showmacrons='true'";
+$HW_number = $_GET['hw'];
 
-if (!Context::getTestStatus())
+if ($HW_number != null)
 {
-    echo " shownotes='true' ";
+    $Data = getHomeworkAssignment($HW_number);
+    $HWAssignment = $Data['Assignment'];
+    $HWLines = $Data['Lines'];
+    $TargetedDictionary = $Data['Dictionary'];
+    $HWStartId = $Data['StartID'];
+    $HWEndId = $Data['EndID'];
+}
+else
+{
+
 }
 
-echo ">";
+echo "<wrapper show-notes show-macrons >";
 echo "<assignment>";
 
 echo "<header >";
 
-if (!Context::getTestStatus())
-{
+echo "<menubar>";
+echo "<BR>";
 
-    echo "<menubar>";
-    echo "<BR>";
+echo "<span class = 'menu-bar-option'>";
+echo "<A   href = 'https://github.com/BrianBakkala/APLatinHomework'>";
+echo "GitHub";
+echo "</A>";
+echo "</span>";
 
-    echo "<span class = 'menu-bar-option'>";
-    echo "<A   href = 'https://github.com/BrianBakkala/APLatinHomework'>";
-    echo "GitHub";
-    echo "</A>";
-    echo "</span>";
+echo "<span ap-only  class = 'menu-bar-option'>";
+echo "<A target = '_blank' href = 'https://quizlet.com/MrBakkala/folders/ap-latin-vocab/sets'>";
+echo "Quizlet";
+echo "</A>";
+echo "</span>";
 
-    echo "<span ap-only  class = 'menu-bar-option'>";
-    echo "<A target = '_blank' href = 'https://quizlet.com/MrBakkala/folders/ap-latin-vocab/sets'>";
-    echo "Quizlet";
-    echo "</A>";
-    echo "</span>";
+echo "<span ap-only class = 'menu-bar-option'>";
+echo "·";
+echo "</span>";
 
-    echo "<span ap-only class = 'menu-bar-option'>";
-    echo "·";
-    echo "</span>";
+echo "<span ap-only class = 'menu-bar-option'>";
+echo "<A   href = 'https://aplatin.altervista.org/UnitsViewer.php'>";
+echo "Units";
+echo "</A>";
+echo "</span>";
 
-    echo "<span ap-only class = 'menu-bar-option'>";
-    echo "<A   href = 'https://aplatin.altervista.org/UnitsViewer.php'>";
-    echo "Units";
-    echo "</A>";
-    echo "</span>";
+echo "<span class = 'menu-bar-option'>";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php?level=" . Context::getLevel() . "'>";
+echo "Dictionary";
+echo "</A>";
+echo "</span>";
 
-    echo "<span class = 'menu-bar-option'>";
-    echo "<A target = '_blank' href = 'https://aplatin.altervista.org/Dictionary.php?level=" . Context::getLevel() . "'>";
-    echo "Dictionary";
-    echo "</A>";
-    echo "</span>";
+echo "<span ap-only  class = 'menu-bar-option'>";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/VocabList.php'>";
+echo "Vocabulary";
+echo "</A>";
+echo "</span>";
 
-    echo "<span ap-only  class = 'menu-bar-option'>";
-    echo "<A target = '_blank' href = 'https://aplatin.altervista.org/VocabList.php'>";
-    echo "Vocabulary";
-    echo "</A>";
-    echo "</span>";
-
-    echo "<span ap-only  class = 'menu-bar-option'>";
-    echo "<A target = '_blank' href = 'https://aplatin.altervista.org/LiteraryDevices.php'>";
-    echo "Literary Devices";
-    echo "</A>";
-    echo "</span>";
-    echo "</menubar>";
-}
+echo "<span ap-only  class = 'menu-bar-option'>";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/LiteraryDevices.php'>";
+echo "Literary Devices";
+echo "</A>";
+echo "</span>";
+echo "</menubar>";
 
 echo "<assignmentdata>";
 
@@ -93,10 +89,10 @@ echo "<table>";
 echo "<tr>";
 echo "<td>";
 
-if ((SQLQ('SELECT (`HW`) FROM `' . Context::getHWDB() . '` WHERE `HW` = ' . ((int) $_GET['hw'] - 1))) != "")
+if ((SQLQ('SELECT (`HW`) FROM `' . Context::getHWDB() . '` WHERE `HW` = ' . ((int) $HW_number - 1))) != "")
 {
 
-    $PrevHW = SQLQ('SELECT MAX(`HW`) FROM `' . Context::getHWDB() . '` WHERE `HW` < ' . $_GET['hw']);
+    $PrevHW = SQLQ('SELECT MAX(`HW`) FROM `' . Context::getHWDB() . '` WHERE `HW` < ' . $HW_number);
     echo "<A href = 'HomeworkViewer.php?level=" . Context::getLevel() . "&hw=" . $PrevHW . "'>";
     echo "<IMG id = 'leftarrow' SRC = 'Images/LHarrow.png'>";
     echo "</A>";
@@ -136,9 +132,9 @@ echo "</h1>";
 echo "</td>";
 echo "<td>";
 
-if ((SQLQ('SELECT (`HW`) FROM `' . Context::getHWDB() . '` WHERE `HW` = ' . ((int) $_GET['hw'] + 1))) != "")
+if ((SQLQ('SELECT (`HW`) FROM `' . Context::getHWDB() . '` WHERE `HW` = ' . ((int) $HW_number + 1))) != "")
 {
-    $NextHW = SQLQ('SELECT Min(`HW`) FROM `' . Context::getHWDB() . '` WHERE `HW` > ' . $_GET['hw']);
+    $NextHW = SQLQ('SELECT Min(`HW`) FROM `' . Context::getHWDB() . '` WHERE `HW` > ' . $HW_number);
 
     echo "<A href = 'HomeworkViewer.php?level=" . Context::getLevel() . "&hw=" . $NextHW . "'>";
     echo "<IMG id = 'rightarrow' SRC = 'Images/LHarrow.png'>";
@@ -164,10 +160,7 @@ echo "</span>";
 
 echo "<span class = 'submenu-item'   >";
 
-// echo count(array_unique(array_map(function ($x)
-// {
-//     return $x['chapter'] . "." . $x['lineNumber'];
-// }, $HWLines)));
+echo count($HWLines);
 
 echo " lines";
 echo "</span>";
@@ -177,29 +170,25 @@ echo "<duedate style = 'color:rgba(0,0,0,0); ' id = 'dueDate'>December 31";
 echo "</duedate>";
 echo "</span>";
 
-if (!Context::getTestStatus())
-{
-    echo "<span class = 'submenu-item'>";
-    echo "<A target = '_blank' href = 'https://aplatin.altervista.org/PDF.php?level=" . Context::getLevel() . "&hw=" . $_GET['hw'] . "'>";
-    echo "PDF";
-    echo "</A>";
-    echo "</span>";
-}
+echo "<span class = 'submenu-item'>";
+echo "<A target = '_blank' href = 'https://aplatin.altervista.org/PDF.php?level=" . Context::getLevel() . "&hw=" . $HW_number . "'>";
+echo "PDF";
+echo "</A>";
+echo "</span>";
+
 echo "</submenu>";
 
 echo "<submenu>";
-if (!Context::getTestStatus())
-{
-    echo "<span class = 'submenu-item'>";
-    echo "<a style = 'cursor:pointer;' onclick = 'ToggleNotes(this)'>";
-    echo "Notes: <b>on</b>";
-    echo "</a>";
-    echo "</span>";
-}
 
 echo "<span class = 'submenu-item'>";
-echo "<a style = 'cursor:pointer;' onclick = 'ToggleMacrons(this)'>";
-echo "Macrons: <b>on</b>";
+echo "<a style = 'cursor:pointer;' onclick = 'toggleNotes(this)'>";
+echo "Notes: <b  class = 'toggle-notes-text'>o</b>";
+echo "</a>";
+echo "</span>";
+
+echo "<span class = 'submenu-item'>";
+echo "<a style = 'cursor:pointer;' class = 'toggle-macrons' onclick = 'toggleMacrons(this)'>";
+echo "Macrons: <b class = 'toggle-macrons-text'>o</b>";
 echo "</a>";
 echo "</span>";
 
@@ -260,21 +249,18 @@ echo "<BR>";
 echo displayLines($HWAssignment, $HWLines, $TargetedDictionary);
 echo "</assignment>";
 
-if (!Context::getTestStatus())
-{
-    echo "<notes>";
-    echo "<BR>";
-    echo displayNotesText($HWStartId, $HWEndId, $HWAssignment, Context::getBookTitle());
-    echo "<BR><BR><BR><BR><BR><BR><BR><BR>";
-    echo "</notes>";
-}
+echo "<notes>";
+echo "<BR>";
+echo displayNotesText($HWStartId, $HWEndId, $HWAssignment, Context::getBookTitle());
+echo "<BR><BR><BR><BR><BR><BR><BR><BR>";
+echo "</notes>";
 
 echo "</wrapper>";
 
 ?>
 
 <script>
-    const ASSIGNMENT_ID = JSON.parse(`<?php echo json_encode($_GET['hw']) ?>`);
+    const ASSIGNMENT_ID = JSON.parse(`<?php echo json_encode($HW_number) ?>`);
     const HIGHLIGHTED_WORD = JSON.parse(`<?php echo json_encode($_GET['highlighted_word'] ?? 0) ?>`);
 </script>
 

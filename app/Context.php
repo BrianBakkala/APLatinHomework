@@ -138,12 +138,7 @@ class Context
         }
         return self::ENGLISH_BOOK_TITLE[$title];
     }
-
-    public static function getTestStatus()
-    {
-        $tl = self::getLevel();
-        return (SQLQ('SELECT `TestMode' . $tl . '`  FROM `Control Panel`') == "1");
-    }
+ 
 
     public static function getLevel()
     {

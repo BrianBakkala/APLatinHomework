@@ -349,7 +349,7 @@ if ($CSSColors[Context::getBookTitle()]['HeaderTextColor'] == "white")
 		--notes-width: 28%;
 	}
 
-	wrapper[shownotes="true"] notes
+	wrapper[show-notes] notes
 	{
 		width: var(--notes-width);
 	}
@@ -360,19 +360,31 @@ if ($CSSColors[Context::getBookTitle()]['HeaderTextColor'] == "white")
 		width: 100%;
 	}
 
-	wrapper[shownotes="true"] assignment
+	wrapper[show-notes] assignment
 	{
 		left:0;
 		width: calc(99.5% - var(--notes-width));
 	}
 
+	wrapper  .toggle-notes-text::after,
+	wrapper  .toggle-macrons-text::after
+	{
+		content:"ff";
+	}
 
-	wrapper[showmacrons="true"] nomacrons, wrapper[showmacrons="false"] text
+	wrapper[show-notes] .toggle-notes-text::after,
+	wrapper[show-macrons] .toggle-macrons-text::after
+	{
+		content:"n";
+	}
+
+
+	wrapper[show-macrons] nomacrons, wrapper:not([show-macrons]) text
 	{
 		display:none;
 	}
 
-	wrapper[showmacrons="false"] nomacrons, wrapper[showmacrons="true"] text
+	wrapper:not([show-macrons]) nomacrons, wrapper[show-macrons] text
 	{
 		display:inherit;
 	}

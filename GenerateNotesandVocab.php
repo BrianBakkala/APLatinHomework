@@ -8,16 +8,26 @@ use app\Context;
 require_once 'SQLConnection.php';
 require_once 'utility/debug.php';
 
-if (isset($_GET['hw']))
+if (!isset($_GET['hw']) && isset($_GET['highlighted_word']) && isset($_GET['title']))
 {
-    $Data = getHomeworkAssignment($_GET['hw']);
-    $HWAssignment = $Data['Assignment'];
-    $HWLines = $Data['Lines'];
-    $TargetedDictionary = $Data['Dictionary'];
-    $HWStartId = $Data['StartID'];
-    $HWEndId = $Data['EndID'];
-}
 
+    $actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+
+    $temp_level = "AP";
+    if (isset($_GET['level']))
+    {
+        $temp_level = $_GET['level'];
+    }
+
+    $turl = explode($actual_link, "?")[0];
+
+    $addon = "hw=" . findHomeworkByWordID($_GET['title'], $_GET['highlighted_word']);
+    $addon .= "&highlighted_word=" . $_GET['highlighted_word'];
+    $addon .= "&title=" . $_GET['title'];
+
+    header('Location:' . str_replace("&amp;", "&", ($turl . $addon)));
+
+}
 
 // echo ('SELECT `id`, `word`, `definitionId`, `book`, `chapter`, `lineNumber`, `secondaryDefId` FROM `'.$BOOK_DB[$BookTitle].'` WHERE  `book` = '.$HWAssignment['StartBook'].' AND ' . $WhereClause . ' ORDER BY `book`, `chapter`, `lineNumber`, `id`');
 
@@ -111,9 +121,14 @@ function getHomeworkAssignment($HWNum, $hwdb = null, $title = null)
         $key .= ".";
         $key .= $word['lineNumber'];
 
-        $lines[$key] = $lines[$key] ?? [];
+        $lines[$key] = $lines[$key] ?? [
+            "lineNumber" => $word['lineNumber'],
+            "chapter" => $word['chapter'],
+            "book" => $word['book'],
+            "words" => [],
+        ];
 
-        array_push($lines[$key], $word);
+        array_push($lines[$key]['words'], $word);
     }
 
     $HWDefinitionIds = array_unique(array_merge($HWDefinitionIds, $HWDefinitionIds2));
@@ -192,8 +207,6 @@ function findHomeworkByWordID($title = null, $wordid = 1)
     do
     {
         $temp_id_nums = getHomeworkLineIDs($HWnums[$a], $hwdb, $title);
-        $tempStart = $temp_id_nums['StartID'];
-        $tempEnd = $temp_id_nums['EndID'];
 
         $lineIdsArray = latinQuery([$temp_id_nums['StartBook'], $temp_id_nums['EndBook'], $temp_id_nums['StartID'], $temp_id_nums['EndID']], 'SELECT `id`  FROM `' . Context::BOOK_DB[$title] . '` WHERE ( `book` = ? or  `book` = ?) AND  `OrderOfText` >= ? AND `OrderOfText` <= ?', true);
         $lineIdsArray = array_map(function ($x)
@@ -271,7 +284,7 @@ function getFrequencyTable($defidsarray = null, $hwAssignmentsScope = array())
 
     if ($defidsarray == null)
     {
-        $temp_assignment = (getHomeworkAssignment($_GET['hw'], Context::getHWDB())['words']);
+        $temp_assignment = (getHomeworkAssignment(null, Context::getHWDB())['words']);
         $defidsarray = array_map(function ($x)
         {
             return $x['definitionId'];
@@ -759,11 +772,11 @@ function displayLines($assignment, $lines, $dictionary, $linespacing = 2)
 
     foreach ($lines as $line)
     {
-        $citation = getCitation($line[0]['book'], $line[0]['chapter'], $line[0]['lineNumber']);
+        $citation = getCitation($line['book'], $line['chapter'], $line['lineNumber']);
 
         $outputText .= "<line   citation = '" . $citation . "'>";
 
-        foreach ($line as $word)
+        foreach ($line['words'] as $word)
         {
             $outputText .= displayWord($word, $assignment, $dictionary, $linespacing, $cliticList, $frequencyTable);
         }

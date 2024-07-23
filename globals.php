@@ -16,7 +16,7 @@ $ExportPageNumber = 7;
     {
         level: JSON.parse(`<?php echo json_encode(Context::getLevel()) ?>`),
         title: JSON.parse(`<?php echo json_encode(Context::getBookTitle()) ?>`),
-        test_status: JSON.parse(`<?php echo json_encode(Context::getTestStatus()) ?>`),
+
     }
 
     const DOCUMENT =
