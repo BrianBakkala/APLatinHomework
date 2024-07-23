@@ -109,186 +109,178 @@ if (isset($_REQUEST["filter-dictionary"]))
         return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
     }, $nomacronsfilterarray));
 
-    $Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `' . Context::getDict() . '` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") COLLATE UTF8_GENERAL_CI LIKE "%' . $nomacronsfiltertext . '%" OR `definition` COLLATE UTF8_GENERAL_CI LIKE "%' . $nomacronsfiltertext . '%") ');
+    $Dictionary = SQLQuarry('SELECT `id`, `entry`, `definition`, `IsTwoWords` FROM `' . Context::getDict() . '` WHERE `id` > 0 AND (REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`entry` , "ā", "a") , "ē", "e") , "ī", "i") , "ō", "o") , "ū", "u") , "ō", "o") COLLATE UTF8_GENERAL_CI LIKE "%' . $nomacronsfiltertext . '%" OR `definition` COLLATE UTF8_GENERAL_CI LIKE "%' . $nomacronsfiltertext . '%")  LIMIT 100');
 
-    if (strlen($_REQUEST["filter_text"]) < 2 && count($Dictionary) > 500)
+    if (count($Dictionary) > 0)
     {
-        $hint = "Too many results.";
+        $DefIDs = array_map(function ($x)
+        {
+            return $x['id'];
+        }, $Dictionary);
+        $Frequencies = getFrequencyTable($DefIDs);
     }
-    else
+
+    $matchScore = GetMatchingScore($nomacronsfiltertext, $word['entry']);
+    usort($Dictionary, function ($a, $b) use ($nomacronsfiltertext)
     {
 
-        if (count($Dictionary) > 0)
+        $scoreA = GetMatchingScore($nomacronsfiltertext, $a['entry']);
+        $scoreB = GetMatchingScore($nomacronsfiltertext, $b['entry']);
+        $posA = GetPositionScore($nomacronsfiltertext, $a['entry']);
+        $posB = GetPositionScore($nomacronsfiltertext, $b['entry']);
+
+        if ($posA != $posB)
         {
-            $DefIDs = array_map(function ($x)
-            {
-                return $x['id'];
-            }, $Dictionary);
-            $Frequencies = getFrequencyTable($DefIDs);
+            return $posA <=> $posB;
         }
-
-        $matchScore = GetMatchingScore($nomacronsfiltertext, $word['entry']);
-        usort($Dictionary, function ($a, $b) use ($nomacronsfiltertext)
+        else if ($scoreA != $scoreB)
         {
+            return $scoreB <=> $scoreA;
+        }
+        else
+        {
+            global $Conversion;
 
-            $scoreA = GetMatchingScore($nomacronsfiltertext, $a['entry']);
-            $scoreB = GetMatchingScore($nomacronsfiltertext, $b['entry']);
-            $posA = GetPositionScore($nomacronsfiltertext, $a['entry']);
-            $posB = GetPositionScore($nomacronsfiltertext, $b['entry']);
+            $a = $a['entry'];
+            $b = $b['entry'];
 
-            if ($posA != $posB)
+            $a = mb_ereg_replace("\W", "", $a);
+            $b = mb_ereg_replace("\W", "", $b);
+
+            $a = preg_split('/(?!^)(?=.)/u', $a);
+            $a = array_map(function ($x)
             {
-                return $posA <=> $posB;
+                global $Conversion;
+                return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
+            }, $a);
+            $a = implode("", $a);
+
+            $b = preg_split('/(?!^)(?=.)/u', $b);
+            $b = array_map(function ($x)
+            {
+                global $Conversion;
+                return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
+            }, $b);
+            $b = implode("", $b);
+
+            if (strtolower($a) < strtolower($b))
+            {
+                return -1;
             }
-            else if ($scoreA != $scoreB)
+            else if (strtolower($a) > strtolower($b))
             {
-                return $scoreB <=> $scoreA;
+                return 1;
             }
             else
             {
-                global $Conversion;
+                return 0;
+            };
+        }
 
-                $a = $a['entry'];
-                $b = $b['entry'];
+    });
 
-                $a = mb_ereg_replace("\W", "", $a);
-                $b = mb_ereg_replace("\W", "", $b);
+    global $Conversion;
 
-                $a = preg_split('/(?!^)(?=.)/u', $a);
-                $a = array_map(function ($x)
-                {
-                    global $Conversion;
-                    return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
-                }, $a);
-                $a = implode("", $a);
+    foreach ($Dictionary as $word)
+    {
 
-                $b = preg_split('/(?!^)(?=.)/u', $b);
-                $b = array_map(function ($x)
-                {
-                    global $Conversion;
-                    return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
-                }, $b);
-                $b = implode("", $b);
+        $searchablestring = (mb_ereg_replace("[()]", "", $word['entry']) . " " . $word['definition']);
+        $searchablestringChars = preg_split('/(?!^)(?=.)/u', $searchablestring);
+        $searchablestringChars = array_map(function ($x)
+        {
+            global $Conversion;
+            return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
+        }, $searchablestringChars);
 
-                if (strtolower($a) < strtolower($b))
-                {
-                    return -1;
-                }
-                else if (strtolower($a) > strtolower($b))
-                {
-                    return 1;
-                }
-                else
-                {
-                    return 0;
-                };
-            }
+        $searchablestring = implode("", $searchablestringChars);
 
-        });
+        // $hint.=preg_match('/'. $_REQUEST["filter_text"] . '/', $searchablestring ) ;
 
-        global $Conversion;
+        $filterString = $_REQUEST["filter_text"];
+        $filterString = preg_split('/(?!^)(?=.)/u', $filterString);
+        $filterString = array_map(function ($x)
+        {
+            global $Conversion;
+            return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
+        }, $filterString);
+        $filterString = implode("", $filterString);
 
-        foreach ($Dictionary as $word)
+        if (preg_match('/' . $filterString . '/', $searchablestring))
         {
 
-            $searchablestring = (mb_ereg_replace("[()]", "", $word['entry']) . " " . $word['definition']);
-            $searchablestringChars = preg_split('/(?!^)(?=.)/u', $searchablestring);
-            $searchablestringChars = array_map(function ($x)
+            $hightlightablestring = $word['entry'] . "⸻" . $word['definition'];
+
+            if ($_REQUEST["filter_text"] !== "")
             {
-                global $Conversion;
-                return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
-            }, $searchablestringChars);
-
-            $searchablestring = implode("", $searchablestringChars);
-
-            // $hint.=preg_match('/'. $_REQUEST["filter_text"] . '/', $searchablestring ) ;
-
-            $filterString = $_REQUEST["filter_text"];
-            $filterString = preg_split('/(?!^)(?=.)/u', $filterString);
-            $filterString = array_map(function ($x)
-            {
-                global $Conversion;
-                return (isset($Conversion[$x])) ? $Conversion[$x] : $x;
-            }, $filterString);
-            $filterString = implode("", $filterString);
-
-            if (preg_match('/' . $filterString . '/', $searchablestring))
-            {
-
-                $hightlightablestring = $word['entry'] . "⸻" . $word['definition'];
-
-                if ($_REQUEST["filter_text"] !== "")
+                $filterRegex = $_REQUEST["filter_text"];
+                $filterRegex = preg_split('/(?!^)(?=.)/u', $filterRegex);
+                $filterRegex = array_map(function ($x)
                 {
-                    $filterRegex = $_REQUEST["filter_text"];
-                    $filterRegex = preg_split('/(?!^)(?=.)/u', $filterRegex);
-                    $filterRegex = array_map(function ($x)
+
+                    $Conversion = [
+                        "ā" => "[aā]", "ē" => "[eē]", "ī" => "[iī]", "ō" => "[oō]", "ū" => "[uū]", "ӯ" => "[yӯ]",
+                        "Ā" => "[AĀ]", "Ē" => "[EĒ]", "Ī" => "[IĪ]", "Ō" => "[OŌ]", "Ū" => "[UŪ]", "Ȳ" => "[YȲ]",
+                        "a" => "[aā]", "e" => "[eē]", "i" => "[iī]", "o" => "[oō]", "u" => "[uū]", "y" => "[yӯ]",
+                        "A" => "[AĀ]", "E" => "[EĒ]", "I" => "[IĪ]", "O" => "[OŌ]", "U" => "[UŪ]", "Y" => "[YȲ]",
+                    ];
+
+                    if (isset($Conversion[$x]))
                     {
+                        return $Conversion[$x];
 
-                        $Conversion = [
-                            "ā" => "[aā]", "ē" => "[eē]", "ī" => "[iī]", "ō" => "[oō]", "ū" => "[uū]", "ӯ" => "[yӯ]",
-                            "Ā" => "[AĀ]", "E" => "[EĒ]", "Ī" => "[IĪ]", "Ō" => "[OŌ]", "Ū" => "[UŪ]", "Ȳ" => "[YȲ]",
-                            "a" => "[aā]", "e" => "[eē]", "i" => "[iī]", "o" => "[oō]", "u" => "[uū]", "y" => "[yӯ]",
-                            "A" => "[AĀ]", "E" => "[EĒ]", "I" => "[IĪ]", "O" => "[OŌ]", "U" => "[UŪ]", "Y" => "[YȲ]",
-                        ];
+                    }
+                    else
+                    {
+                        return $x;
+                    }
 
-                        if (isset($Conversion[$x]))
-                        {
-                            return $Conversion[$x];
+                }, $filterRegex);
 
-                        }
-                        else
-                        {
-                            return $x;
-                        }
+                $filterRegex = implode("[()]?", $filterRegex);
 
-                    }, $filterRegex);
-
-                    $filterRegex = implode("[()]?", $filterRegex);
-
-                    $hightlightablestring = mb_ereg_replace("(" . $filterRegex . ")", "<highlight>\\1</highlight>", $hightlightablestring, "i");
-                }
-
-                $hint .= "<word  wordid = " . $word['id'] . "  ";
-                $hint .= ">";
-
-                $hint .= "<attestations>[";
-
-                $hint .= $Frequencies[$word['id']];
-
-                $hint .= "] </attestations>";
-                $hint .= "<entry>";
-                $hint .= "<b>";
-
-                $entrytext = explode("⸻", $hightlightablestring)[0];
-                $hint .= parseAsterisks($entrytext);
-
-                $hint .= "</b>";
-                $hint .= "</entry>";
-                $hint .= "<definition>";
-                $hint .= "<i>";
-
-                $deftext = explode("⸻", $hightlightablestring)[1];
-                $hint .= parseAsterisks($deftext);
-
-                $hint .= "</i>";
-                $hint .= "</definition>";
-
-                $hint .= "<img  onclick = 'SaveEntry(this) '  style = 'display:none;' class = 'savebutton' src = 'Images/LHcheck.png'>";
-                $hint .= "<img  onclick = 'EditEntry(this)'  class = 'editbutton' src = 'Images/LHedit.png'>";
-                $hint .= "<img  onclick = 'GetWordInfo(this) '  class = 'InfoButton' src = 'Images/LHinfo.png'>";
-                $hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
-                $hint .= "<div  id = 'Matching Score'  style = 'display:none;' >" . GetMatchingScore($nomacronsfiltertext, $word['entry']) . "</div>";
-                $hint .= "<div  id = 'Position Score'  style = 'display:none;' >" . GetPositionScore($nomacronsfiltertext, $word['entry']) . "</div>";
-
-                $hint .= "</word>";
-
+                $hightlightablestring = mb_ereg_replace("(" . $filterRegex . ")", "<highlight>\\1</highlight>", $hightlightablestring, "i");
             }
+
+            $hint .= "<word  wordid = " . $word['id'] . "  ";
+            $hint .= ">";
+
+            $hint .= "<attestations>[";
+
+            $hint .= $Frequencies[$word['id']];
+
+            $hint .= "] </attestations>";
+            $hint .= "<entry>";
+            $hint .= "<b>";
+
+            $entrytext = explode("⸻", $hightlightablestring)[0];
+            $hint .= parseAsterisks($entrytext);
+
+            $hint .= "</b>";
+            $hint .= "</entry>";
+            $hint .= "<definition>";
+            $hint .= "<i>";
+
+            $deftext = explode("⸻", $hightlightablestring)[1];
+            $hint .= parseAsterisks($deftext);
+
+            $hint .= "</i>";
+            $hint .= "</definition>";
+
+            $hint .= "<img  onclick = 'SaveEntry(this) '  style = 'display:none;' class = 'savebutton' src = 'Images/LHcheck.png'>";
+            $hint .= "<img  onclick = 'EditEntry(this)'  class = 'editbutton' src = 'Images/LHedit.png'>";
+            $hint .= "<img  onclick = 'GetWordInfo(this) '  class = 'InfoButton' src = 'Images/LHinfo.png'>";
+            $hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
+            $hint .= "<div  id = 'Matching Score'  style = 'display:none;' >" . GetMatchingScore($nomacronsfiltertext, $word['entry']) . "</div>";
+            $hint .= "<div  id = 'Position Score'  style = 'display:none;' >" . GetPositionScore($nomacronsfiltertext, $word['entry']) . "</div>";
+
+            $hint .= "</word>";
 
         }
 
-        $hint === "" ? "No results." : $hint;
-
     }
+
+    $hint === "" ? "No results." : $hint;
+
 }
 
 if (isset($_REQUEST["delete-dictionary-entry"]))

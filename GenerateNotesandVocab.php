@@ -321,8 +321,7 @@ function getFrequencyTable($defidsarray = null, $hwAssignmentsScope = array())
             $IDRangesForAssignment = convertIntegerArrayToRanges(array_map(function ($x)
             {
                 return (int) $x['id'];
-            }, $HWAss['Lines']));
-            // var_dump($IDRangesForAssignment);
+            }, $HWAss['words']));
 
             $WhereClause0 = " WHERE 0 ";
             foreach ($IDRangesForAssignment as $range)
@@ -331,7 +330,6 @@ function getFrequencyTable($defidsarray = null, $hwAssignmentsScope = array())
                 $tempEnd = $range[1];
                 $WhereClause0 .= " OR (`id` >= " . $tempStart . " AND `id` <= " . $tempEnd . ") ";
             }
-            // echo $WhereClause0 ;
 
             $ProseException = "";
             if (!in_array($HWAss['Title'], Context::IS_POETRY))
