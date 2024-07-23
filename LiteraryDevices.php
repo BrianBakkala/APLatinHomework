@@ -1,43 +1,6 @@
-<?php require_once 'FontStyles.php';
-?>
-
-<style>
-    device
-    {
-		text-align: left;
-		font-size: x-large;
-		padding-bottom: 2px;
-		cursor: default;
-        border-bottom:2px solid gray;
-
-        display:grid;
-        grid-template-columns: 10% 45% 45%;
-	}
-    device div
-    {
-
-		padding: 5px;
-	}
-
-    .deviceName
-    {
-        font-weight:bold;
-    }
-    .deviceDefinition
-    {
-        font-style:italic;
-        text-align:left;
-    }
-
-
-    device:nth-child(2n)
-	{
-		background-color: lightgray;
-	}
-
-</style>
-
 <?php
+
+require_once 'FontStyles.php';
 
 require_once 'GenerateNotesandVocab.php';
 
@@ -84,3 +47,5 @@ foreach ($Devices as $dictionary)
 }
 
 ?>
+
+<link rel="stylesheet" href="css/literary-devices.css<?php echo "?" . date("mds"); ?>">

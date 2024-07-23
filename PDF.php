@@ -40,7 +40,7 @@ $pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
 $pdf->AddPage();
 
 // Set some content to print
-$latintext = "<span>" . displayLines(false, $HWAssignment, $HWLines, $TargetedDictionary) . "</span>";
+$latintext = "<span>" . displayLines($HWAssignment, $HWLines, $TargetedDictionary) . "</span>";
 $notestext = "<span>" . displayNotesText($HWStartId, $HWEndId, $HWAssignment, $BookTitle, false) . "</span>―<BR><span>" . displayVocabText($TargetedDictionary, true) . "</span>";
 
 // Print text using writeHTMLCell()

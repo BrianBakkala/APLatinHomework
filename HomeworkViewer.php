@@ -15,25 +15,7 @@ if (strpos($actual_link, "&amp;") !== false)
 require_once 'ForwardHTTPS.php';
 require_once 'GenerateNotesandVocab.php';
 require_once 'globals.php';
-
-// if(!isset($_GET['highlighted_word']))
-if (!isset($_GET['hw']) && isset($_GET['highlighted_word']) && isset($_GET['title']))
-{
-    $temp_level = "AP";
-    if (isset($_GET['level']))
-    {
-        $temp_level = $_GET['level'];
-    }
-
-    $turl = explode($actual_link, "?")[0];
-
-    $addon = "hw=" . findHomeworkByWordID($_GET['title'], $_GET['highlighted_word']);
-    $addon .= "&highlighted_word=" . $_GET['highlighted_word'];
-
-    header('Location:' . str_replace("&amp;", "&", ($turl . $addon)));
-
-}
-
+ 
 require_once 'FontStyles.php';
 require_once 'HomeworkViewerStyles.php';
 require_once 'SQLConnection.php';
@@ -182,10 +164,10 @@ echo "</span>";
 
 echo "<span class = 'submenu-item'   >";
 
-echo count(array_unique(array_map(function ($x)
-{
-    return $x['chapter'] . "." . $x['lineNumber'];
-}, $HWLines)));
+// echo count(array_unique(array_map(function ($x)
+// {
+//     return $x['chapter'] . "." . $x['lineNumber'];
+// }, $HWLines)));
 
 echo " lines";
 echo "</span>";
@@ -275,7 +257,7 @@ echo "</header>";
 
 echo "<BR>";
 
-echo displayLines(true, $HWAssignment, $HWLines, $TargetedDictionary);
+echo displayLines($HWAssignment, $HWLines, $TargetedDictionary);
 echo "</assignment>";
 
 if (!Context::getTestStatus())
