@@ -1,6 +1,6 @@
 
 
-function InitializeWords()
+function initializeWords()
 {
 	words = document.getElementsByTagName('word');
 
@@ -39,6 +39,7 @@ function InitializeWords()
 		};
 	}
 }
+
 function toggleNotes(element)
 {
 	document.querySelector('wrapper').toggleAttribute('show-notes');
@@ -51,7 +52,7 @@ function toggleMacrons(element)
 
 }
 
-function ScrollToWord(wordId)
+function scrollToWord(wordId)
 {
 
 	if (document.getElementById("" + wordId))
@@ -105,9 +106,7 @@ function getHomeworkDueDate()
 	);
 }
 
-
-
-function ResetNoteHighlights()
+function resetNoteHighlights()
 {
 	noteElements = document.getElementsByTagName('note');
 
@@ -118,7 +117,7 @@ function ResetNoteHighlights()
 
 }
 
-function HighlightNotes(hoveredElement)
+function highlightNotes(hoveredElement)
 {
 	var ThereIsAHighlightedWord = false;
 
@@ -140,11 +139,11 @@ function HighlightNotes(hoveredElement)
 
 	if (!ThereIsAHighlightedWord)
 	{
-		ResetNoteHighlights();
+		resetNoteHighlights();
 	}
 }
 
-function SetupNoteHighlights()
+function setupNoteHighlights()
 {
 	wordElements = document.getElementsByTagName('word');
 
@@ -152,26 +151,13 @@ function SetupNoteHighlights()
 	{
 		wordElements[w].onmouseover = function ()
 		{
-			HighlightNotes(this);
+			highlightNotes(this);
 		};
 
 		wordElements[w].onmouseout = function ()
 		{
-			ResetNoteHighlights();
+			resetNoteHighlights();
 		};
 	}
 
-}
-
-function ToggleQuote(clickedElement)
-{
-	var Pele = clickedElement.parentElement;
-	if (Pele.getAttribute('expanded') != "true")
-	{
-		Pele.setAttribute('expanded', 'true');
-	}
-	else
-	{
-		Pele.setAttribute('expanded', 'false');
-	}
-}
+} 

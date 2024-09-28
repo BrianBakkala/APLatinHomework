@@ -20,7 +20,7 @@ function filterDictionary(filterText)
 
 }
 
-function GetWordInfo(clickedElement)
+function getWordInfo(clickedElement)
 {
 	WordElement = clickedElement;
 	while (WordElement.tagName.toLowerCase() != 'word')
@@ -31,7 +31,7 @@ function GetWordInfo(clickedElement)
 	window.open('WordInfo.php?level=' + CONTEXT.level + '&wordid=' + WordElement.getAttribute('wordid'), '_blank');
 }
 
-function ConvertAntiAsterisks(input)
+function convertAntiAsterisks(input)
 {
 
 	// var temptext = input;
@@ -49,10 +49,10 @@ function ConvertAntiAsterisks(input)
 
 
 
-	return ConvertAntiItalicsToAsterisks(ConvertAntiBoldToAsterisks(input));
+	return convertAntiItalicsToAsterisks(convertAntiBoldToAsterisks(input));
 }
 
-function ConvertAntiItalicsToAsterisks(input)
+function convertAntiItalicsToAsterisks(input)
 {
 	var temptext = input;
 	temptext = temptext.replace(/(^<i>)|(<\/i>$)/g, '');
@@ -63,7 +63,7 @@ function ConvertAntiItalicsToAsterisks(input)
 	return temptext;
 }
 
-function ConvertAntiBoldToAsterisks(input)
+function convertAntiBoldToAsterisks(input)
 {
 	var temptext = input;
 	temptext = temptext.replace(/(^<b>)|(<\/b>$)/g, '');
@@ -74,11 +74,11 @@ function ConvertAntiBoldToAsterisks(input)
 	return temptext;
 }
 
-function EditEntry(clickedElement)
+function editEntry(clickedElement)
 {
 	if (typeof (WordElement) != "undefined")
 	{
-		SaveEntry(WordElement);
+		saveEntry(WordElement);
 	}
 	WordElement = clickedElement;
 	while (WordElement.tagName.toLowerCase() != 'word')
@@ -103,7 +103,7 @@ function EditEntry(clickedElement)
 		EntryEle.setAttribute('type', "text");
 		EntryEle.setAttribute('class', "editEntry");
 		EntryEle.setAttribute('size', EntryStatic.innerHTML.length + 5);
-		EntryEle.setAttribute('value', ConvertAntiAsterisks(EntryStatic.innerHTML));
+		EntryEle.setAttribute('value', convertAntiAsterisks(EntryStatic.innerHTML));
 		EntryEle.onfocusout = function (e)
 		{
 			console.log(e.srcElement);
@@ -114,7 +114,7 @@ function EditEntry(clickedElement)
 		DefinitionEle.setAttribute('class', "editDef");
 		DefinitionEle.setAttribute('size', DefStatic.innerHTML.length + 5);
 
-		DefinitionEle.setAttribute('value', ConvertAntiAsterisks(DefStatic.innerHTML));
+		DefinitionEle.setAttribute('value', convertAntiAsterisks(DefStatic.innerHTML));
 
 		DefinitionEle.focus();
 		DefinitionElonfocusout = function (e)
@@ -132,7 +132,7 @@ function EditEntry(clickedElement)
 	}
 }
 
-function SaveEntry(WordElement)
+function saveEntry(WordElement)
 {
 
 	while (WordElement.tagName.toLowerCase() != 'word')
@@ -151,9 +151,9 @@ function SaveEntry(WordElement)
 		NewDef = NewDef.replace(/\+/g, '%2B');
 
 		OldEntry = WordElement.getElementsByTagName('entry')[0].innerHTML;
-		OldEntry = ConvertAntiAsterisks(OldEntry);
+		OldEntry = convertAntiAsterisks(OldEntry);
 		OldDef = WordElement.getElementsByTagName('definition')[0].innerHTML;
-		OldDef = ConvertAntiAsterisks(OldDef);
+		OldDef = convertAntiAsterisks(OldDef);
 
 		WordElement.getElementsByClassName('editEntry')[0].parentElement.removeChild(WordElement.getElementsByClassName('editEntry')[0]);
 		WordElement.getElementsByClassName('editDef')[0].parentElement.removeChild(WordElement.getElementsByClassName('editDef')[0]);
@@ -207,7 +207,7 @@ function SaveEntry(WordElement)
 
 }
 
-function DeleteEntry(clickedElement)
+function deleteEntry(clickedElement)
 {
 
 	WordElement = clickedElement;

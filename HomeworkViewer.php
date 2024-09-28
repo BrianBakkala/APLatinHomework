@@ -268,10 +268,10 @@ echo "</wrapper>";
 <script src="js/homework-viewer.js<?php echo "?" . date("mdHms"); ?>"></script>
 <script async defer src="https://apis.google.com/js/api.js"></script>
 
-<body onload = "getHomeworkDueDate();  InitializeWords(); SetupNoteHighlights(); <?php
+<body onload = "getHomeworkDueDate();  initializeWords(); setupNoteHighlights(); <?php
 if (isset($_GET['highlighted_word']))
 {
-    echo "	ScrollToWord('" . $_GET['highlighted_word'] . "')";
+    echo "	scrollToWord('" . $_GET['highlighted_word'] . "')";
 }
 ?>">
 

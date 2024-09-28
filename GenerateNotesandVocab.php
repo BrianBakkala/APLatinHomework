@@ -279,8 +279,7 @@ function convertIntegerArrayToRanges($array, $last = array(), $done = array())
     return convertIntegerArrayToRanges($t, array(), $done);
 }
 
-function getFrequencyTable($defidsarray = null, $hwAssignmentsScope = array())
-{
+function getFrequencyTable($defidsarray = null, $hwAssignmentsScope = array()): array {
 
     if ($defidsarray == null)
     {
@@ -469,7 +468,7 @@ function parseNoteText($inputText, $showdevices = true, $title = null)
         function ($matches) use ($title)
         {
             $m = $matches[0];
-            $m = preg_replace("/^\|\|\[(.*)\]\|/", "<quotetitle onclick = 'ToggleQuote(this)'>" . "\\1" . "</quotetitle><quoteline>", $m);
+            $m = preg_replace("/^\|\|\[(.*)\]\|/", "<quotetitle onclick = 'toggleQuote(this)'>" . "\\1" . "</quotetitle><quoteline>", $m);
             $m = preg_replace("/\|\|/", "</quoteline>", $m);
             $m = preg_replace("/\|/", "</quoteline><quoteline>", $m);
             // echo "\n";        echo "\n";        var_dump($m);        echo "\n";        echo "\n";
@@ -762,11 +761,12 @@ function displayVocabText($dictionary, $condensed = false)
 
 function displayLines($assignment, $lines, $dictionary, $linespacing = 2)
 {
+    
     $frequencyTable = getFrequencyTable();
+    $cliticList = getCliticList($dictionary);
 
     $outputText = "";
-
-    $cliticList = getCliticList($dictionary);
+    
 
     foreach ($lines as $line)
     {

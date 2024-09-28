@@ -65,55 +65,7 @@ $CSSColors =
         'WordHighlightColor' => "#89f5d6",
         'HeaderTextColor' => "black",
         'TextColor' => "black",
-    ], //Isabel/Vedant
-
-    // [
-    //     'BackgroundColor' => "black",
-    //     'HeaderColor' => "black",
-    //     'WordHighlightColor' => "black",
-    //     'HeaderTextColor' => "black",
-    //     'TextColor' => "black"
-    // ] //Dalton
-
-    // [
-    //     'BackgroundColor' => "red",
-    //     'HeaderColor' => "darkred",
-    //     'WordHighlightColor' => "gold",
-    //     'HeaderTextColor' => "yellow",
-    //     'TextColor' => "yellow"
-    // ] //McDonalds
-
-    //         [
-    //     'BackgroundColor' => "white",
-    //     'HeaderColor' => "white",
-    //     'WordHighlightColor' => "black",
-    //     'HeaderTextColor' => "cornsilk",
-    //     'TextColor' => "cornsilk"
-    // ]
-
-    // [
-    //     'BackgroundColor' => "#572600",
-    //     'HeaderColor' => "black",
-    //     'WordHighlightColor' => "gray",
-    //     'HeaderTextColor' => "white",
-    //     'TextColor' => "white"
-    // ] //Dalton 2.0
-
-    // [
-    //     'BackgroundColor' => "#D3E5FF",
-    //     'HeaderColor' => "lightblue",
-    //     'WordHighlightColor' => "#4ee6bb",
-    //     'HeaderTextColor' => "white",
-    //     'TextColor' => "black"
-    // ]
-
-    // [
-    //     'BackgroundColor' => "#c3dde3",
-    //     'HeaderColor' => "#167eaf",
-    //     'WordHighlightColor' => "#e1b783",
-    //     'HeaderTextColor' => "black",
-    //     'TextColor' => "black"
-    // ] //Willem
+    ],  
 ];
 
 ?>

@@ -20,7 +20,7 @@ use app\Context;
 
 
 <script>
-function GetWordInfo(clickedElement)
+function getWordInfo(clickedElement)
 {
 	WordElement = clickedElement
 	while (WordElement.tagName.toLowerCase() != 'word')
@@ -180,7 +180,7 @@ foreach ($Dictionary as $word)
 
         // if($word['frequency'] <= 50)
         // {
-        echo "<div  onclick = 'GetWordInfo(this) '  class = 'InfoButton' style = 'background: url(Images/LHinfo.png) no-repeat; background-size: contain;'  ></div>";
+        echo "<div  onclick = 'getWordInfo(this) '  class = 'InfoButton' style = 'background: url(Images/LHinfo.png) no-repeat; background-size: contain;'  ></div>";
 
         // }
 

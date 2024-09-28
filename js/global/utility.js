@@ -28,7 +28,7 @@ async function ajaxAjacis(destination, params, callbackFunction = null, method =
 
                     resolve(result);
 
-                    
+
                 } else if (this.status == 504)
                 {
                     console.error(this.responseText.replace(/(\r\n\t|\n|\r\t)/gm, " ").replace(/^\s+|\s+$/gm, ''));
@@ -80,5 +80,19 @@ async function getAssignmentFromDocument(assignmentNumber)
     else
     {
         throw new Error('Assignment not found');
+    }
+}
+
+
+function toggleQuote(clickedElement)
+{
+    var Pele = clickedElement.parentElement;
+    if (Pele.getAttribute('expanded') != "true")
+    {
+        Pele.setAttribute('expanded', 'true');
+    }
+    else
+    {
+        Pele.setAttribute('expanded', 'false');
     }
 }

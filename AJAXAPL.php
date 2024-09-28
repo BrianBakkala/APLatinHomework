@@ -266,10 +266,10 @@ if (isset($_REQUEST["filter-dictionary"]))
             $hint .= "</i>";
             $hint .= "</definition>";
 
-            $hint .= "<img  onclick = 'SaveEntry(this) '  style = 'display:none;' class = 'savebutton' src = 'Images/LHcheck.png'>";
-            $hint .= "<img  onclick = 'EditEntry(this)'  class = 'editbutton' src = 'Images/LHedit.png'>";
-            $hint .= "<img  onclick = 'GetWordInfo(this) '  class = 'InfoButton' src = 'Images/LHinfo.png'>";
-            $hint .= "<img  onclick = 'DeleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
+            $hint .= "<img  onclick = 'saveEntry(this) '  style = 'display:none;' class = 'savebutton' src = 'Images/LHcheck.png'>";
+            $hint .= "<img  onclick = 'editEntry(this)'  class = 'editbutton' src = 'Images/LHedit.png'>";
+            $hint .= "<img  onclick = 'getWordInfo(this) '  class = 'InfoButton' src = 'Images/LHinfo.png'>";
+            $hint .= "<img  onclick = 'deleteEntry(this) '  class = 'deletebutton' src = 'Images/LHx.png'>";
             $hint .= "<div  id = 'Matching Score'  style = 'display:none;' >" . GetMatchingScore($nomacronsfiltertext, $word['entry']) . "</div>";
             $hint .= "<div  id = 'Position Score'  style = 'display:none;' >" . GetPositionScore($nomacronsfiltertext, $word['entry']) . "</div>";
 
