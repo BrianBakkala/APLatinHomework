@@ -1,6 +1,7 @@
 {
     "require": {
-        "google/apiclient": "^2.11"
+        "google/apiclient": "^2.11",
+        "eftec/bladeone": "^4.13"
     },
     "scripts": {
         "pre-autoload-dump": "Google\\Task\\Composer::cleanup"

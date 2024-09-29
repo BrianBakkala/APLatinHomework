@@ -1,4 +1,3 @@
-
 <TITLE>AP Latin Units</TITLE>
 <?php
 
@@ -67,7 +66,7 @@ error_reporting(E_ALL);
 
 require_once 'SQLConnection.php';
 
-$UnitsCount = SQLQ('SELECT MAX(`Unit`) FROM `ap_homework` ');
+$UnitsCount = SQLQ('SELECT COUNT(DISTINCT `Unit`) FROM `ap_homework` ');
 
 for ($u = 1; $u <= $UnitsCount; $u++)
 {
